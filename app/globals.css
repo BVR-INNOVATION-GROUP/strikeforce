@@ -1,26 +1,68 @@
 @import "tailwindcss";
 
+* {
+  font-family: poppins;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #f9f9f9;
+  --pale: #f4f4f4;
+  --primary: #e9226e;
+  --pale-primary: #ee6e9f12;
+  --very-pale: #efefef;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.bg-paper {
+  background-color: var(--paper);
 }
 
-@media (prefers-color-scheme: dark) {
+.bg-very-pale {
+  background-color: var(--very-pale);
+}
+
+.bg-pale-primary {
+  background-color: var(--pale-primary);
+  color: var(--primary);
+}
+
+.bg-pale {
+  background-color: var(--pale);
+}
+
+.bg-primary {
+  background-color: var(--primary);
+  color: var(--paper);
+}
+
+.border-primary {
+  border-color: var(--primary);
+}
+
+.text-primary {
+  color: var(--primary);
+}
+
+.shadow-custom {
+  box-shadow: 10px 10px 20px rgba(50, 50, 50, 0.07);
+}
+
+.border-pale {
+  border-color: var(--pale);
+}
+
+.border-paper {
+  border-color: var(--paper);
+}
+
+.hover-bg-pale:hover {
+  background-color: var(--pale);
+}
+
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --color-primary: blue;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  html {
+    font-size: 13.5px;
+  }
 }
