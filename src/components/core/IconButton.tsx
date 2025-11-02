@@ -12,7 +12,7 @@ const IconButton = ({ icon, indicator, disableShrink, className, ...attr }: Prop
       <span className={`${!disableShrink && "transform scale-[.8]"}`}>
         {icon}
         <Activity mode={indicator ? "visible" : "hidden"}>
-          <div className="absolute rounded-full h-3 w-3 border right-0 top-0 bg-primary"></div>
+          <div className="absolute rounded-full h-3 w-3 border border-pale right-0 top-0 bg-[#e9226e]"></div>
         </Activity>
       </span>
 

@@ -13,10 +13,10 @@ export interface OptionI {
 
 export interface Props {
     title?: string
-    options: OptionI[]
+    options?: OptionI[]
     value?: OptionI | null
-    onChange: (value: OptionI) => void
-    placeHolder: string
+    onChange?: (value: OptionI) => void
+    placeHolder?: string
 }
 
 const Option = (o: OptionI) => {
@@ -32,7 +32,7 @@ const Option = (o: OptionI) => {
     )
 }
 
-const Select = (props: Props) => {
+const MultiSelect = (props: Props) => {
 
     const [open, setOpen] = useState(false)
 
@@ -90,4 +90,4 @@ const Select = (props: Props) => {
     )
 }
 
-export default Select
+export default MultiSelect

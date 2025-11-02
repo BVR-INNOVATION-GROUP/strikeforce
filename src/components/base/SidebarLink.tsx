@@ -12,7 +12,7 @@ export interface SidebarLinkI {
 
 const SidebarLink = ({ image, icon, title }: SidebarLinkI) => {
     return (
-        <div>
+        <div className=''>
             <IconButton icon={
 
                 icon

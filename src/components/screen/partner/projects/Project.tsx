@@ -51,7 +51,7 @@ const Project = (p: ProjectI) => {
             dragConstraints={{ left: p?.status == "in-progress" ? 200 : 0, right: p.status == "on-hold" ? 0 : 200 }}
             onDragEnd={() => handleDragEnd()}
             onDrag={(_, i) => handleDrag(i?.point?.x)}
-            className='rounded-lg p-8 bg-pale'>
+            className='rounded-lg p-8 bg-pale hover:opacity-100 opacity-80 cursor-pointer'>
             <h3 className="text-[1rem] font-[600]">{p.title}</h3>
             <p className='my-3 mb-6 opacity-60'>{p.description}</p>
             <div className="flex flex-wrap gap-3 items-center">

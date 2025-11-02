@@ -71,10 +71,10 @@ const Sidebar = () => {
     }
 
     return (
-        <div className="bg-paper w-[6vw] flex flex-col items-center gap-3 p-[2vw]">
+        <div className="bg-paper z-[10] w-[6vw] flex flex-col items-center gap-3 p-[2vw]">
             {
                 getLinks()?.map((l, i) => <Link key={i} href={l.path}><motion.div onHoverStart={() => setSelectedTitle(l.title)} onHoverEnd={() => setSelectedTitle("")} className="relative ">
-                    <IconButton icon={l.icon} className={`hover:bg-gray-100 ${l.isFocused && "text-primary bg-pale"}`} />
+                    <IconButton icon={l.icon} className={`hover-bg-pale ${l.isFocused && "text-primary bg-pale"}`} />
                     {/* <Activity mode={selectedTitle == l.title ? "visible" : "hidden"}> */}
                     {
                         selectedTitle == l.title

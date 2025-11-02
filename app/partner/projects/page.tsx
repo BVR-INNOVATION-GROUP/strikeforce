@@ -110,7 +110,7 @@ const page = () => {
         }
     ])
 
-    const [open, setOpen] = useState(false)
+    const [open, setOpen] = useState(true)
 
     const moveProject = (projectId: number | string, currentProjectStatus: projectStatus, x: number) => {
 
@@ -132,10 +132,10 @@ const page = () => {
 
                 <div className="flex items-center gap-3">
                     <p className='font-[600]'>Projects</p>
-                    <IconButton icon={<span>9+</span>} className='bg-pale-primary text-primary' disableShrink />
+                    <IconButton icon={<span>9+</span>} className='bg-pale-primary ' disableShrink />
                 </div>
 
-                <Button onClick={() => setOpen(true)} className='bg-primary rounded-full'>
+                <Button onClick={() => setOpen(true)} className='bg-accent rounded-full'>
                     Submit new project
                 </Button>
             </div>

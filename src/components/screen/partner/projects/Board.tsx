@@ -11,7 +11,7 @@ export interface Props {
 
 const Board = (props: Props) => {
     return (
-        <div className="flex-1 bg-paper flex flex-col rounded-lg overflow-hidden">
+        <div className="flex-1 z-[5] bg-paper flex flex-col rounded-lg overflow-hidden">
 
             <div className="bg-primary p-5">
                 {props?.title}

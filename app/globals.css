@@ -2,14 +2,38 @@
 
 * {
   font-family: poppins;
+  /* color: var(--text); */
 }
 
+/* :root {
+  --text: #b7b7b7;
+  --paper: black;
+  --pale: rgb(16, 16, 16);
+  --primary: #313131;
+  --pale-primary: #dfdfdf12;
+  --very-pale: #232323;
+  --border: rgba(56, 56, 56, 0.535);
+  --shadow: 10px 10px 20px rgba(0, 0, 0, 0.07);
+  --accent: #e9226e;
+} */
+
 :root {
+  --text: #000000;
+  --border: rgba(151, 151, 151, 0.255);
   --paper: #f9f9f9;
   --pale: #f4f4f4;
   --primary: #e9226e;
   --pale-primary: #ee6e9f12;
   --very-pale: #efefef;
+  --accent: #e9226e;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+.border-custom {
+  border-color: var(--border);
 }
 
 .bg-paper {
@@ -31,7 +55,11 @@
 
 .bg-primary {
   background-color: var(--primary);
-  color: var(--paper);
+  color: aliceblue;
+}
+.bg-accent {
+  background-color: var(--accent);
+  color: aliceblue;
 }
 
 .border-primary {
@@ -43,7 +71,7 @@
 }
 
 .shadow-custom {
-  box-shadow: 10px 10px 20px rgba(50, 50, 50, 0.07);
+  box-shadow: var(--shadow);
 }
 
 .border-pale {
@@ -59,10 +87,7 @@
 }
 
 @layer base {
-  :root {
-    --color-primary: blue;
-  }
   html {
-    font-size: 13.5px;
+    font-size: 12.5px;
   }
 }

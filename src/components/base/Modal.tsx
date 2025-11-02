@@ -18,7 +18,7 @@ const Modal = (props: Props) => {
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className='bg-black/20  h-[100vh] w-[100vw] fixed top-0 left-0 flex items-center justify-center' >
+            className='bg-black/20 backdrop-blur-sm z-[15]  h-[100vh] w-[100vw] fixed top-0 left-0 flex items-center justify-center' >
 
             <motion.div
                 transition={{ delay: .1 }}
@@ -30,7 +30,7 @@ const Modal = (props: Props) => {
                     <div className='font-[600]'>
                         {props?.title}
                     </div>
-                    <IconButton onClick={() => props?.handleClose()} icon={<X />} className='hover:bg-gray-100' />
+                    <IconButton onClick={() => props?.handleClose()} icon={<X />} className='hover-bg-pale' />
                 </div>
 
                 <div className='mt-6'>

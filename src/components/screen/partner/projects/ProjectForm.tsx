@@ -1,8 +1,12 @@
+import CurrencyInput from '@/src/components/base/CurrencyInput'
+import DatePicker from '@/src/components/base/DatePicker'
 import Modal from '@/src/components/base/Modal'
+import MultiSelect from '@/src/components/base/MultiSelect'
 import Button from '@/src/components/core/Button'
 import Input from '@/src/components/core/Input'
 import Select, { OptionI } from '@/src/components/core/Select'
 import TextArea from '@/src/components/core/TextArea'
+import { currenciesArray } from '@/src/constants/currencies'
 import React, { ReactNode, useEffect, useState } from 'react'
 
 interface DepartmentI {
@@ -75,6 +79,7 @@ const ProjectForm = (props: Props) => {
     const [universities] = useState<University[]>(topUgandanUniversities);
     const [university, setUniversity] = useState<OptionI>();
     const [department, setDepartment] = useState<OptionI | null>(null);
+    const [currency, setCurrency] = useState<OptionI | null>(null)
     const [title, setTitle] = useState("")
     const [desc, setDesc] = useState("")
 
@@ -83,6 +88,10 @@ const ProjectForm = (props: Props) => {
     }
     const handleDepartmentChange = (o: OptionI) => {
         setDepartment(o)
+    }
+
+    const handleCurrencyChange = (o: OptionI) => {
+        setCurrency(o)
     }
 
     const getUniversities = () => {
@@ -96,6 +105,10 @@ const ProjectForm = (props: Props) => {
             return foundDepartments
         }
         return []
+    }
+
+    const getCurrencies = () => {
+        return currenciesArray?.map(c => ({ icon: c.icon, value: c?.code, isSelected: currency?.value === c?.code, label: c?.code }))
     }
 
     useEffect(() => {
@@ -134,6 +147,7 @@ const ProjectForm = (props: Props) => {
                         <>
                             <Select placeHolder='Select the university' title='Unviersity' onChange={handleUniversityChange} value={university} options={getUniversities()} />
                             <Select placeHolder='Select the Department' title='Department' onChange={handleDepartmentChange} value={department} options={getDepartments()} />
+                            <MultiSelect title='Skill required for the project' placeHolder='select skills' />
                         </>
                         :
                         step == 2
@@ -141,6 +155,16 @@ const ProjectForm = (props: Props) => {
                         <>
                             <Input title='Project Title' />
                             <TextArea title='Description' />
+                            <div className="flex gap-2 flex-end">
+                                <div className="flex gap-2 items-end">
+                                    <Select placeHolder='Select the currency' title='Currency' onChange={handleCurrencyChange} value={currency} options={getCurrencies()} />
+                                    <Input className='flex-1' />
+                                </div>
+                                <div className="flex-1 ">
+                                    <DatePicker title='Deadline' />
+                                </div>
+                            </div>
+
                         </>
 
                 }
