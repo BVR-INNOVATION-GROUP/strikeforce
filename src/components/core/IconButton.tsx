@@ -1,4 +1,4 @@
-import React, { Activity, HTMLAttributes, ReactNode } from 'react'
+import React, { HTMLAttributes, ReactNode } from 'react'
 
 export interface Props extends HTMLAttributes<HTMLDivElement> {
   icon: ReactNode
@@ -11,9 +11,9 @@ const IconButton = ({ icon, indicator, disableShrink, className, ...attr }: Prop
     <div {...attr} className={`rounded-full h-13  w-13 flex items-center justify-center ${className}`}>
       <span className={`${!disableShrink && "transform scale-[.8]"}`}>
         {icon}
-        <Activity mode={indicator ? "visible" : "hidden"}>
-          <div className="absolute rounded-full h-3 w-3 border border-pale right-0 top-0 bg-[#e9226e]"></div>
-        </Activity>
+        {indicator && (
+          <div className="absolute rounded-full h-3 w-3 border border-pale right-0 top-0 bg-primary"></div>
+        )}
       </span>
 
 

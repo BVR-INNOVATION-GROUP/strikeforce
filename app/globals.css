@@ -5,6 +5,14 @@
   /* color: var(--text); */
 }
 
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: none;
+}
+
 /* :root {
   --text: #b7b7b7;
   --paper: black;
@@ -19,13 +27,46 @@
 
 :root {
   --text: #000000;
-  --border: rgba(151, 151, 151, 0.255);
+  --border: rgba(151, 151, 151, 0.155);
   --paper: #f9f9f9;
-  --pale: #f4f4f4;
+  --pale: #f3f3f3;
   --primary: #e9226e;
   --pale-primary: #ee6e9f12;
   --very-pale: #efefef;
   --accent: #e9226e;
+  /* Text color variants */
+  --text-secondary: rgba(
+    75,
+    85,
+    99,
+    1
+  ); /* Gray-600 equivalent for secondary text */
+  --text-muted: rgba(107, 114, 128, 1); /* Gray-500 equivalent for muted text */
+  --text-muted-light: rgba(
+    156,
+    163,
+    175,
+    1
+  ); /* Gray-400 equivalent for very muted text */
+  /* Status color variants */
+  --text-success: rgba(22, 163, 74, 1); /* Green-700 for success text */
+  --text-success-dark: rgba(21, 128, 61, 1); /* Green-800 for darker success */
+  --text-error: rgba(220, 38, 38, 1); /* Red-600 for error text */
+  --text-error-dark: rgba(153, 27, 27, 1); /* Red-800 for darker error */
+  --text-warning: rgba(234, 179, 8, 1); /* Yellow-500 for warning */
+  --text-warning-dark: rgba(
+    161,
+    98,
+    7,
+    1
+  ); /* Yellow-700/800 for darker warning */
+  --text-info: rgba(37, 99, 235, 1); /* Blue-600 for info */
+  --text-info-dark: rgba(30, 64, 175, 1); /* Blue-800 for darker info */
+  /* Muted color variants for stat cards - soft, desaturated colors */
+  --muted-green-bg: rgba(34, 197, 94, 0.1); /* Very light green background */
+  --muted-green-text: rgba(34, 197, 94, 0.7); /* Muted green text */
+  --muted-red-bg: rgba(239, 68, 68, 0.1); /* Very light red background */
+  --muted-red-text: rgba(239, 68, 68, 0.7); /* Muted red text */
 }
 
 ::-webkit-scrollbar {
@@ -82,12 +123,84 @@
   border-color: var(--paper);
 }
 
+.bg-custom {
+  background-color: var(--border);
+}
+
 .hover-bg-pale:hover {
   background-color: var(--pale);
 }
 
+.bg-muted-green {
+  background-color: var(--muted-green-bg);
+  color: var(--muted-green-text);
+}
+
+.bg-muted-red {
+  background-color: var(--muted-red-bg);
+  color: var(--muted-red-text);
+}
+
+.text-muted-green {
+  color: var(--muted-green-text);
+}
+
+.text-muted-red {
+  color: var(--muted-red-text);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-muted-light {
+  color: var(--text-muted-light);
+}
+
+.text-success {
+  color: var(--text-success);
+}
+
+.text-success-dark {
+  color: var(--text-success-dark);
+}
+
+.text-error {
+  color: var(--text-error);
+}
+
+.text-error-dark {
+  color: var(--text-error-dark);
+}
+
+.text-warning {
+  color: var(--text-warning);
+}
+
+.text-warning-dark {
+  color: var(--text-warning-dark);
+}
+
+.text-info {
+  color: var(--text-info);
+}
+
+.text-info-dark {
+  color: var(--text-info-dark);
+}
+
+.shadow-custom-lg {
+  /* background-color:; */
+  box-shadow: 0 10px 40px -3px rgba(0, 0, 0, 0.05),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
 @layer base {
   html {
-    font-size: 12.5px;
+    font-size: 13.5px;
   }
 }

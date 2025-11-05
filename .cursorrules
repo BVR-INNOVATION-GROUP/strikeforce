@@ -1,0 +1,2446 @@
+# StrikeForce Project Rules
+
+## Table of Contents
+
+1. Project Overview
+2. Technology Stack
+3. Critical Guidelines
+4. Component Architecture
+5. SOLID Principles
+6. Coding Standards
+7. State Management Rules
+8. Data Access Layer
+9. Issue Resolution Process
+10. Best Practices
+11. File Modification Rules
+12. Code Review Checklist
+13. Common Patterns
+14. Project Structure
+15. Theme Colors Reference
+16. Known Issues & Notes
+17. Detailed Component Descriptions
+18. Routing & Navigation Details
+19. State Management Patterns
+20. Authentication Details
+21. Component Size & Modularization Details
+22. TypeScript Usage Details
+23. Code Documentation Details
+24. Function Design Details
+25. Future Architecture Considerations
+26. Development Workflow
+27. Design System Summary
+28. Code Style Details
+29. Summary
+
+---
+
+## Project Overview
+
+StrikeForce is a Next.js-based web application for managing partnerships, projects, and collaborative workflows. Supports multiple user roles: `partner`, `student`, `university-admin`, `super-admin`. Current focus: partner-facing features, particularly project management.
+
+**Version:** 0.1.0  
+**Framework:** Next.js 16.0.1 with App Router  
+**React:** 19.2.0
+
+## Technology Stack
+
+### Core Dependencies
+
+| Package                | Version   | Purpose                                             |
+| ---------------------- | --------- | --------------------------------------------------- |
+| **next**               | 16.0.1    | React framework with SSR, routing, and optimization |
+| **react**              | 19.2.0    | UI library                                          |
+| **react-dom**          | 19.2.0    | React DOM renderer                                  |
+| **typescript**         | ^5        | Type safety and enhanced developer experience       |
+| **framer-motion**      | ^12.23.24 | Animation library for smooth UI interactions        |
+| **lucide-react**       | ^0.552.0  | Icon library                                        |
+| **tailwindcss**        | ^4        | Utility-first CSS framework                         |
+| **eslint**             | ^9        | Code linting and quality                            |
+| **eslint-config-next** | 16.0.1    | Next.js ESLint configuration                        |
+
+### Build Tools
+
+- **PostCSS** with Tailwind CSS plugin
+- **TypeScript** for type checking
+- **ESLint** for code quality
+
+### Additional Stack
+
+- **State Management (Client-side global state):** Zustand (standard for this project)
+- **Authentication:** NextAuth.js (Auth.js) - standard for this project
+- **Server State:** React Query (TanStack Query) or SWR
+
+## Critical Guidelines
+
+### Type Safety
+
+- **NEVER use `any` or `unknown`** - Always define proper TypeScript types
+- Use interfaces for object shapes
+- Use union types for enums/status values
+- Type all function parameters and return values
+- Use generic types (`<T>`) where appropriate
+
+### Theme Colors
+
+- **ONLY use colors from `app/globals.css`** - Never create custom colors
+- Available theme classes: `bg-paper`, `bg-pale`, `bg-very-pale`, `bg-primary`, `bg-accent`, `bg-pale-primary`
+- Text colors: `text-primary`
+- Border colors: `border-custom`, `border-primary`, `border-pale`, `border-paper`
+- Hover: `hover-bg-pale`
+- Maintain color consistency across the app
+
+### UI Benchmarking
+
+- **Always benchmark from existing components** before creating new ones
+- Review similar components in `src/components/core/` and `src/components/base/`
+- Match existing patterns: spacing, borders, padding, shadows
+- Follow existing component structure and naming
+
+### Implementation Rules
+
+- **DO NOT create bash scripts, README files, or setup scripts** when implementing features
+- Just implement the feature directly
+- Keep conversation history for easy rollbacks
+- Use `.env` file at root for environment variables (not `.env.local` unless specifically needed)
+- Keep things simple - avoid over-engineering
+- Refer to official API docs for all technologies to ensure latest implementation (avoid deprecations)
+- When installing packages, use the latest stable versions (check npm registry)
+- Performance optimize each implementation before finalizing
+- Use online best practices/critics for optimal solutions
+
+## Architecture Patterns
+
+### 1. Layered Component Architecture
+
+The application follows a three-tier component structure:
+
+## Component Architecture
+
+### Three-Tier Structure
+
+1. **Core Components** (`src/components/core/`): Primitive, reusable UI elements (Button, Input, Select, IconButton)
+
+   - Highly reusable, minimal business logic, focus on presentation
+   - Examples: `Button`, `Input`, `Select`, `IconButton`, `Text`, `TextArea`, `View`
+
+2. **Base Components** (`src/components/base/`): Composite components built from core (Modal, Navbar, Sidebar, MultiSelect)
+
+   - Combine multiple core components, may contain some business logic
+   - Layout-specific or common patterns
+   - Examples: `Modal`, `Navbar`, `Sidebar`, `MultiSelect`, `DatePicker`, `CurrencyInput`
+
+3. **Screen Components** (`src/components/screen/[feature]/`): Feature-specific components with business logic
+   - Business logic heavy, feature-specific, organize by feature/user role
+   - Examples: `Board`, `Project`, `ProjectForm` (in `screen/partner/projects/`)
+
+### 2. Component Composition Pattern
+
+Components are designed to be composable:
+
+```typescript
+// Example: Modal composes Button and IconButton
+<Modal title="Add project" actions={[<Button />, <Button />]}>
+  <ProjectForm />
+</Modal>
+```
+
+### 3. Props Interface Pattern
+
+All components use TypeScript interfaces for props:
+
+```typescript
+export interface Props extends HTMLAttributes<HTMLButtonElement> {
+  children: ReactNode;
+  className?: string;
+}
+```
+
+### 4. Conditional Rendering Pattern
+
+The codebase uses conditional rendering extensively (though there's an issue with `Activity` component - see notes):
+
+```typescript
+{
+  condition && <Component />;
+}
+```
+
+### 5. Role-Based Architecture
+
+The application supports multiple user roles:
+
+- `partner`
+- `student`
+- `university-admin`
+- `super-admin`
+
+The `Sidebar` component implements role-based navigation by filtering links based on user role.
+
+### 6. Feature-Based Routing
+
+Routes are organized by feature/role:
+
+- `/partner` - Partner dashboard
+- `/partner/projects` - Projects management
+- `/partner/wallet` - Wallet management (planned)
+- `/partner/chat` - Chat feature (planned)
+- `/partner/contracts` - Contracts (planned)
+- `/partner/profile` - Profile management (planned)
+
+### Component Size Limit
+
+- **Maximum: 150 lines** per component (excluding comments and blank lines)
+- If exceeding, extract to:
+  - Sub-components in `src/components/`
+  - Custom hooks in `src/hooks/`
+  - Utility functions in `src/utils/`
+  - Business logic in `src/services/`
+
+### Modularization Rules
+
+- Extract to `components/core/` when: primitive UI element, highly reusable, no business logic
+- Extract to `components/base/` when: combines core components, reusable across features
+- Extract to `components/screen/[feature]/` when: feature-specific, significant business logic
+- Extract hooks when: logic reused, complex state, side effects
+- Extract utils when: pure functions, reusable, no React dependencies
+- Extract services when: business rules, API calls, data transformations
+
+### Layout Structure
+
+```
+┌─────────────────────────────────┐
+│        Navbar (8% height)        │
+├──────────┬───────────────────────┤
+│          │                       │
+│ Sidebar  │    Main Content      │
+│ (6vw)    │    (flex-1, p-4)     │
+│          │                       │
+└──────────┴───────────────────────┘
+```
+
+- **Navbar:** Fixed height (8% viewport), full width
+- **Sidebar:** Fixed width (6vw), vertical navigation
+- **Main Content:** Flexible width, padding (p-4)
+
+## SOLID Principles
+
+The codebase follows **SOLID principles** to ensure maintainability and scalability:
+
+### Single Responsibility Principle (SRP)
+
+- Each component/function should have **one reason to change**
+- Components should focus on a single responsibility
+- Example: `Button` handles button UI only, `ProjectForm` handles form logic
+
+### Open/Closed Principle (OCP)
+
+- Components should be **open for extension, closed for modification**
+- Use composition and props to extend functionality
+- Example: `Modal` accepts `actions` prop instead of hardcoding buttons
+
+### Liskov Substitution Principle (LSP)
+
+- Subtypes must be substitutable for their base types
+- Interfaces ensure consistent contracts
+- Example: All form inputs follow `HTMLAttributes<HTMLElement>`
+
+### Interface Segregation Principle (ISP)
+
+- Clients shouldn't depend on interfaces they don't use
+- Keep interfaces focused and minimal
+- Example: `IconButton` has separate props from `Button`
+
+### Dependency Inversion Principle (DIP)
+
+- High-level modules shouldn't depend on low-level modules
+- Both should depend on abstractions (interfaces)
+- Example: Components depend on `ProjectI` interface, not concrete implementations
+
+## Coding Standards & Style Guide
+
+### TypeScript Conventions
+
+1. **Strict Mode Enabled**
+
+   - `strict: true` in `tsconfig.json`
+   - Type safety enforced throughout
+
+2. **Interface Naming**
+
+   - Component props: `Props` (e.g., `ButtonProps` would be named `Props` in Button.tsx)
+   - Feature interfaces: `I` suffix (e.g., `ProjectI`, `CurrencyI`, `OptionI`)
+   - Exported interfaces: PascalCase
+
+3. **Type Definitions**
+   - Prefer interfaces over types for object shapes
+   - Use union types for status/enum-like values:
+     ```typescript
+     export type projectStatus = "in-progress" | "on-hold" | "completed";
+     ```
+   - All props must be typed with interfaces
+   - **NO `any` or `unknown`** - use proper types or generics
+
+### React Conventions
+
+1. **Component Structure**
+
+   ```typescript
+   // Component imports
+   import React, { ... } from 'react'
+
+   // Interface definitions
+   export interface Props { ... }
+
+   // Component definition (default export)
+   const Component = (props: Props) => { ... }
+
+   export default Component
+   ```
+
+2. **Client Components**
+
+   - Mark interactive components with `"use client"` directive
+   - Required for: hooks, event handlers, browser APIs, animations
+
+3. **Component Naming**
+
+   - PascalCase for components
+   - File names match component names exactly
+   - Default exports for components
+
+4. **Import Organization**
+   - React imports first
+   - Third-party libraries
+   - Internal components (absolute imports with `@/`)
+   - Types/interfaces
+   - Utilities
+
+### Styling Conventions
+
+1. **Tailwind CSS Classes**
+
+   - Utility-first approach
+   - Class names in template literals for dynamic classes
+   - Custom classes for theme values (e.g., `bg-paper`, `bg-primary`)
+
+2. **CSS Variables**
+
+   - Defined in `globals.css`
+   - Used for theme colors
+   - Scoped to `:root`
+
+3. **Responsive Design**
+   - Mobile-first approach
+   - Breakpoints: `sm:`, `md:`, `lg:`, etc.
+
+### Code Style
+
+1. **Indentation**
+
+   - Spaces (appears to use 2 or 4 spaces - should be standardized)
+
+2. **Quotes**
+
+   - Single quotes for strings (`'string'`)
+   - Double quotes for JSX attributes (`"attribute"`)
+
+3. **Spacing**
+
+   - Consistent spacing around operators
+   - Blank lines between logical sections
+
+4. **Naming**
+   - Variables: camelCase
+   - Functions: camelCase
+   - Components: PascalCase
+   - Constants: camelCase or UPPER_SNAKE_CASE
+
+### File Organization
+
+1. **One Component Per File**
+
+   - Each component in its own file
+   - File name matches component name
+
+2. **Co-location**
+   - Related components can be in the same directory
+   - Feature components grouped by feature
+
+### Import Organization (in this order)
+
+1. React and Next.js imports
+2. Third-party libraries
+3. Internal components (absolute paths: `@/src/components/...`)
+4. Hooks (`@/src/hooks/...`)
+5. Services/Utils (`@/src/services/...`, `@/src/utils/...`)
+6. Types/Interfaces (`@/src/models/...`)
+7. Constants (`@/src/constants/...`)
+
+### Styling
+
+- Use Tailwind CSS utility classes
+- **ONLY use theme colors from `globals.css`** - No custom colors
+- Custom classes: `bg-paper`, `bg-primary`, `text-primary`, `border-custom`, `bg-pale`, `bg-very-pale`, `bg-accent`, `bg-pale-primary`, `hover-bg-pale`
+- CSS variables defined in `globals.css`
+- Mobile-first responsive design (breakpoints: `sm:`, `md:`, `lg:`)
+- Typography: Poppins font family, base 12.5px, component 13.5px
+- Spacing: Use Tailwind default scale (`gap-1`, `gap-2`, `gap-3`, `gap-4`, `gap-8`)
+- Component patterns:
+  - Cards/Panels: `bg-paper rounded-lg shadow-custom`
+  - Buttons: Primary `bg-primary`, Secondary `bg-pale`, hover animations via Framer Motion
+  - Inputs: `border-custom p-3 rounded-lg`
+
+### File Naming
+
+- Components: `PascalCase.tsx` (e.g., `ProjectCard.tsx`)
+- Hooks: `camelCase.ts` with `use` prefix (e.g., `useProjectFilters.ts`)
+- Utils: `camelCase.ts` (e.g., `formatCurrency.ts`)
+- Services: `camelCase.ts` (e.g., `projectService.ts`)
+- Types: `PascalCase.ts` or co-located
+- Constants: `camelCase.ts` (e.g., `currencies.ts`)
+
+## UI/UX Design System
+
+### Color Palette
+
+The application uses CSS custom properties for theming:
+
+```css
+:root {
+  --text: #000000; /* Primary text color */
+  --border: rgba(151, 151, 151, 0.255); /* Border color */
+  --paper: #f9f9f9; /* Main background (cards, panels) */
+  --pale: #f4f4f4; /* Secondary background */
+  --primary: #e9226e; /* Primary brand color (pink/magenta) */
+  --pale-primary: #ee6e9f12; /* Light primary background */
+  --very-pale: #efefef; /* Tertiary background */
+  --accent: #e9226e; /* Accent color (same as primary) */
+}
+```
+
+**Note:** A dark theme is commented out in `globals.css` but not currently active.
+
+### Typography
+
+- **Font Family:** Poppins (loaded via Next.js font optimization)
+- **Base Font Size:** 12.5px (defined in `@layer base`)
+- **Component Font Size:** 13.5px (overridden in Tailwind config)
+- **Font Loading:** Google Fonts via `next/font/google`
+  - Geist Sans
+  - Geist Mono
+  - Poppins
+
+### Spacing System
+
+Uses Tailwind's default spacing scale with custom adjustments:
+
+- Small gaps: `gap-1`, `gap-2`
+- Medium gaps: `gap-3`, `gap-4`
+- Large gaps: `gap-8`
+
+### Component Design Patterns
+
+1. **Cards & Panels**
+
+   - Background: `bg-paper`
+   - Border radius: `rounded-lg`
+   - Shadows: `shadow-custom`
+
+2. **Buttons**
+
+   - Primary: `bg-primary` with white text
+   - Secondary: `bg-pale`
+   - Hover effects via Framer Motion animations
+   - Rounded: `rounded-full` or `rounded`
+
+3. **Inputs**
+
+   - Border: `border-custom`
+   - Padding: `p-3`
+   - Border radius: `rounded-lg`
+   - Focus: `outline-none` (custom focus states should be added)
+
+4. **Icons**
+   - Lucide React icons
+   - Size variations: `size={14}`, `size={17}`, etc.
+   - IconButton wrapper for clickable icons
+
+## State Management
+
+### Current Approach
+
+The application currently uses **React Hooks** for local state management:
+
+1. **useState** - Component-level state
+
+   ```typescript
+   const [projects, setProjects] = useState<ProjectI[]>([]);
+   const [open, setOpen] = useState(true);
+   ```
+
+2. **useEffect** - Side effects and dependencies
+
+   ```typescript
+   useEffect(() => {
+     setDepartment(null);
+   }, [university]);
+   ```
+
+3. **useRef** - Mutable references
+   ```typescript
+   const moveRef = useRef(false);
+   ```
+
+### State Management Architecture
+
+The codebase has a **`src/store/`** directory prepared for state management implementation.
+
+#### Client-Side Global State: **Zustand**
+
+**Zustand** is the **standard** for client-side global state management in this project.
+
+**Why Zustand:**
+
+- Minimal boilerplate
+- No provider wrapping needed
+- Excellent TypeScript support
+- Small bundle size
+- Simple API for actions and selectors
+
+**Store Structure:**
+
+```
+src/store/
+├── useAuthStore.ts        # Authentication state (if not using NextAuth session)
+├── useUIStore.ts          # UI state (modals, sidebars, notifications)
+├── useThemeStore.ts       # Theme preferences
+└── index.ts               # Store exports
+```
+
+**Example Store Pattern:**
+
+```typescript
+import { create } from "zustand";
+
+interface UIState {
+  isSidebarOpen: boolean;
+  notifications: Notification[];
+  toggleSidebar: () => void;
+  addNotification: (notification: Notification) => void;
+}
+
+export const useUIStore = create<UIState>((set) => ({
+  isSidebarOpen: true,
+  notifications: [],
+  toggleSidebar: () =>
+    set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
+  addNotification: (notification) =>
+    set((state) => ({ notifications: [...state.notifications, notification] })),
+}));
+```
+
+#### Server State: React Query / SWR
+
+For server state (API data, caching, synchronization):
+
+- **React Query (TanStack Query)** - Recommended for complex data fetching
+- **SWR** - Alternative lightweight option
+- Store in `src/services/` or `src/api/`
+
+### State Management Rules
+
+#### Zustand (Client-Side Global State)
+
+- **Standard for client-side global state** in this project
+- Use for: UI state (modals, sidebars, notifications), theme preferences, user preferences
+- Store location: `src/store/` (e.g., `useUIStore.ts`, `useThemeStore.ts`)
+- Pattern: Create stores with `create` from Zustand, define interface for state and actions
+
+#### NextAuth (Authentication)
+
+- **Standard for authentication** in this project
+- Handle auth state via NextAuth session
+- Use `useSession()` hook in client components
+- Use `getServerSession()` in server components
+- Store location: `app/api/auth/[...nextauth]/route.ts` and `src/lib/auth.ts`
+
+#### React Hooks (Local State)
+
+- Use `useState` for component-level state
+- Use `useEffect` for side effects
+- Use `useRef` for mutable references
+- Lift state up when shared between components
+
+## Data Access Layer
+
+### Three-Layer Architecture
+
+1. **HTTP Client** (`src/api/`): Base HTTP verb functions (get, post, put, patch, delete)
+2. **Repository** (`src/repositories/`): Data access abstraction (switches between mock JSON and real API)
+3. **Service** (`src/services/`): Business logic that calls repositories
+
+**Flow:** Component/Hook → Service → Repository → HTTP Client → API
+
+### HTTP Client Pattern
+
+**Purpose:** Base HTTP verb-based functions for all API calls.
+
+**Responsibilities:**
+
+- Handle HTTP methods (GET, POST, PUT, PATCH, DELETE)
+- Request/response formatting
+- Error handling and retries
+- Authentication headers
+- Request interceptors
+
+**Structure:**
+
+```typescript
+// src/api/client.ts
+/**
+ * Base HTTP client with standard CRUD operations
+ * Handles request/response formatting, error handling, and authentication
+ */
+export interface ApiResponse<T> {
+  data: T;
+  error?: string;
+}
+
+export const api = {
+  /**
+   * GET request
+   * @param url - API endpoint
+   * @param config - Optional fetch configuration
+   */
+  get: async <T>(url: string, config?: RequestInit): Promise<T> => {
+    const response = await fetch(url, {
+      ...config,
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...config?.headers,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`GET ${url} failed: ${response.statusText}`);
+    }
+    return response.json() as Promise<T>;
+  },
+
+  /**
+   * POST request
+   * @param url - API endpoint
+   * @param data - Request body data
+   * @param config - Optional fetch configuration
+   */
+  post: async <T>(
+    url: string,
+    data?: unknown,
+    config?: RequestInit
+  ): Promise<T> => {
+    const response = await fetch(url, {
+      ...config,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...config?.headers,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      throw new Error(`POST ${url} failed: ${response.statusText}`);
+    }
+    return response.json() as Promise<T>;
+  },
+
+  // ... put, patch, delete methods
+};
+```
+
+### Repository Pattern
+
+**Purpose:** Abstract data access layer. Handles switching between mock data (development) and real API (production).
+
+**Responsibilities:**
+
+- Define data access interface
+- Switch between mock JSON files and real API
+- Map data structures if needed
+- Handle environment-specific logic
+
+**Structure:**
+
+```typescript
+// src/repositories/projectRepository.ts
+/**
+ * Repository for project data operations
+ * Abstracts data source - can use mock JSON files or real API
+ */
+import { api } from "@/src/api/client";
+import { ProjectI } from "@/src/models/project";
+
+// Environment configuration
+const isDevelopment = process.env.NODE_ENV === "development";
+const USE_MOCK_DATA =
+  isDevelopment && process.env.NEXT_PUBLIC_USE_MOCK === "true";
+
+export const projectRepository = {
+  /**
+   * Get all projects
+   * Returns mock data in development, API data in production
+   */
+  getAll: async (): Promise<ProjectI[]> => {
+    if (USE_MOCK_DATA) {
+      // Development: Load from JSON file
+      const mockData = await import("@/src/data/mockProjects.json");
+      return mockData.default as ProjectI[];
+    }
+    // Production: Call actual API
+    return api.get<ProjectI[]>("/api/projects");
+  },
+
+  /**
+   * Get project by ID
+   */
+  getById: async (id: string | number): Promise<ProjectI> => {
+    if (USE_MOCK_DATA) {
+      const mockData = await import("@/src/data/mockProjects.json");
+      const projects = mockData.default as ProjectI[];
+      const project = projects.find((p) => p.id === id);
+      if (!project) {
+        throw new Error(`Project ${id} not found`);
+      }
+      return project;
+    }
+    return api.get<ProjectI>(`/api/projects/${id}`);
+  },
+
+  /**
+   * Create new project
+   */
+  create: async (project: Partial<ProjectI>): Promise<ProjectI> => {
+    if (USE_MOCK_DATA) {
+      // Simulate creation - in real app would persist to mock store
+      const newProject = {
+        id: Date.now(),
+        ...project,
+        createdAt: new Date().toISOString(),
+      } as ProjectI;
+      return newProject;
+    }
+    return api.post<ProjectI>("/api/projects", project);
+  },
+
+  /**
+   * Update existing project
+   */
+  update: async (
+    id: string | number,
+    project: Partial<ProjectI>
+  ): Promise<ProjectI> => {
+    if (USE_MOCK_DATA) {
+      return { id, ...project } as ProjectI;
+    }
+    return api.put<ProjectI>(`/api/projects/${id}`, project);
+  },
+
+  /**
+   * Delete project
+   */
+  delete: async (id: string | number): Promise<void> => {
+    if (USE_MOCK_DATA) {
+      return; // Simulate deletion
+    }
+    return api.delete(`/api/projects/${id}`);
+  },
+};
+```
+
+**Mock Data Structure:**
+
+```json
+// src/data/mockProjects.json
+[
+  {
+    "id": 1,
+    "title": "Example Project",
+    "status": "in-progress",
+    "description": "...",
+    ...
+  }
+]
+```
+
+### Service Pattern
+
+**Purpose:** Business logic layer. Calls repositories and applies business rules.
+
+**Responsibilities:**
+
+- Business validation
+- Data transformations
+- Complex business logic
+- Orchestrating multiple repository calls
+- Error handling with business context
+
+**Structure:**
+
+```typescript
+// src/services/projectService.ts
+/**
+ * Service layer for project business logic
+ * Handles validation, transformations, and orchestrates repository calls
+ */
+import { projectRepository } from "@/src/repositories/projectRepository";
+import { ProjectI } from "@/src/models/project";
+
+export interface ProjectFilters {
+  status?: string;
+  search?: string;
+}
+
+export const projectService = {
+  /**
+   * Get all projects with optional filtering
+   * @param filters - Optional filters to apply
+   * @returns Filtered array of projects
+   */
+  getAllProjects: async (filters?: ProjectFilters): Promise<ProjectI[]> => {
+    const projects = await projectRepository.getAll();
+
+    // Apply business logic filters
+    let filtered = projects;
+
+    if (filters?.status) {
+      filtered = filtered.filter((p) => p.status === filters.status);
+    }
+
+    if (filters?.search) {
+      const searchLower = filters.search.toLowerCase();
+      filtered = filtered.filter(
+        (p) =>
+          p.title.toLowerCase().includes(searchLower) ||
+          p.description.toLowerCase().includes(searchLower)
+      );
+    }
+
+    return filtered;
+  },
+
+  /**
+   * Create a new project with validation
+   * @param projectData - Project data to create
+   * @throws Error if validation fails
+   */
+  createProject: async (projectData: Partial<ProjectI>): Promise<ProjectI> => {
+    // Business validation
+    if (!projectData.title || projectData.title.trim().length === 0) {
+      throw new Error("Project title is required");
+    }
+
+    if (
+      !projectData.description ||
+      projectData.description.trim().length < 10
+    ) {
+      throw new Error("Project description must be at least 10 characters");
+    }
+
+    // Transform data for storage
+    const transformedData: Partial<ProjectI> = {
+      ...projectData,
+      status: projectData.status || "in-progress",
+      createdAt: new Date().toISOString(),
+    };
+
+    return projectRepository.create(transformedData);
+  },
+
+  /**
+   * Update project with validation
+   */
+  updateProject: async (
+    id: string | number,
+    projectData: Partial<ProjectI>
+  ): Promise<ProjectI> => {
+    // Get existing project
+    const existing = await projectRepository.getById(id);
+
+    // Apply business rules for updates
+    const updatedData = {
+      ...existing,
+      ...projectData,
+      updatedAt: new Date().toISOString(),
+    };
+
+    return projectRepository.update(id, updatedData);
+  },
+};
+```
+
+**Environment Switching:**
+
+- Set `NEXT_PUBLIC_USE_MOCK=true` in `.env` (or `.env.local` if needed) for development
+- Test JSON files in `src/data/` (e.g., `mockProjects.json`)
+- Repository automatically switches data source
+- Single toggle point for easy testing
+
+## Issue Resolution Process
+
+### Step 1: Analyze
+
+- Understand the requirement completely
+- Identify affected files/components
+- Check dependencies and impacts
+- Review existing patterns in codebase
+- Benchmark similar components for UI consistency
+
+### Step 2: Plan
+
+- Break down into small tasks
+- Identify components to create/modify
+- Consider modularity (keep under 150 lines)
+- Plan state management approach (local vs Zustand)
+- Check online docs for latest patterns
+- Plan performance optimizations
+
+### Step 3: Implement
+
+- Create new components first (primitives → composites → screens)
+- Follow existing patterns and code style
+- Benchmark UI from existing components
+- Use ONLY theme colors from `globals.css`
+- Extract to components folder when reusable
+- Type everything with proper TypeScript interfaces (NO `any` or `unknown`)
+- Use absolute imports (`@/src/...`)
+- Performance optimize before finalizing
+- **ONLY modify files directly related to the issue**
+- **DO NOT create scripts or README files** - just implement
+
+### Step 4: Verify
+
+- Check component size (< 150 lines)
+- Verify TypeScript (no errors, no `any`/`unknown`)
+- Verify theme colors match `globals.css`
+- Test functionality
+- Check for regressions
+- Review code style compliance
+- Ensure performance optimizations are in place
+
+## Best Practices
+
+### Component Development
+
+- Keep functions small (max 150 lines for components)
+- Extract sub-components when component grows
+- Use TypeScript interfaces for all props (NO `any` or `unknown`)
+- Follow composition pattern
+- Avoid prop drilling (use Zustand or context if needed)
+- Benchmark UI from existing components
+
+### Code Comments
+
+- **Comment all code** - Explain "why" not "what"
+- Use JSDoc comments for functions and complex logic
+- Comment non-obvious business rules and edge cases
+- Document edge cases and error handling
+- Keep comments up-to-date with code changes
+
+**Comment Guidelines:**
+
+- Code should be self-documenting for "what"
+- Comments should explain business reasoning
+- Use JSDoc for functions: `@param`, `@returns`
+- Document business rules and validations
+- Example:
+
+```typescript
+/**
+ * Calculates project completion percentage based on completed tasks
+ * Business rule: Only tasks with status 'completed' count toward completion
+ * @param tasks - Array of task objects with status field
+ * @returns Completion percentage as integer (0-100)
+ */
+function calculateCompletion(tasks: Task[]): number {
+  // Handle empty arrays to prevent division by zero
+  if (tasks.length === 0) return 0;
+  const completed = tasks.filter((t) => t.status === "completed").length;
+  return Math.round((completed / tasks.length) * 100);
+}
+```
+
+### Function Design
+
+- **Avoid God functions** - Functions should do one thing well
+- **Target:** 20-30 lines per function
+- **Maximum:** 50 lines (consider breaking down if longer)
+- Keep functions focused and single-purpose
+- Extract helper functions for reusable logic
+- Use services for complex business logic orchestration
+
+**God Function Characteristics (avoid):**
+
+- Over 50-100 lines
+- Multiple responsibilities
+- Hard to test
+- Difficult to understand
+- Many nested conditionals
+
+**Pattern:**
+
+```typescript
+// ❌ Bad: God function doing too much
+function processProject(project: ProjectI) {
+  // Validation, transformation, API call, notification, logging
+}
+
+// ✅ Good: Separated responsibilities
+function validateProject(project: ProjectI): void {
+  /* ... */
+}
+function transformProject(project: ProjectI): ProjectI {
+  /* ... */
+}
+async function saveProject(project: ProjectI): Promise<ProjectI> {
+  /* ... */
+}
+async function processProject(project: ProjectI) {
+  validateProject(project);
+  const transformed = transformProject(project);
+  return await saveProject(transformed);
+}
+```
+
+### Object-Oriented Programming
+
+### When to Use OOP
+
+**Use OOP only where necessary.** Prefer functional programming.
+
+### Appropriate OOP Use Cases
+
+1. **Complex Domain Models**
+
+   ```typescript
+   // Domain model with behavior
+   class Project {
+     constructor(
+       public id: string,
+       public title: string,
+       private status: projectStatus
+     ) {}
+
+     canTransitionTo(newStatus: projectStatus): boolean {
+       // Business rules for status transitions
+       return this.isValidTransition(this.status, newStatus);
+     }
+   }
+   ```
+
+2. **Polymorphism Required**
+
+   ```typescript
+   // When different implementations needed
+   interface PaymentProcessor {
+     process(amount: number): Promise<void>;
+   }
+
+   class StripeProcessor implements PaymentProcessor {
+     /* ... */
+   }
+   class PayPalProcessor implements PaymentProcessor {
+     /* ... */
+   }
+   ```
+
+3. **Stateful Objects with Behavior**
+
+   ```typescript
+   // Object maintains state and has methods
+   class ProjectCache {
+     private cache = new Map<string, ProjectI>();
+
+     get(id: string): ProjectI | undefined {
+       return this.cache.get(id);
+     }
+
+     set(id: string, project: ProjectI): void {
+       this.cache.set(id, project);
+     }
+   }
+   ```
+
+### Prefer Functional Programming
+
+**Most of the codebase should be functional:**
+
+```typescript
+// ✅ Prefer: Functional approach
+export function formatCurrency(amount: number, currency: string): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+  }).format(amount);
+}
+
+// ❌ Avoid: Unnecessary class
+class CurrencyFormatter {
+  format(amount: number, currency: string): string {
+    // Same logic, but wrapped in unnecessary class
+  }
+}
+```
+
+**Use TypeScript Interfaces for Contracts:**
+
+```typescript
+// ✅ Use interfaces for type contracts
+export interface ProjectRepository {
+  getAll(): Promise<ProjectI[]>;
+  getById(id: string): Promise<ProjectI>;
+}
+
+// ✅ Implement with functions
+export const projectRepository: ProjectRepository = {
+  getAll: async () => {
+    /* ... */
+  },
+  getById: async (id) => {
+    /* ... */
+  },
+};
+```
+
+### Type Issues to Address
+
+1. **Activity Component**
+
+   - `Activity` is imported from React but doesn't exist
+   - Should be replaced with conditional rendering: `{condition && <Element />}`
+
+2. **Optional Chaining**
+   - Consistent use of optional chaining (`?.`) for safe access
+
+### Error Handling
+
+- Use try-catch for async operations
+- Show user-friendly error messages
+- Log errors to console for debugging
+- Implement error boundaries for production
+- Type errors properly (NO `any`)
+
+### Loading States
+
+- Always handle loading states
+- Show loading indicators during async operations
+- Handle error states gracefully
+
+### Form Handling
+
+- Use controlled components
+- Extract complex form logic to hooks
+- Validate forms (submit and real-time if needed)
+- Use TypeScript for type-safe form data
+
+### Performance Optimization
+
+- Use `React.memo()` for expensive components
+- Use `useMemo()` for expensive computations
+- Use `useCallback()` for stable function references
+- Lazy load routes with `next/dynamic`
+- Optimize images with `next/image`
+- Avoid unnecessary re-renders
+- Optimize before finalizing implementation
+
+## File Modification Rules
+
+### Critical: Only Modify Related Files
+
+- **NEVER modify files unrelated to the current issue/feature**
+- Only change files directly involved in the solution
+- Maintain existing patterns in other files
+- If refactoring is needed, do it as a separate task
+
+## Code Review Checklist
+
+Before submitting code, ensure:
+
+- [ ] Component size under 150 lines
+- [ ] TypeScript types defined for all props and functions (NO `any` or `unknown`)
+- [ ] Follows existing patterns and conventions
+- [ ] Properly modularized (core/base/screen separation)
+- [ ] Uses Zustand for global state (when applicable)
+- [ ] Uses NextAuth for auth (when applicable)
+- [ ] No hardcoded values (use constants)
+- [ ] Error handling implemented
+- [ ] Loading states handled
+- [ ] Only files related to issue were changed
+- [ ] Import organization follows standard order
+- [ ] SOLID principles followed
+- [ ] Code is commented (especially complex logic)
+- [ ] No God functions (functions are focused and single-purpose)
+- [ ] Data access uses three-layer pattern (API → Repository → Service)
+- [ ] Development uses mock JSON files when appropriate
+- [ ] Theme colors match `globals.css` (no custom colors)
+- [ ] UI benchmarked from existing components
+- [ ] Performance optimized
+- [ ] Uses latest API patterns (checked online docs)
+
+## Common Patterns
+
+### Component Structure
+
+```typescript
+// 1. Imports (organized as per rules)
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import Button from "@/src/components/core/Button";
+
+// 2. Interface definition
+export interface Props {
+  // Define props with proper types
+}
+
+// 3. Component (default export)
+const Component = (props: Props) => {
+  // Component logic
+  return (/* JSX */);
+};
+
+export default Component;
+```
+
+### Zustand Store Pattern
+
+```typescript
+import { create } from "zustand";
+
+interface StoreState {
+  // State with proper types
+  // Actions
+}
+
+export const useStore = create<StoreState>((set) => ({
+  // Initial state
+  // Actions
+}));
+```
+
+### NextAuth Usage
+
+```typescript
+// Client Component
+"use client";
+import { useSession } from "next-auth/react";
+
+// Server Component
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/src/lib/auth";
+```
+
+## Project Structure
+
+```
+strikeforce/
+├── app/                          # Next.js App Router directory
+│   ├── layout.tsx               # Root layout with Navbar & Sidebar
+│   ├── page.tsx                 # Home page
+│   ├── globals.css              # Global styles & CSS variables
+│   ├── favicon.ico
+│   └── partner/                 # Partner routes
+│       ├── page.tsx             # Partner dashboard
+│       └── projects/
+│           └── page.tsx         # Projects management page
+│
+├── src/
+│   ├── components/              # Component library
+│   │   ├── base/               # Composite/base components
+│   │   │   ├── CurrencyInput.tsx
+│   │   │   ├── DatePicker.tsx
+│   │   │   ├── Logo.tsx
+│   │   │   ├── Modal.tsx
+│   │   │   ├── MultiSelect.tsx
+│   │   │   ├── Navbar.tsx
+│   │   │   ├── Sidebar.tsx
+│   │   │   └── SidebarLink.tsx
+│   │   ├── core/               # Primitive/reusable components
+│   │   │   ├── Button.tsx
+│   │   │   ├── IconButton.tsx
+│   │   │   ├── Input.tsx
+│   │   │   ├── Select.tsx
+│   │   │   ├── Text.tsx
+│   │   │   ├── TextArea.tsx
+│   │   │   └── View.tsx
+│   │   └── screen/             # Feature-specific screen components
+│   │       └── partner/
+│   │           └── projects/
+│   │               ├── Board.tsx
+│   │               ├── Project.tsx
+│   │               └── ProjectForm.tsx
+│   │
+│   ├── constants/              # Application constants
+│   │   └── currencies.ts      # Currency definitions
+│   │
+│   ├── hooks/                  # Custom React hooks
+│   │   └── useLinks.tsx
+│   │
+│   ├── api/                    # Base HTTP client (verb-based functions)
+│   │   └── client.ts           # get, post, put, patch, delete functions
+│   │
+│   ├── repositories/           # Data access layer (calls HTTP client)
+│   │   └── projectRepository.ts # Example: projectRepository
+│   │
+│   ├── services/              # Business logic layer (calls repositories)
+│   │   └── projectService.ts  # Example: projectService
+│   │
+│   ├── models/                 # TypeScript interfaces/types
+│   │   └── project.ts          # Example: ProjectI interface
+│   │
+│   ├── data/                   # Test JSON files for development
+│   │   └── mockProjects.json   # Example: Mock project data
+│   │
+│   ├── store/                  # Zustand stores for global state
+│   └── utils/                  # Pure utility functions
+│
+├── public/                     # Static assets
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── next.svg
+│   ├── vercel.svg
+│   └── window.svg
+│
+├── node_modules/
+├── .git/
+├── package.json
+├── package-lock.json
+├── tsconfig.json              # TypeScript configuration
+├── next.config.ts             # Next.js configuration
+├── tailwind.config.js         # Tailwind CSS configuration
+├── postcss.config.mjs         # PostCSS configuration
+├── eslint.config.mjs          # ESLint configuration
+└── README.md
+```
+
+## Theme Colors Reference
+
+From `app/globals.css`:
+
+```css
+:root {
+  --text: #000000;
+  --border: rgba(151, 151, 151, 0.255);
+  --paper: #f9f9f9;
+  --pale: #f4f4f4;
+  --primary: #e9226e;
+  --pale-primary: #ee6e9f12;
+  --very-pale: #efefef;
+  --accent: #e9226e;
+}
+```
+
+**Available Classes:**
+
+- `bg-paper`, `bg-pale`, `bg-very-pale`, `bg-primary`, `bg-accent`, `bg-pale-primary`
+- `text-primary`
+- `border-custom`, `border-primary`, `border-pale`, `border-paper`
+- `hover-bg-pale`
+
+## Known Issues & Notes
+
+### Activity Component Issue
+
+- `Activity` is imported from React but doesn't exist
+- Location: Multiple components (Input, Select, MultiSelect, TextArea, IconButton)
+- Fix: Replace with conditional rendering: `{condition && <Element />}`
+- Example: Replace `<Activity mode={title ? "visible" : "hidden"}><p>{title}</p></Activity>` with `{title && <p>{title}</p>}`
+
+### Conditional Rendering Pattern
+
+- Use conditional rendering extensively: `{condition && <Component />}`
+- Avoid using non-existent `Activity` component
+
+### Route Navigation
+
+- Uses Next.js `Link` component for client-side navigation
+- Sidebar highlights active route via `isFocused` prop with `text-primary bg-pale`
+- Navigation is role-based, filtered by user role
+
+### Animation System
+
+- Framer Motion used for:
+  - Button hover animations (`whileHover={{ y: -2 }}`)
+  - Modal entrance animations (`initial`, `animate`)
+  - Dropdown animations
+  - Drag-and-drop interactions (Project cards)
+
+## Detailed Component Descriptions
+
+### Core Components
+
+#### `Button`
+
+- **Purpose:** Primary button component
+- **Props:** `children`, `className`, `onClick`, extends `HTMLAttributes<HTMLButtonElement>`
+- **Features:** Framer Motion hover animation
+- **Usage:**
+
+```typescript
+<Button onClick={handler} className="bg-primary">
+  Submit
+</Button>
+```
+
+#### `IconButton`
+
+- **Purpose:** Icon-only button
+- **Props:** `icon`, `indicator?`, `disableShrink?`, `className`
+- **Features:** Optional notification indicator, shrink animation
+- **Usage:**
+
+```typescript
+<IconButton icon={<Bell />} indicator />
+```
+
+#### `Input`
+
+- **Purpose:** Text input field
+- **Props:** `title?`, `defaultValue?`, `onChange?`, `className?`
+- **Features:** Optional label, extends HTML input attributes
+- **Current Issue:** Uses `Activity` component (non-standard) - replace with conditional rendering
+
+#### `Select` / `MultiSelect`
+
+- **Purpose:** Dropdown selection
+- **Props:** `title?`, `options`, `value`, `onChange`, `placeHolder`
+- **Features:**
+  - Search capability (UI prepared)
+  - Icon support for options
+  - Animated dropdown
+  - Empty state handling
+
+#### `TextArea`
+
+- **Purpose:** Multi-line text input
+- **Props:** `title?`, extends `HTMLAttributes`
+- **Features:** Optional label
+
+### Base Components
+
+#### `Modal`
+
+- **Purpose:** Modal dialog overlay
+- **Props:** `title?`, `children`, `actions?`, `handleClose`, `open?`
+- **Features:**
+  - Backdrop blur
+  - Framer Motion animations
+  - Custom action buttons
+  - Fixed positioning with z-index
+
+#### `Navbar`
+
+- **Purpose:** Top navigation bar
+- **Features:**
+  - Logo display
+  - Notification bell with indicator
+  - User avatar
+  - Fixed height (8% of viewport)
+
+#### `Sidebar`
+
+- **Purpose:** Left navigation sidebar
+- **Features:**
+  - Role-based link filtering
+  - Icon-based navigation
+  - Hover tooltips (Framer Motion)
+  - Active state highlighting
+  - Fixed width (6vw)
+
+#### `SidebarLink`
+
+- **Purpose:** Individual sidebar navigation item
+- **Props:** `SidebarLinkI` interface
+- **Note:** Currently not used directly (Sidebar implements links inline)
+
+### Screen Components
+
+#### `Board`
+
+- **Purpose:** Kanban-style board for project organization
+- **Props:** `title`, `content`, `onMove?`
+- **Features:**
+  - Status-based filtering
+  - Empty state UI
+  - Scrollable content area
+
+#### `Project`
+
+- **Purpose:** Project card component
+- **Props:** `ProjectI` interface
+- **Features:**
+  - Drag-and-drop functionality (Framer Motion)
+  - Status-based drag constraints
+  - Skill tags display
+  - Team member avatars
+  - Cost and deadline display
+
+#### `ProjectForm`
+
+- **Purpose:** Multi-step form for creating projects
+- **Props:** `open`, `setOpen`
+- **Features:**
+  - Two-step form process
+  - University/Department selection
+  - Currency selection
+  - Skills multi-select (UI prepared)
+  - Form validation (implied, not fully implemented)
+
+## Routing & Navigation Details
+
+### Next.js App Router Structure
+
+```
+app/
+├── layout.tsx          # Root layout (shared across all routes)
+├── page.tsx            # Home route (/)
+└── partner/
+    ├── page.tsx        # /partner
+    └── projects/
+        └── page.tsx     # /partner/projects
+```
+
+### Navigation Patterns
+
+1. **Client-Side Navigation**
+
+   - Uses Next.js `Link` component
+   - No page reloads
+   - Smooth transitions
+
+2. **Active Route Indication**
+
+   - Sidebar highlights active route via `isFocused` prop
+   - Visual indicator: `text-primary bg-pale`
+
+3. **Role-Based Routes**
+   - Routes organized by user role
+   - Sidebar filters routes based on role
+
+### Planned Routes
+
+Based on Sidebar configuration:
+
+- `/partner` - Dashboard
+- `/partner/projects` - Projects (implemented)
+- `/partner/wallet` - Wallet (planned)
+- `/partner/chat` - Chat (planned)
+- `/partner/contracts` - Contracts (planned)
+- `/partner/profile` - Profile (planned)
+- `/settings` - Settings (planned)
+
+## State Management Patterns
+
+### State Patterns
+
+1. **Lifting State Up**
+
+   - Parent components manage state passed to children
+   - Example: `projects` state in `/partner/projects/page.tsx`
+
+2. **Controlled Components**
+
+   - Form inputs controlled by state
+   - Example: `ProjectForm` inputs
+
+3. **Derived State**
+   - Computed values from state
+   - Example: `getLinks()` filters based on role
+
+### Zustand Store Details
+
+**Why Zustand:**
+
+- Minimal boilerplate
+- No provider wrapping needed
+- Excellent TypeScript support
+- Small bundle size
+- Simple API for actions and selectors
+
+**Store Structure:**
+
+```
+src/store/
+├── useAuthStore.ts        # Authentication state (if not using NextAuth session)
+├── useUIStore.ts          # UI state (modals, sidebars, notifications)
+├── useThemeStore.ts       # Theme preferences
+└── index.ts               # Store exports
+```
+
+**Example Store Pattern:**
+
+```typescript
+import { create } from "zustand";
+
+interface UIState {
+  isSidebarOpen: boolean;
+  notifications: Notification[];
+  toggleSidebar: () => void;
+  addNotification: (notification: Notification) => void;
+}
+
+export const useUIStore = create<UIState>((set) => ({
+  isSidebarOpen: true,
+  notifications: [],
+  toggleSidebar: () =>
+    set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
+  addNotification: (notification) =>
+    set((state) => ({ notifications: [...state.notifications, notification] })),
+}));
+```
+
+### Server State: React Query / SWR
+
+- **React Query (TanStack Query)** - Recommended for complex data fetching
+- **SWR** - Alternative lightweight option
+- Store in `src/services/` or `src/api/`
+
+## Authentication Details
+
+### NextAuth.js Implementation
+
+**Implementation Structure:**
+
+```
+app/
+└── api/
+    └── auth/
+        └── [...nextauth]/
+            └── route.ts       # NextAuth configuration
+
+src/
+├── lib/
+│   └── auth.ts               # Auth utilities and configuration
+└── middleware.ts             # Route protection middleware
+```
+
+**Key Features:**
+
+- Session management
+- Provider support (OAuth, credentials, etc.)
+- Role-based access control
+- API route protection
+- Server-side and client-side auth
+
+**Usage Pattern:**
+
+```typescript
+// Server Component
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/src/lib/auth";
+
+export default async function Page() {
+  const session = await getServerSession(authOptions);
+  // Use session.user.role for role-based rendering
+}
+
+// Client Component
+("use client");
+import { useSession } from "next-auth/react";
+
+export default function Component() {
+  const { data: session, status } = useSession();
+  // Access session data
+}
+```
+
+**Store Integration:**
+
+- NextAuth handles auth state
+- Zustand can store UI preferences per user
+- Session data available via `useSession()` hook
+
+## SOLID Principles Application
+
+**Application in Code:**
+
+```typescript
+// ✅ Good: Depends on interface
+function ProjectCard(project: ProjectI) { ... }
+
+// ❌ Bad: Depends on concrete implementation
+function ProjectCard(project: SpecificProjectType) { ... }
+```
+
+### Examples:
+
+- **SRP:** `Button` handles button UI only, `ProjectForm` handles form logic
+- **OCP:** `Modal` accepts `actions` prop instead of hardcoding buttons
+- **LSP:** All form inputs follow `HTMLAttributes<HTMLElement>`
+- **ISP:** `IconButton` has separate props from `Button`
+- **DIP:** Components depend on `ProjectI` interface, not concrete implementations
+
+## Component Size & Modularization Details
+
+### When a component exceeds 150 lines:
+
+1. Extract sub-components to `src/components/`
+2. Extract custom hooks to `src/hooks/`
+3. Extract utility functions to `src/utils/`
+4. Split into smaller, focused components
+
+### Component Extraction Strategy
+
+**Extract to `components/core/` when:**
+
+- Component is a primitive UI element
+- Highly reusable across features
+- No business logic
+- Example: Custom `Input`, `Select`, `Card` variants
+
+**Extract to `components/base/` when:**
+
+- Component combines multiple core components
+- Contains some business logic but is reusable
+- Used across multiple features
+- Example: `FormField`, `DataTable`, `SearchBar`
+
+**Extract to `components/screen/[feature]/` when:**
+
+- Component is feature-specific
+- Contains significant business logic
+- Not reusable outside the feature
+- Example: `ProjectCard`, `ProjectBoard`, `ProjectFilters`
+
+### Hook Extraction Pattern
+
+```typescript
+// src/hooks/useProjectFilters.ts
+export function useProjectFilters(projects: ProjectI[]) {
+  const [status, setStatus] = useState<projectStatus | "all">("all");
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() => {
+    // Filtering logic
+  }, [projects, status, search]);
+
+  return { filtered, status, setStatus, search, setSearch };
+}
+```
+
+### Utility Function Extraction Pattern
+
+```typescript
+// src/utils/currency.ts
+export function formatCurrency(amount: number, currency: string): string {
+  // Formatting logic
+}
+```
+
+### Business Logic Extraction
+
+**Extract to `src/services/` when:**
+
+- Complex business rules
+- Data transformations
+- Validation logic
+- Orchestrating repository calls
+- Example: `projectService.create()`, `projectService.update()`, `projectService.filter()`
+
+**Note:** Services call repositories, not directly API.
+
+## Data Access Layer Details
+
+### Three-Layer Pattern
+
+The application uses a **three-layer data access architecture** for separation of concerns:
+
+```
+Component/Hook
+    ↓
+Service Layer (business logic)
+    ↓
+Repository Layer (data access abstraction)
+    ↓
+HTTP Client Layer (base HTTP verbs)
+    ↓
+API Backend
+```
+
+### Layer Responsibilities
+
+**Layer 1: HTTP Client (`src/api/`)**
+
+- Handle HTTP methods (GET, POST, PUT, PATCH, DELETE)
+- Request/response formatting
+- Error handling and retries
+- Authentication headers
+- Request interceptors
+
+**Layer 2: Repository (`src/repositories/`)**
+
+- Define data access interface
+- Switch between mock JSON files and real API
+- Map data structures if needed
+- Handle environment-specific logic
+
+**Layer 3: Service (`src/services/`)**
+
+- Business validation
+- Data transformations
+- Complex business logic
+- Orchestrating multiple repository calls
+- Error handling with business context
+
+### Benefits of Three-Layer Pattern
+
+1. **Separation of Concerns:** Each layer has a single responsibility
+2. **Easy Testing:** Mock data in repositories for development
+3. **Environment Switching:** Toggle between mock and real API easily
+4. **Maintainability:** Changes to API don't affect business logic
+5. **Reusability:** Services can orchestrate multiple repository calls
+6. **Type Safety:** TypeScript interfaces throughout all layers
+
+### Usage in Components
+
+```typescript
+// Component/Hook usage
+"use client";
+import { projectService } from "@/src/services/projectService";
+import { useState, useEffect } from "react";
+
+export function useProjects() {
+  const [projects, setProjects] = useState<ProjectI[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setLoading(true);
+      try {
+        // Service handles all business logic
+        const data = await projectService.getAllProjects({
+          status: "in-progress",
+        });
+        setProjects(data);
+      } catch (error) {
+        console.error("Failed to fetch projects:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProjects();
+  }, []);
+
+  return { projects, loading };
+}
+```
+
+## TypeScript Usage Details
+
+### Type Safety Strategy
+
+1. **Strict TypeScript Configuration**
+
+```json
+{
+  "strict": true,
+  "noEmit": true,
+  "jsx": "react-jsx"
+}
+```
+
+2. **Interface-Driven Development**
+
+   - All component props typed
+   - Exported interfaces for reusability
+   - Union types for status values
+
+3. **Path Aliases**
+
+```json
+{
+  "paths": {
+    "@/*": ["./*"]
+  }
+}
+```
+
+- Enables absolute imports: `@/src/components/...`
+
+### Type Definitions Patterns
+
+```typescript
+// Props extending HTML attributes
+export interface Props extends HTMLAttributes<HTMLButtonElement> {
+  children: ReactNode;
+}
+
+// Feature-specific interfaces
+export interface ProjectI {
+  id: number | string;
+  title: string;
+  status: projectStatus;
+  // ...
+}
+
+// Union types for status
+export type projectStatus = "in-progress" | "on-hold" | "completed";
+
+// Role types
+type Role = "partner" | "student" | "university-admin" | "super-admin";
+```
+
+## Code Documentation & Comments
+
+### Commenting Standards
+
+**All code must be commented**, especially:
+
+- Complex business logic
+- Non-obvious algorithms
+- Edge cases and error handling
+- Business rules and validations
+
+### Comment Guidelines
+
+1. **Explain "why", not "what"**
+
+   - Code should be self-documenting for "what"
+   - Comments should explain business reasoning
+
+2. **Use JSDoc for functions**
+
+   ```typescript
+   /**
+    * Calculates project completion percentage based on completed tasks
+    * Business rule: Only tasks with status 'completed' count toward completion
+    * @param tasks - Array of task objects with status field
+    * @returns Completion percentage as integer (0-100)
+    */
+   function calculateCompletion(tasks: Task[]): number {
+     // Business rule: only 'completed' status counts
+     const completed = tasks.filter((t) => t.status === "completed").length;
+     return Math.round((completed / tasks.length) * 100);
+   }
+   ```
+
+3. **Comment complex logic**
+
+   ```typescript
+   // Sort projects by status priority: in-progress > on-hold > completed
+   // Then by expiry date (soonest first)
+   const sorted = projects.sort((a, b) => {
+     const statusOrder = { "in-progress": 0, "on-hold": 1, completed: 2 };
+     const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+     if (statusDiff !== 0) return statusDiff;
+     return new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime();
+   });
+   ```
+
+4. **Document edge cases**
+
+   ```typescript
+   // Handle empty arrays to prevent division by zero
+   if (tasks.length === 0) {
+     return 0;
+   }
+   ```
+
+5. **Keep comments updated**
+   - Update comments when code changes
+   - Remove outdated comments
+   - Ensure comments match implementation
+
+## Function Design Principles
+
+### Avoid God Functions
+
+**God functions** are functions that do too much, violating Single Responsibility Principle.
+
+**Characteristics of God Functions:**
+
+- Over 50-100 lines
+- Multiple responsibilities
+- Hard to test
+- Difficult to understand
+- Many nested conditionals
+
+**How to Avoid:**
+
+1. **Single Responsibility**
+
+   ```typescript
+   // ❌ Bad: God function doing too much
+   function processProject(project: ProjectI) {
+     // Validation (50 lines)
+     // Transformation (30 lines)
+     // API call (20 lines)
+     // Notification (15 lines)
+     // Logging (10 lines)
+   }
+
+   // ✅ Good: Separated responsibilities
+   function validateProject(project: ProjectI): void {
+     /* ... */
+   }
+   function transformProject(project: ProjectI): ProjectI {
+     /* ... */
+   }
+   async function saveProject(project: ProjectI): Promise<ProjectI> {
+     /* ... */
+   }
+   function notifyProjectCreated(project: ProjectI): void {
+     /* ... */
+   }
+
+   async function processProject(project: ProjectI) {
+     validateProject(project);
+     const transformed = transformProject(project);
+     const saved = await saveProject(transformed);
+     notifyProjectCreated(saved);
+     return saved;
+   }
+   ```
+
+2. **Extract Helper Functions**
+
+   ```typescript
+   // Helper functions for specific tasks
+   function formatCurrency(amount: number): string {
+     /* ... */
+   }
+   function calculateDeadline(days: number): Date {
+     /* ... */
+   }
+   function validateEmail(email: string): boolean {
+     /* ... */
+   }
+   ```
+
+3. **Use Services for Complex Logic**
+   - Move complex business logic to service layer
+   - Services orchestrate multiple operations
+   - Keep components focused on UI
+
+### Function Size Guidelines
+
+- **Target:** 20-30 lines per function
+- **Maximum:** 50 lines (consider breaking down if longer)
+- **Components:** Maximum 150 lines (see Component Size Limit)
+
+## Common Practices
+
+### Best Practices for Similar Projects
+
+#### 1. Component Organization
+
+**Directory Structure:**
+
+```
+src/components/
+├── core/           # Atomic, reusable primitives
+├── base/           # Composite, reusable components
+├── screen/         # Feature-specific components
+│   ├── partner/
+│   ├── student/
+│   └── admin/
+└── layout/         # Layout components (Navbar, Sidebar, Footer)
+```
+
+#### 2. File Naming Conventions
+
+- **Components:** `PascalCase.tsx` (e.g., `ProjectCard.tsx`)
+- **Hooks:** `camelCase.ts` with `use` prefix (e.g., `useProjectFilters.ts`)
+- **Utils:** `camelCase.ts` (e.g., `formatCurrency.ts`)
+- **Services:** `camelCase.ts` (e.g., `projectService.ts`)
+- **Types:** `PascalCase.ts` or co-located with component
+- **Constants:** `camelCase.ts` (e.g., `currencies.ts`)
+
+#### 3. Import Organization
+
+```typescript
+// 1. React and Next.js
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+// 2. Third-party libraries
+import { motion } from "framer-motion";
+import { Bell } from "lucide-react";
+
+// 3. Internal components (absolute paths)
+import Button from "@/src/components/core/Button";
+import Modal from "@/src/components/base/Modal";
+
+// 4. Hooks
+import { useProjectFilters } from "@/src/hooks/useProjectFilters";
+
+// 5. Services/Utils
+import { formatCurrency } from "@/src/utils/currency";
+import { projectService } from "@/src/services/projectService";
+
+// 6. Types/Interfaces
+import type { ProjectI } from "@/src/models/project";
+
+// 7. Constants
+import { currenciesArray } from "@/src/constants/currencies";
+```
+
+#### 4. Props Interface Pattern
+
+```typescript
+// ✅ Good: Clear, extensible interface
+export interface ProjectCardProps {
+  project: ProjectI
+  onSelect?: (project: ProjectI) => void
+  className?: string
+}
+
+// ❌ Bad: Using 'any' or inline types
+const ProjectCard = ({ project, onSelect }: any) => { ... }
+```
+
+#### 5. Error Handling
+
+```typescript
+// Components
+try {
+  // Operation
+} catch (error) {
+  console.error("Operation failed:", error);
+  // Show user-friendly error message
+}
+
+// API calls
+try {
+  const data = await fetchData();
+} catch (error) {
+  // Handle error, show notification
+  throw new Error("Failed to fetch data");
+}
+```
+
+### Loading States Pattern
+
+```typescript
+const [loading, setLoading] = useState(false);
+
+if (loading) return <LoadingSpinner />;
+if (error) return <ErrorMessage error={error} />;
+return <Content />;
+```
+
+## Issue Resolution Process Details
+
+### Step 1: Analyze the Problem
+
+**Questions to ask:**
+
+- What is the expected behavior?
+- What are the edge cases?
+- Are there similar patterns in the codebase?
+- What components/files need modification?
+
+**Analyze:**
+
+- **Understand the requirement:** Read carefully, clarify ambiguities
+- **Identify affected areas:** Which files/components are involved?
+- **Check dependencies:** What does this change depend on or affect?
+- **Review existing patterns:** How is similar functionality implemented?
+
+### Step 2: Plan the Solution
+
+**Planning checklist:**
+
+- [ ] Components to create
+- [ ] Components to modify
+- [ ] Hooks to extract (if needed)
+- [ ] Utilities to create (if needed)
+- [ ] Types/interfaces to define
+- [ ] State management approach (local vs Zustand)
+
+**Plan:**
+
+- **Break down into steps:** Divide into small, manageable tasks
+- **Identify component structure:** What needs to be created/modified?
+- **Consider modularity:** Can this be extracted into reusable components?
+- **Check component size:** Will new components stay under 150 lines?
+
+### Step 3: Implement Changes
+
+**Implementation guidelines:**
+
+- ✅ Only modify files directly related to the issue
+- ✅ Maintain existing patterns and conventions
+- ✅ Extract to components folder when reusable
+- ✅ Add TypeScript types/interfaces
+- ✅ Use Zustand for global state (if needed)
+- ✅ Use NextAuth for auth (if needed)
+
+**Implement:**
+
+- **Create new components first:** Start with primitives, build up
+- **Follow existing patterns:** Match code style and structure
+- **Keep functions small:** Extract if approaching 150 lines
+- **Type everything:** Use TypeScript interfaces
+- **Use absolute imports:** `@/src/components/...`
+
+### Step 4: Verify
+
+**Verify:**
+
+- **Check component size:** Under 150 lines?
+- **Verify types:** No TypeScript errors?
+- **Test functionality:** Does it work as expected?
+- **Check for regressions:** Did existing functionality break?
+- **Review code style:** Follows project conventions?
+
+## Future Architecture Considerations
+
+### Identified Issues
+
+1. **Missing Error Boundaries**
+
+   - No error boundary components implemented
+   - Recommendation: Add error boundaries for production
+
+2. **Empty Directories**
+   - `models/`, `repositories/`, `services/`, `store/`, `utils/` are empty
+   - Recommendation: Establish patterns for these layers
+
+### Recommended Enhancements
+
+#### 1. State Management
+
+- **Consider:** Zustand or Context API for global state
+- **Use Cases:** User authentication, theme preferences, notifications
+
+#### 2. Data Fetching
+
+- **Consider:** React Query (TanStack Query) or SWR
+- **Use Cases:** API calls, caching, synchronization
+
+#### 3. Form Management
+
+- **Consider:** React Hook Form + Zod
+- **Use Cases:** ProjectForm validation, type-safe forms
+
+#### 4. Testing
+
+- **Missing:** No test files or testing setup
+- **Recommendation:**
+  - Jest + React Testing Library
+  - Playwright for E2E testing
+
+#### 5. API Layer
+
+- **Consider:** Structure for API calls
+  ```
+  src/
+    ├── api/           # API client
+    ├── repositories/  # Data access
+    ├── services/      # Business logic
+  ```
+
+#### 6. Authentication
+
+- **Current:** No authentication visible
+- **Recommendation:** NextAuth.js or custom auth system
+
+#### 7. Environment Variables
+
+- **Missing:** `.env.example` or environment config
+- **Recommendation:** Document required environment variables
+
+#### 8. Internationalization (i18n)
+
+- **Consider:** next-intl or react-i18next
+- **Use Case:** Multi-language support (currencies suggest international use)
+
+#### 9. Code Organization
+
+- **Models:** Define TypeScript interfaces/types
+- **Repositories:** Data access abstraction
+- **Services:** Business logic layer
+- **Utils:** Helper functions
+
+#### 10. Performance Optimization
+
+- **Consider:**
+  - Image optimization (next/image)
+  - Code splitting
+  - Lazy loading components
+  - Memoization for expensive computations
+
+## Development Workflow
+
+### Scripts
+
+```json
+{
+  "dev": "next dev", // Development server
+  "build": "next build", // Production build
+  "start": "next start", // Production server
+  "lint": "eslint" // Linting
+}
+```
+
+### Linting
+
+- **ESLint** with Next.js config
+- **Rules:** Core Web Vitals + TypeScript rules
+- **Run:** `npm run lint`
+
+### Git Structure
+
+- **Branch:** `develop` (feature branch workflow implied)
+- **Status:** Clean working tree
+
+## Design System Summary
+
+### Color Tokens
+
+| Token         | Value                        | Usage                         |
+| ------------- | ---------------------------- | ----------------------------- |
+| `--primary`   | `#e9226e`                    | Brand color, buttons, accents |
+| `--paper`     | `#f9f9f9`                    | Card backgrounds              |
+| `--pale`      | `#f4f4f4`                    | Secondary backgrounds         |
+| `--very-pale` | `#efefef`                    | Tertiary backgrounds          |
+| `--border`    | `rgba(151, 151, 151, 0.255)` | Borders                       |
+
+### Typography Scale
+
+- Base: 12.5px
+- Component: 13.5px
+- Responsive scaling via Tailwind
+
+### Spacing Scale
+
+Tailwind default scale (0.25rem increments)
+
+### Component Library
+
+1. **Primitives:** Button, Input, Select, IconButton, Text, TextArea, View
+2. **Composites:** Modal, Navbar, Sidebar, MultiSelect, DatePicker, CurrencyInput
+3. **Features:** Board, Project, ProjectForm
+
+### UI/UX Design Details
+
+**Note:** A dark theme is commented out in `globals.css` but not currently active.
+
+**Typography:**
+
+- **Font Family:** Poppins (loaded via Next.js font optimization)
+- **Base Font Size:** 12.5px (defined in `@layer base`)
+- **Component Font Size:** 13.5px (overridden in Tailwind config)
+- **Font Loading:** Google Fonts via `next/font/google`
+  - Geist Sans
+  - Geist Mono
+  - Poppins
+
+**Component Design Patterns:**
+
+1. **Cards & Panels**
+
+   - Background: `bg-paper`
+   - Border radius: `rounded-lg`
+   - Shadows: `shadow-custom`
+
+2. **Buttons**
+
+   - Primary: `bg-primary` with white text
+   - Secondary: `bg-pale`
+   - Hover effects via Framer Motion animations
+   - Rounded: `rounded-full` or `rounded`
+
+3. **Inputs**
+
+   - Border: `border-custom`
+   - Padding: `p-3`
+   - Border radius: `rounded-lg`
+   - Focus: `outline-none` (custom focus states should be added)
+
+4. **Icons**
+   - Lucide React icons
+   - Size variations: `size={14}`, `size={17}`, etc.
+   - IconButton wrapper for clickable icons
+
+## Code Style Details
+
+### Indentation
+
+- Spaces (appears to use 2 or 4 spaces - should be standardized)
+
+### Quotes
+
+- Single quotes for strings (`'string'`)
+- Double quotes for JSX attributes (`"attribute"`)
+
+### Spacing
+
+- Consistent spacing around operators
+- Blank lines between logical sections
+
+### Naming
+
+- Variables: camelCase
+- Functions: camelCase
+- Components: PascalCase
+- Constants: camelCase or UPPER_SNAKE_CASE
+
+### File Organization
+
+1. **One Component Per File**
+
+   - Each component in its own file
+   - File name matches component name
+
+2. **Co-location**
+   - Related components can be in the same directory
+   - Feature components grouped by feature
+
+## Summary
+
+The StrikeForce codebase demonstrates a well-structured Next.js application with:
+
+✅ **Strengths:**
+
+- Clear component hierarchy (core/base/screen)
+- TypeScript for type safety
+- Modern React patterns (hooks, composition)
+- Framer Motion for smooth animations
+- Tailwind CSS for rapid UI development
+- Role-based architecture prepared
+
+⚠️ **Areas for Improvement:**
+
+- Fix `Activity` component usage
+- Implement proper state management
+- Add error handling and loading states
+- Complete empty directory structures (models, services, etc.)
+- Add testing infrastructure
+- Implement form validation
+- Add authentication system
+
+The architecture is scalable and ready for growth, with clear separation of concerns and a solid foundation for building out additional features.
+
+## Remember
+
+- Always analyze before implementing
+- Keep components small and focused (max 150 lines, functions max 50 lines)
+- Extract reusable code to appropriate folders
+- Use Zustand for global client state
+- Use NextAuth for authentication
+- Only modify files related to the current issue
+- Follow SOLID principles
+- Type everything with TypeScript (NO `any` or `unknown`)
+- Maintain code style consistency
+- Comment your code (especially business logic and "why")
+- Avoid God functions - keep functions focused and small (20-30 lines target)
+- Use data access pattern: API → Repository → Service
+- Use OOP only where necessary, prefer functional programming
+- Use ONLY theme colors from `globals.css`
+- Benchmark UI from existing components
+- Performance optimize before finalizing
+- Check online docs for latest patterns
+- Use latest stable packages
+- Keep conversation history for rollbacks
+- Use `.env` at root for environment variables
+- Keep things simple - avoid over-engineering
+- Fix Activity component usage when encountered

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "msg-1",
+    "threadId": "thread-1",
+    "senderId": "user-partner-1",
+    "type": "TEXT",
+    "body": "Welcome to the project! Let's start by discussing the first milestone.",
+    "createdAt": "2024-02-01T10:30:00Z"
+  },
+  {
+    "id": "msg-2",
+    "threadId": "thread-1",
+    "senderId": "user-student-1",
+    "type": "TEXT",
+    "body": "Thanks! We're excited to work on this. We'll prepare a proposal for the first milestone soon.",
+    "createdAt": "2024-02-01T11:00:00Z"
+  },
+  {
+    "id": "msg-3",
+    "threadId": "thread-1",
+    "senderId": "user-student-1",
+    "type": "PROPOSAL",
+    "body": "Proposal for User Authentication System milestone",
+    "proposalId": "proposal-1",
+    "createdAt": "2024-02-02T10:00:00Z"
+  }
+]
+
+
+
+
+

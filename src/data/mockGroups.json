@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "courseId": "course-1",
+    "leaderId": "user-student-1",
+    "memberIds": ["user-student-1", "user-student-2"],
+    "name": "Tech Team Alpha",
+    "capacity": 5,
+    "createdAt": "2024-02-01T10:00:00Z",
+    "updatedAt": "2024-02-01T10:00:00Z"
+  }
+]
+
+

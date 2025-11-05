@@ -1,0 +1,183 @@
+[
+  {
+    "id": 1,
+    "projectId": 1,
+    "applicantType": "GROUP",
+    "studentIds": ["user-student-1"],
+    "groupId": 1,
+    "statement": "Our team has extensive experience in full-stack development and we're excited to work on this e-commerce platform. We've completed similar projects in the past and have strong skills in React and Node.js.",
+    "status": "ASSIGNED",
+    "score": {
+      "applicationId": 1,
+      "autoScore": 85,
+      "manualSupervisorScore": 88,
+      "manualPartnerScore": 90,
+      "finalScore": 88,
+      "skillMatch": 92,
+      "portfolioScore": 85,
+      "ratingScore": 90,
+      "onTimeRate": 95,
+      "reworkRate": 5
+    },
+    "createdAt": "2024-02-02T10:00:00Z",
+    "updatedAt": "2024-02-05T10:00:00Z"
+  },
+  {
+    "id": 2,
+    "projectId": 2,
+    "applicantType": "INDIVIDUAL",
+    "studentIds": ["user-student-2"],
+    "statement": "I have strong React Native experience and have built healthcare apps before. I'm passionate about using technology to improve healthcare access.",
+    "status": "SHORTLISTED",
+    "score": {
+      "applicationId": 2,
+      "autoScore": 78,
+      "manualSupervisorScore": null,
+      "manualPartnerScore": null,
+      "finalScore": 78,
+      "skillMatch": 85,
+      "portfolioScore": 75,
+      "ratingScore": 80,
+      "onTimeRate": 88,
+      "reworkRate": 8
+    },
+    "createdAt": "2024-02-12T10:00:00Z",
+    "updatedAt": "2024-02-12T10:00:00Z"
+  },
+  {
+    "id": 3,
+    "projectId": 3,
+    "applicantType": "GROUP",
+    "studentIds": ["user-student-1", "user-student-2"],
+    "groupId": 1,
+    "statement": "Our team specializes in data visualization and analytics. We have experience building dashboards with Python/Django and creating interactive visualizations with D3.js and Chart.js. We're excited to work on this analytics platform.",
+    "status": "ASSIGNED",
+    "score": {
+      "applicationId": 3,
+      "autoScore": 92,
+      "manualSupervisorScore": 90,
+      "manualPartnerScore": 93,
+      "finalScore": 92,
+      "skillMatch": 95,
+      "portfolioScore": 90,
+      "ratingScore": 92,
+      "onTimeRate": 97,
+      "reworkRate": 3
+    },
+    "createdAt": "2024-02-16T10:00:00Z",
+    "updatedAt": "2024-02-20T10:00:00Z"
+  },
+  {
+    "id": 4,
+    "projectId": 1,
+    "applicantType": "INDIVIDUAL",
+    "studentIds": ["user-student-2"],
+    "statement": "I'm interested in working on this e-commerce project. I have experience with React and Node.js from previous coursework and personal projects.",
+    "status": "SUBMITTED",
+    "score": {
+      "applicationId": 4,
+      "autoScore": 72,
+      "manualSupervisorScore": null,
+      "manualPartnerScore": null,
+      "finalScore": 72,
+      "skillMatch": 75,
+      "portfolioScore": 70,
+      "ratingScore": 75,
+      "onTimeRate": 85,
+      "reworkRate": 10
+    },
+    "createdAt": "2024-02-18T10:00:00Z",
+    "updatedAt": "2024-02-18T10:00:00Z"
+  },
+  {
+    "id": 5,
+    "projectId": 2,
+    "applicantType": "GROUP",
+    "studentIds": ["user-student-1"],
+    "groupId": 1,
+    "statement": "Our group has strong mobile development skills and is eager to contribute to this healthcare app project.",
+    "status": "OFFERED",
+    "offerExpiresAt": "2024-03-15T23:59:59Z",
+    "score": {
+      "applicationId": 5,
+      "autoScore": 88,
+      "manualSupervisorScore": 85,
+      "manualPartnerScore": 90,
+      "finalScore": 88,
+      "skillMatch": 92,
+      "portfolioScore": 85,
+      "ratingScore": 88,
+      "onTimeRate": 92,
+      "reworkRate": 6
+    },
+    "createdAt": "2024-02-20T10:00:00Z",
+    "updatedAt": "2024-02-25T10:00:00Z"
+  },
+  {
+    "id": 6,
+    "projectId": 1,
+    "applicantType": "INDIVIDUAL",
+    "studentIds": ["user-student-1"],
+    "statement": "I would like to apply for this project but I'm still building my portfolio.",
+    "status": "WAITLIST",
+    "score": {
+      "applicationId": 6,
+      "autoScore": 65,
+      "manualSupervisorScore": null,
+      "manualPartnerScore": null,
+      "finalScore": 65,
+      "skillMatch": 70,
+      "portfolioScore": 60,
+      "ratingScore": 70,
+      "onTimeRate": 80,
+      "reworkRate": 12
+    },
+    "createdAt": "2024-02-22T10:00:00Z",
+    "updatedAt": "2024-02-22T10:00:00Z"
+  },
+  {
+    "id": 7,
+    "projectId": 2,
+    "applicantType": "INDIVIDUAL",
+    "studentIds": ["user-student-2"],
+    "statement": "I don't think this project is a good fit for my skills.",
+    "status": "REJECTED",
+    "score": {
+      "applicationId": 7,
+      "autoScore": 55,
+      "manualSupervisorScore": null,
+      "manualPartnerScore": null,
+      "finalScore": 55,
+      "skillMatch": 60,
+      "portfolioScore": 50,
+      "ratingScore": 60,
+      "onTimeRate": 75,
+      "reworkRate": 15
+    },
+    "createdAt": "2024-02-14T10:00:00Z",
+    "updatedAt": "2024-02-16T10:00:00Z"
+  },
+  {
+    "id": 8,
+    "projectId": 4,
+    "applicantType": "GROUP",
+    "studentIds": ["user-student-1", "user-student-2"],
+    "groupId": 2,
+    "statement": "Our team has strong experience in data visualization and analytics. We've built several dashboards using React, D3.js, and Python. We're excited to work on this analytics platform.",
+    "status": "ASSIGNED",
+    "score": {
+      "applicationId": 8,
+      "autoScore": 90,
+      "manualSupervisorScore": 88,
+      "manualPartnerScore": 92,
+      "finalScore": 90,
+      "skillMatch": 95,
+      "portfolioScore": 88,
+      "ratingScore": 92,
+      "onTimeRate": 96,
+      "reworkRate": 4
+    },
+    "createdAt": "2024-02-21T10:00:00Z",
+    "updatedAt": "2024-02-25T10:00:00Z"
+  }
+]

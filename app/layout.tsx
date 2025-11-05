@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/src/components/base/Navbar";
-import Sidebar from "@/src/components/base/Sidebar";
+import ConditionalLayout from "@/src/components/base/ConditionalLayout";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,15 +25,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`antialiased bg-pale flex h-[100vh]  flex-col`}
+        className={`antialiased bg-pale h-screen overflow-hidden`}
+        suppressHydrationWarning
       >
-        <Navbar />
-        <div className="flex  flex-1"><Sidebar />
-          <div className="p-4  w-full">
-            {children}
-          </div></div>
+        <ConditionalLayout>{children}</ConditionalLayout>
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   );

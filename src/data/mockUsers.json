@@ -1,0 +1,274 @@
+[
+  {
+    "id": "user-partner-1",
+    "role": "partner",
+    "email": "john@techcorp.com",
+    "name": "John Doe",
+    "orgId": "org-partner-1",
+    "profile": {
+      "avatar": "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop",
+      "bio": "Technology partner focused on innovation",
+      "skills": ["project-management", "software-development"],
+      "phone": "+1234567890",
+      "location": "New York, USA"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "user-student-1",
+    "role": "student",
+    "email": "alice@university.edu",
+    "name": "Alice Smith",
+    "universityId": "org-university-1",
+    "departmentId": "dept-1",
+    "courseId": "course-1",
+    "profile": {
+      "avatar": "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop",
+      "bio": "Computer Science student passionate about web development",
+      "skills": ["javascript", "react", "nodejs", "typescript"],
+      "portfolioItems": ["portfolio-1", "portfolio-2"]
+    },
+    "payoutMethod": {
+      "id": "payout-1",
+      "type": "BANK_ACCOUNT",
+      "details": {
+        "accountNumber": "123456789",
+        "bankName": "Chase Bank"
+      },
+      "isVerified": true
+    },
+    "createdAt": "2024-01-10T10:00:00Z",
+    "updatedAt": "2024-01-10T10:00:00Z"
+  },
+  {
+    "id": "user-student-2",
+    "role": "student",
+    "email": "bob@university.edu",
+    "name": "Bob Johnson",
+    "universityId": "org-university-1",
+    "departmentId": "dept-1",
+    "courseId": "course-1",
+    "profile": {
+      "avatar": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop",
+      "bio": "Computer Science student specializing in mobile development and UI/UX design",
+      "skills": ["react-native", "typescript", "firebase", "redux", "ui-ux"],
+      "portfolioItems": ["portfolio-3"]
+    },
+    "payoutMethod": {
+      "id": "payout-2",
+      "type": "MOBILE_MONEY",
+      "details": {
+        "phoneNumber": "+1234567890",
+        "provider": "MTN"
+      },
+      "isVerified": true
+    },
+    "createdAt": "2024-01-12T10:00:00Z",
+    "updatedAt": "2024-01-12T10:00:00Z"
+  },
+  {
+    "id": "user-student-3",
+    "role": "student",
+    "email": "charlie@university.edu",
+    "name": "Charlie Brown",
+    "universityId": "org-university-1",
+    "departmentId": "dept-1",
+    "courseId": "course-1",
+    "profile": {
+      "avatar": "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop",
+      "bio": "Software Engineering student with expertise in backend development",
+      "skills": ["nodejs", "python", "postgresql", "docker", "aws"],
+      "portfolioItems": ["portfolio-4"]
+    },
+    "payoutMethod": {
+      "id": "payout-3",
+      "type": "BANK_ACCOUNT",
+      "details": {
+        "accountNumber": "987654321",
+        "bankName": "Wells Fargo"
+      },
+      "isVerified": true
+    },
+    "createdAt": "2024-01-14T10:00:00Z",
+    "updatedAt": "2024-01-14T10:00:00Z"
+  },
+  {
+    "id": "user-student-4",
+    "role": "student",
+    "email": "diana@university.edu",
+    "name": "Diana Prince",
+    "universityId": "org-university-1",
+    "departmentId": "dept-1",
+    "courseId": "course-1",
+    "profile": {
+      "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop",
+      "bio": "Full-stack developer passionate about creating user-friendly applications",
+      "skills": ["javascript", "react", "nodejs", "mongodb", "graphql"],
+      "portfolioItems": ["portfolio-5", "portfolio-6"]
+    },
+    "payoutMethod": {
+      "id": "payout-4",
+      "type": "DIGITAL_WALLET",
+      "details": {
+        "walletAddress": "wallet-123",
+        "provider": "PayPal"
+      },
+      "isVerified": true
+    },
+    "createdAt": "2024-01-16T10:00:00Z",
+    "updatedAt": "2024-01-16T10:00:00Z"
+  },
+  {
+    "id": "user-student-5",
+    "role": "student",
+    "email": "edward@university.edu",
+    "name": "Edward Wilson",
+    "universityId": "org-university-1",
+    "departmentId": "dept-1",
+    "courseId": "course-1",
+    "profile": {
+      "avatar": "https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop",
+      "bio": "Mobile app developer specializing in iOS and Android development",
+      "skills": ["swift", "kotlin", "react-native", "firebase", "app-store"],
+      "portfolioItems": ["portfolio-7"]
+    },
+    "payoutMethod": {
+      "id": "payout-5",
+      "type": "MOBILE_MONEY",
+      "details": {
+        "phoneNumber": "+1234567891",
+        "provider": "Airtel"
+      },
+      "isVerified": true
+    },
+    "createdAt": "2024-01-18T10:00:00Z",
+    "updatedAt": "2024-01-18T10:00:00Z"
+  },
+  {
+    "id": "user-student-6",
+    "role": "student",
+    "email": "fiona@university.edu",
+    "name": "Fiona Green",
+    "universityId": "org-university-1",
+    "departmentId": "dept-1",
+    "courseId": "course-1",
+    "profile": {
+      "avatar": "https://images.pexels.com/photos/1181519/pexels-photo-1181519.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop",
+      "bio": "Data scientist specializing in machine learning and AI",
+      "skills": ["python", "tensorflow", "scikit-learn", "pandas", "jupyter"],
+      "portfolioItems": ["portfolio-8"]
+    },
+    "payoutMethod": {
+      "id": "payout-6",
+      "type": "BANK_ACCOUNT",
+      "details": {
+        "accountNumber": "456789123",
+        "bankName": "Bank of America"
+      },
+      "isVerified": true
+    },
+    "createdAt": "2024-01-20T10:00:00Z",
+    "updatedAt": "2024-01-20T10:00:00Z"
+  },
+  {
+    "id": "user-student-7",
+    "role": "student",
+    "email": "george@university.edu",
+    "name": "George Martinez",
+    "universityId": "org-university-1",
+    "departmentId": "dept-1",
+    "courseId": "course-1",
+    "profile": {
+      "avatar": "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop",
+      "bio": "DevOps engineer passionate about cloud infrastructure and automation",
+      "skills": ["kubernetes", "docker", "terraform", "aws", "ci-cd"],
+      "portfolioItems": ["portfolio-9"]
+    },
+    "payoutMethod": {
+      "id": "payout-7",
+      "type": "DIGITAL_WALLET",
+      "details": {
+        "walletAddress": "wallet-456",
+        "provider": "Stripe"
+      },
+      "isVerified": true
+    },
+    "createdAt": "2024-01-22T10:00:00Z",
+    "updatedAt": "2024-01-22T10:00:00Z"
+  },
+  {
+    "id": "user-student-8",
+    "role": "student",
+    "email": "helen@university.edu",
+    "name": "Helen Chen",
+    "universityId": "org-university-1",
+    "departmentId": "dept-1",
+    "courseId": "course-1",
+    "profile": {
+      "avatar": "https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop",
+      "bio": "Frontend developer specializing in modern React and Vue.js applications",
+      "skills": ["react", "vue", "typescript", "tailwindcss", "nextjs"],
+      "portfolioItems": ["portfolio-10", "portfolio-11"]
+    },
+    "payoutMethod": {
+      "id": "payout-8",
+      "type": "MOBILE_MONEY",
+      "details": {
+        "phoneNumber": "+1234567892",
+        "provider": "Airtel"
+      },
+      "isVerified": true
+    },
+    "createdAt": "2024-01-24T10:00:00Z",
+    "updatedAt": "2024-01-24T10:00:00Z"
+  },
+  {
+    "id": "user-supervisor-1",
+    "role": "supervisor",
+    "email": "prof.jones@university.edu",
+    "name": "Prof. James Jones",
+    "universityId": "org-university-1",
+    "departmentId": "dept-1",
+    "profile": {
+      "avatar": "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop",
+      "bio": "Senior lecturer in Computer Science",
+      "skills": ["software-engineering", "project-management"],
+      "phone": "+1234567891",
+      "location": "Kampala, Uganda"
+    },
+    "createdAt": "2024-01-05T10:00:00Z",
+    "updatedAt": "2024-01-05T10:00:00Z"
+  },
+  {
+    "id": "user-admin-1",
+    "role": "university-admin",
+    "email": "admin@university.edu",
+    "name": "Sarah Admin",
+    "universityId": "org-university-1",
+    "profile": {
+      "avatar": "https://images.pexels.com/photos/3184405/pexels-photo-3184405.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop",
+      "bio": "University administrator",
+      "skills": ["administration", "coordination"],
+      "phone": "+1234567892",
+      "location": "Kampala, Uganda"
+    },
+    "createdAt": "2024-01-01T10:00:00Z",
+    "updatedAt": "2024-01-01T10:00:00Z"
+  },
+  {
+    "id": "user-super-admin-1",
+    "role": "super-admin",
+    "email": "superadmin@strikeforce.com",
+    "name": "Super Admin",
+    "profile": {
+      "avatar": "https://images.pexels.com/photos/1043473/pexels-photo-1043473.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop",
+      "bio": "Platform administrator",
+      "skills": ["platform-management", "system-administration"],
+      "phone": "+1234567893",
+      "location": "Global"
+    },
+    "createdAt": "2024-01-01T10:00:00Z",
+    "updatedAt": "2024-01-01T10:00:00Z"
+  }
+]

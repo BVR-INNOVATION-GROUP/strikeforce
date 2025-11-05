@@ -1,0 +1,42 @@
+[
+  {
+    "id": "org-partner-1",
+    "type": "PARTNER",
+    "name": "TechCorp Solutions",
+    "email": "contact@techcorp.com",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "orgId": "org-partner-1",
+      "taxId": "TAX-123456",
+      "address": "123 Tech Street, New York, NY 10001",
+      "country": "USA",
+      "paymentMethods": [
+        {
+          "id": "pm-1",
+          "type": "BANK_TRANSFER",
+          "details": {
+            "accountNumber": "987654321",
+            "routingNumber": "021000021"
+          },
+          "isDefault": true
+        }
+      ]
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "org-university-1",
+    "type": "UNIVERSITY",
+    "name": "State University",
+    "email": "admin@university.edu",
+    "kycStatus": "APPROVED",
+    "createdAt": "2024-01-01T10:00:00Z",
+    "updatedAt": "2024-01-01T10:00:00Z"
+  }
+]
+
+
+
+
+

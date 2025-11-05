@@ -2,6 +2,28 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Predefined Test Credentials
+
+For development and testing, the following user credentials are available:
+
+**All users use password: `password123`**
+
+- **Partner**: `john@techcorp.com`
+- **Students**: 
+  - `alice@university.edu`
+  - `bob@university.edu`
+  - `charlie@university.edu`
+  - `diana@university.edu`
+  - `eve@university.edu`
+  - `fiona@university.edu`
+  - `george@university.edu`
+  - `helen@university.edu`
+- **Supervisor**: `prof.jones@university.edu`
+- **University Admin**: `admin@university.edu`
+- **Super Admin**: `superadmin@strikeforce.com`
+
+## Getting Started
+
 First, run the development server:
 
 ```bash
