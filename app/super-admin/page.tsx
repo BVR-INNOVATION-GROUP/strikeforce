@@ -1,179 +1,173 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
-import Card from "@/src/components/core/Card";
 import StatCard from "@/src/components/core/StatCard";
-import DataTable from "@/src/components/base/DataTable";
-import StatusIndicator from "@/src/components/core/StatusIndicator";
-import Button from "@/src/components/core/Button";
-import LineChart from "@/src/components/base/LineChart";
-import BarChart from "@/src/components/base/BarChart";
+import { organizationRepository } from "@/src/repositories/organizationRepository";
 import { OrganizationI } from "@/src/models/organization";
-import { dashboardService, SuperAdminDashboardStats } from "@/src/services/dashboardService";
-import { Column } from "@/src/components/base/DataTable";
-import { ShieldCheck, AlertTriangle, BarChart3 } from "lucide-react";
+import { useToast } from "@/src/hooks/useToast";
+import BarChart from "@/src/components/base/BarChart";
+import LineChart from "@/src/components/base/LineChart";
+import { Building2, GraduationCap, ShieldCheck, Clock } from "lucide-react";
 
 /**
- * Super Admin Dashboard - overview of KYC approvals and platform-wide metrics
+ * Super Admin Dashboard - Approve partner and university admin requests
+ * PRD Reference: Section 4 - Super Admin approves organizations
  */
 export default function SuperAdminDashboard() {
+  const { showError } = useToast();
   const [organizations, setOrganizations] = useState<OrganizationI[]>([]);
-  const [stats, setStats] = useState<SuperAdminDashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
+  /**
+   * Fetch organizations data
+   */
+  const fetchOrganizations = async () => {
+    try {
+      const orgs = await organizationRepository.getAll();
+      setOrganizations(orgs);
+    } catch (error) {
+      console.error("Failed to fetch organizations:", error);
+      showError("Failed to load organizations");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [orgData, dashboardStats] = await Promise.all([
-          import("@/src/data/mockOrganizations.json"),
-          dashboardService.getSuperAdminDashboardStats(),
-        ]);
-        setOrganizations(orgData.default as OrganizationI[]);
-        setStats(dashboardStats);
-      } catch (error) {
-        console.error("Failed to load data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
+    fetchOrganizations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Chart data - organizations over time
-  const orgTrendData = useMemo(() => {
+  // Calculate statistics
+  const stats = useMemo(() => {
+    const pending = organizations.filter((o) => o.kycStatus === "PENDING");
+    const approved = organizations.filter((o) => o.kycStatus === "APPROVED");
+    const rejected = organizations.filter((o) => o.kycStatus === "REJECTED");
+    const partners = organizations.filter((o) => o.type === "PARTNER");
+    const universities = organizations.filter((o) => o.type === "UNIVERSITY");
+    
+    return {
+      pendingRequests: pending.length,
+      approvedOrganizations: approved.length,
+      rejectedOrganizations: rejected.length,
+      totalPartners: partners.length,
+      totalUniversities: universities.length,
+      totalOrganizations: organizations.length,
+    };
+  }, [organizations]);
+
+
+  // Chart data - KYC status distribution
+  const kycStatusData = useMemo(() => {
+    return [
+      { name: "Pending", "Organizations": stats.pendingRequests },
+      { name: "Approved", "Organizations": stats.approvedOrganizations },
+      { name: "Rejected", "Organizations": stats.rejectedOrganizations },
+    ];
+  }, [stats]);
+
+  // Chart data - Organization type distribution
+  const orgTypeData = useMemo(() => {
+    return [
+      { name: "Partners", "Count": stats.totalPartners },
+      { name: "Universities", "Count": stats.totalUniversities },
+    ];
+  }, [stats]);
+
+  // Chart data - Registrations over time (last 6 months)
+  const registrationTrendData = useMemo(() => {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+    const now = new Date();
+    
     return months.map((month, index) => {
-      const monthOrgs = organizations.filter((org) => {
-        const created = new Date(org.createdAt).getMonth();
-        return created <= index;
-      });
+      const monthDate = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+      const monthStart = monthDate.toISOString();
+      const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).toISOString();
+      
+      const count = organizations.filter((org) => {
+        const created = new Date(org.createdAt);
+        return created >= new Date(monthStart) && created <= new Date(monthEnd);
+      }).length;
+      
       return {
         name: month,
-        "Total Organizations": monthOrgs.length,
-        "Approved": monthOrgs.filter((o) => o.kycStatus === "APPROVED").length,
+        "Registrations": count,
       };
     });
   }, [organizations]);
 
-  // Chart data - organizations by status
-  const orgsByStatusData = useMemo(() => {
-    const statusMap = organizations.reduce((acc, org) => {
-      acc[org.kycStatus] = (acc[org.kycStatus] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return Object.entries(statusMap).map(([name, count]) => ({
-      name: name.charAt(0) + name.slice(1).toLowerCase(),
-      "Organizations": count,
-    }));
-  }, [organizations]);
-
-  const handleApproveKYC = (orgId: string) => {
-    // In production, call API to approve KYC
-    setOrganizations(
-      organizations.map((org) =>
-        org.id === orgId ? { ...org, kycStatus: "APPROVED" } : org
-      )
+  if (loading) {
+    return (
+      <div className="w-full flex flex-col min-h-full">
+        <div className="flex items-center justify-center h-full">
+          <p className="text-[0.875rem] opacity-60">Loading...</p>
+        </div>
+      </div>
     );
-  };
-
-  const columns: Column<OrganizationI>[] = [
-    {
-      key: "name",
-      header: "Organization",
-    },
-    {
-      key: "type",
-      header: "Type",
-      render: (item) => (
-        <StatusIndicator
-          status={item.type.toLowerCase()}
-          label={item.type}
-        />
-      ),
-    },
-    {
-      key: "kycStatus",
-      header: "KYC Status",
-      render: (item) => <StatusIndicator status={item.kycStatus} />,
-    },
-    {
-      key: "actions",
-      header: "Actions",
-      render: (item) =>
-        item.kycStatus === "PENDING" ? (
-          <Button
-            onClick={() => handleApproveKYC(item.id)}
-            className="bg-primary text-white text-xs px-3 py-1"
-          >
-            Approve
-          </Button>
-        ) : null,
-    },
-  ];
-
-  const pendingKYC = organizations.filter((o) => o.kycStatus === "PENDING");
-
-  if (loading || !stats) {
-    return <div className="p-4">Loading...</div>;
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold mb-2">Dashboard</h1>
-        <p className="text-gray-600">Super Admin Platform Overview</p>
+    <div className="w-full flex flex-col min-h-full">
+      {/* Header */}
+      <div className="flex-shrink-0 mb-8">
+        <h1 className="text-[1rem] font-[600] mb-2">Dashboard</h1>
+        <p className="text-[0.875rem] opacity-60">
+          System-wide overview and statistics
+        </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard
+          icon={<Building2 size={20} />}
+          title="Total Partners"
+          value={stats.totalPartners}
+        />
+        <StatCard
+          icon={<GraduationCap size={20} />}
+          title="Total Universities"
+          value={stats.totalUniversities}
+        />
         <StatCard
           icon={<ShieldCheck size={20} />}
-          title="Pending KYC"
-          value={stats.pendingKYC}
-          change={stats.pendingKYCChange}
+          title="Approved"
+          value={stats.approvedOrganizations}
         />
         <StatCard
-          icon={<AlertTriangle size={20} />}
-          title="Active Disputes"
-          value={stats.activeDisputes}
-          change={stats.activeDisputesChange}
-        />
-        <StatCard
-          icon={<BarChart3 size={20} />}
-          title="Total Organizations"
-          value={stats.totalOrganizations}
+          icon={<Clock size={20} />}
+          title="Pending Requests"
+          value={stats.pendingRequests}
         />
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <LineChart
-          title="Organization Trends"
-          data={orgTrendData}
-          lines={[
-            { key: "Total Organizations", label: "Total Organizations" },
-            { key: "Approved", label: "Approved" },
-          ]}
-        />
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <BarChart
-          title="Organizations by KYC Status"
-          data={orgsByStatusData}
+          title="KYC Status Distribution"
+          data={kycStatusData}
           bars={[
             { key: "Organizations", label: "Organizations" },
           ]}
         />
+        <BarChart
+          title="Organization Types"
+          data={orgTypeData}
+          bars={[
+            { key: "Count", label: "Count" },
+          ]}
+        />
       </div>
 
-      {/* KYC Approvals */}
-      <Card title="KYC Approvals">
-        <DataTable
-          data={organizations}
-          columns={columns}
-          emptyMessage="No organizations pending approval"
+      {/* Registration Trend Chart */}
+      <div>
+        <LineChart
+          title="Organization Registrations Over Time"
+          data={registrationTrendData}
+          lines={[
+            { key: "Registrations", label: "Registrations" },
+          ]}
         />
-      </Card>
+      </div>
     </div>
   );
 }
-

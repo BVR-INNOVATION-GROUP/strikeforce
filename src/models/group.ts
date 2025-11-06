@@ -3,9 +3,9 @@
  */
 export interface GroupI {
   id: number;
-  courseId: string;
-  leaderId: string;
-  memberIds: string[];
+  courseId: number;
+  leaderId: number; // User ID (numeric)
+  memberIds: number[]; // User IDs (numeric)
   name: string;
   capacity: number;
   createdAt: string;

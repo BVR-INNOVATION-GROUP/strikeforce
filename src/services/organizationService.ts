@@ -7,6 +7,14 @@ import { OrganizationI } from "@/src/models/organization";
 
 export const organizationService = {
   /**
+   * Create a new organization
+   * PRD Reference: Section 4 - Organizations sign up
+   */
+  createOrganization: async (orgData: Partial<OrganizationI>): Promise<OrganizationI> => {
+    return organizationRepository.create(orgData);
+  },
+
+  /**
    * Get organization by ID
    */
   getOrganization: async (id: string): Promise<OrganizationI> => {

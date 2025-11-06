@@ -5,11 +5,11 @@ export type InvitationRole = "student" | "supervisor";
 export type InvitationStatus = "PENDING" | "USED" | "EXPIRED";
 
 export interface InvitationI {
-  id: string;
+  id: number;
   email: string;
   role: InvitationRole;
-  orgId?: string;
-  universityId?: string;
+  orgId?: number;
+  universityId?: number;
   token: string;
   expiresAt: string;
   usedAt?: string;

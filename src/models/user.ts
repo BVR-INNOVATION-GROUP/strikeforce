@@ -4,14 +4,14 @@
 export type UserRole = "partner" | "student" | "supervisor" | "university-admin" | "super-admin";
 
 export interface UserI {
-  id: string;
+  id: number;
   role: UserRole;
   email: string;
   name: string;
-  orgId?: string;
-  universityId?: string;
-  departmentId?: string;
-  courseId?: string;
+  orgId?: number;
+  universityId?: number;
+  departmentId?: number;
+  courseId?: number;
   profile: UserProfileI;
   payoutMethod?: PayoutMethodI;
   createdAt: string;
@@ -28,7 +28,7 @@ export interface UserProfileI {
 }
 
 export interface PayoutMethodI {
-  id: string;
+  id: number;
   type: "BANK_ACCOUNT" | "MOBILE_MONEY" | "DIGITAL_WALLET";
   details: Record<string, string>;
   isVerified: boolean;

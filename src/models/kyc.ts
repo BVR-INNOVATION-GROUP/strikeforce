@@ -5,12 +5,12 @@ export type KycDocumentType = "CERTIFICATE" | "LICENSE" | "REGISTRATION" | "IDEN
 export type KycDocumentStatus = "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED";
 
 export interface KycDocumentI {
-  id: string;
-  orgId: string;
+  id: number;
+  orgId: number;
   type: KycDocumentType;
   url: string;
   status: KycDocumentStatus;
-  reviewedBy?: string;
+  reviewedBy?: number; // User ID (numeric)
   reviewedAt?: string;
   notes?: string;
   expiresAt?: string;

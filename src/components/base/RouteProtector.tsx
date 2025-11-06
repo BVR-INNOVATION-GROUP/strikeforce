@@ -4,7 +4,7 @@
  */
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/src/store";
 import { UserRole } from "@/src/models/user";
@@ -62,20 +62,41 @@ function hasAccess(userRole: UserRole | null, pathname: string, allowedRoles?: U
  * Wraps pages to ensure only authorized users can access them
  */
 export default function RouteProtector({ children, allowedRoles }: Props) {
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, _hasHydrated } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
+  const lastRedirectRef = useRef<string | null>(null);
+  
+  // Memoize allowedRoles string for stable comparison
+  const allowedRolesKey = useMemo(() => {
+    return allowedRoles ? allowedRoles.sort().join(',') : '';
+  }, [allowedRoles]);
+
+  // Wait for hydration before checking auth (prevents false redirects on page load)
+  // Only wait for hydration in test/dev mode (localStorage persistence)
+  // In production (NextAuth), session is handled server-side, so we can proceed
+  const useTestAuth = process.env.NEXT_PUBLIC_USE_TEST_AUTH === "true" || process.env.NODE_ENV === "development";
+  const isHydrated = !useTestAuth || _hasHydrated === true; // Skip hydration check in production
 
   useEffect(() => {
+    // Don't check auth until store has hydrated from localStorage
+    if (!isHydrated) {
+      return;
+    }
     // Allow public routes
     if (isPublicRoute(pathname)) {
+      lastRedirectRef.current = null;
       return;
     }
 
     // If not authenticated and trying to access protected route, redirect to login
     if (!isAuthenticated || !user) {
       const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
-      router.push(loginUrl);
+      // Only redirect if not already on login page and haven't redirected to this URL
+      if (pathname !== "/auth/login" && lastRedirectRef.current !== loginUrl) {
+        lastRedirectRef.current = loginUrl;
+        router.push(loginUrl);
+      }
       return;
     }
 
@@ -83,10 +104,27 @@ export default function RouteProtector({ children, allowedRoles }: Props) {
     if (!hasAccess(user.role, pathname, allowedRoles)) {
       // User doesn't have access - redirect to their dashboard
       const dashboardRoute = roleRoutes[user.role]?.[0] || "/auth/login";
-      router.push(dashboardRoute);
+      // Only redirect if not already on the target route and haven't redirected to this route
+      if (pathname !== dashboardRoute && lastRedirectRef.current !== dashboardRoute) {
+        lastRedirectRef.current = dashboardRoute;
+        router.push(dashboardRoute);
+      }
       return;
     }
-  }, [user, isAuthenticated, pathname, router, allowedRoles]);
+
+    // Reset redirect tracking if we have access
+    lastRedirectRef.current = null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, user?.role, isAuthenticated, pathname, allowedRolesKey, isHydrated]);
+
+  // Show loading while hydrating (prevents flash of redirect)
+  if (!isHydrated) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   // If on public route or user has access, render children
   if (isPublicRoute(pathname) || (user && hasAccess(user.role, pathname, allowedRoles))) {

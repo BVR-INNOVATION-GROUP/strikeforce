@@ -19,7 +19,7 @@ export type MilestoneStatus =
 export interface MilestoneProposalI {
   id: number;
   projectId: number;
-  proposerId: string;
+  proposerId: number; // User ID (numeric)
   title: string;
   scope: string;
   acceptanceCriteria: string;

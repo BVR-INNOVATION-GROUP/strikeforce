@@ -4,6 +4,7 @@
  */
 import { ApplicationI, ApplicationType } from '@/src/models/application';
 import { ProjectI } from '@/src/models/project';
+import { applicationRepository } from '@/src/repositories/applicationRepository';
 
 /**
  * Business logic layer for application operations
@@ -36,22 +37,16 @@ export const applicationService = {
       throw new Error("Group ID is required for group applications");
     }
 
-    // Create application
-    const newApplication: ApplicationI = {
-      id: `app-${Date.now()}`,
-      projectId: applicationData.projectId,
+    // Create application via repository
+    // Repository will generate numeric ID
+    return applicationRepository.create({
+      projectId: applicationData.projectId as number,
       applicantType: applicationData.applicantType as ApplicationType,
       studentIds: applicationData.studentIds,
       groupId: applicationData.groupId,
       statement: applicationData.statement.trim(),
       status: "SUBMITTED",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    // In production, save to repository/API
-    // For now, return the created application
-    return newApplication;
+    });
   },
 
   /**
@@ -60,13 +55,12 @@ export const applicationService = {
    * @param studentId - Student ID
    * @returns True if already applied
    */
-  hasApplied: async (projectId: string, studentId: string): Promise<boolean> => {
+  hasApplied: async (projectId: string | number, studentId: string): Promise<boolean> => {
     try {
-      const applicationsData = await import('@/src/data/mockApplications.json');
-      const applications = applicationsData.default as ApplicationI[];
-      
+      const numericProjectId = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
+      const applications = await applicationRepository.getAll(numericProjectId);
       return applications.some(
-        (app) => app.projectId === projectId && app.studentIds.includes(studentId)
+        (app) => app.projectId === numericProjectId && app.studentIds.includes(studentId)
       );
     } catch {
       return false;
@@ -78,12 +72,10 @@ export const applicationService = {
    * @param projectId - Project ID
    * @returns Array of applications
    */
-  getProjectApplications: async (projectId: string): Promise<ApplicationI[]> => {
+  getProjectApplications: async (projectId: string | number): Promise<ApplicationI[]> => {
     try {
-      const applicationsData = await import('@/src/data/mockApplications.json');
-      const applications = applicationsData.default as ApplicationI[];
-      
-      return applications.filter((app) => app.projectId === projectId);
+      const numericProjectId = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
+      return applicationRepository.getAll(numericProjectId);
     } catch {
       return [];
     }
@@ -96,10 +88,7 @@ export const applicationService = {
    */
   getUserApplications: async (studentId: string): Promise<ApplicationI[]> => {
     try {
-      const applicationsData = await import('@/src/data/mockApplications.json');
-      const applications = applicationsData.default as ApplicationI[];
-      
-      return applications.filter((app) => app.studentIds.includes(studentId));
+      return applicationRepository.getByUserId(studentId);
     } catch {
       return [];
     }

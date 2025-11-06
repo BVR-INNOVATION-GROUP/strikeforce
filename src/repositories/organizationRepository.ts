@@ -4,23 +4,19 @@
  */
 import { api } from "@/src/api/client";
 import { OrganizationI } from "@/src/models/organization";
-
-// Environment configuration
-// Default to mock data in development mode
-// Can be disabled by setting NEXT_PUBLIC_USE_MOCK=false
-const isDevelopment = process.env.NODE_ENV === "development";
-const USE_MOCK_DATA =
-  isDevelopment && process.env.NEXT_PUBLIC_USE_MOCK !== "false";
+import { getUseMockData } from "@/src/utils/config";
+import { readJsonFile, findById } from "@/src/utils/fileHelpers";
 
 export const organizationRepository = {
   /**
    * Get organization by ID
    */
-  getById: async (id: string): Promise<OrganizationI> => {
-    if (USE_MOCK_DATA) {
-      const mockData = await import("@/src/data/mockOrganizations.json");
-      const organizations = mockData.default as OrganizationI[];
-      const org = organizations.find((o) => o.id === id);
+  getById: async (id: string | number): Promise<OrganizationI> => {
+    if (getUseMockData()) {
+      const organizations = await readJsonFile<OrganizationI>(
+        "mockOrganizations.json"
+      );
+      const org = findById(organizations, id);
       if (!org) {
         throw new Error(`Organization ${id} not found`);
       }
@@ -33,9 +29,8 @@ export const organizationRepository = {
    * Get all organizations
    */
   getAll: async (): Promise<OrganizationI[]> => {
-    if (USE_MOCK_DATA) {
-      const mockData = await import("@/src/data/mockOrganizations.json");
-      return mockData.default as OrganizationI[];
+    if (getUseMockData()) {
+      return await readJsonFile<OrganizationI>("mockOrganizations.json");
     }
     return api.get<OrganizationI[]>("/api/organizations");
   },
@@ -44,13 +39,26 @@ export const organizationRepository = {
    * Update organization
    */
   update: async (
-    id: string,
+    id: string | number,
     data: Partial<OrganizationI>
   ): Promise<OrganizationI> => {
-    if (USE_MOCK_DATA) {
-      const existing = await organizationRepository.getById(id);
-      return { ...existing, ...data, updatedAt: new Date().toISOString() };
-    }
+    // Always use API route (even in mock mode) - API routes handle file operations server-side
     return api.put<OrganizationI>(`/api/organizations/${id}`, data);
+  },
+
+  /**
+   * Create organization
+   */
+  create: async (org: Partial<OrganizationI>): Promise<OrganizationI> => {
+    // Always use API route (even in mock mode) - API routes handle file operations server-side
+    return api.post<OrganizationI>("/api/organizations", org);
+  },
+
+  /**
+   * Delete organization
+   */
+  delete: async (id: string | number): Promise<void> => {
+    // Always use API route (even in mock mode) - API routes handle file operations server-side
+    return api.delete(`/api/organizations/${id}`);
   },
 };

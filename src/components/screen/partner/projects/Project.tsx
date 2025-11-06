@@ -80,10 +80,10 @@ const convertProjectToDisplay = async (
 
         // Transform applications (same as detail page)
         const transformedApps = transformApplications(applications, groupsData, usersData)
-        
+
         // Find assigned application
         const assignedApp = transformedApps.find(app => app.status === "ASSIGNED" || app.rawStatus === "ASSIGNED")
-        
+
         if (assignedApp) {
             group = {
                 name: assignedApp.groupName,
@@ -93,10 +93,10 @@ const convertProjectToDisplay = async (
     }
 
     // Map status to card status format
-    const cardStatus: projectStatus = 
+    const cardStatus: projectStatus =
         project.status === "in-progress" || project.status === "published" ? "in-progress" :
-        project.status === "on-hold" ? "on-hold" :
-        project.status === "completed" ? "completed" : "in-progress"
+            project.status === "on-hold" ? "on-hold" :
+                project.status === "completed" ? "completed" : "in-progress"
 
     return {
         id: typeof project.id === 'string' ? parseInt(project.id, 10) : project.id,
@@ -285,13 +285,13 @@ const Project = (props: ProjectCardProps | ProjectI & { index?: number }) => {
                 boxShadow: "0 10px 40px rgba(0, 0, 0, 0.2)"
             }}
             initial={{ opacity: 0, y: 20 }}
-            animate={{ 
+            animate={{
                 opacity: isDragging ? 0.9 : 1,
                 y: 0,
                 scale: isDragging ? 1.05 : 1
             }}
             exit={{ opacity: 0, scale: 0.8, y: -20 }}
-            transition={{ 
+            transition={{
                 type: "spring",
                 stiffness: 300,
                 damping: 30
@@ -300,17 +300,16 @@ const Project = (props: ProjectCardProps | ProjectI & { index?: number }) => {
             onDragEnd={handleDragEnd}
             onDrag={(_, info) => handleDrag(info?.point?.x || 0, info)}
             onClick={handleCardClick}
-            className={`rounded-lg p-8 bg-paper border border-custom shadow-custom hover:shadow-lg cursor-pointer transition-all duration-200 ${
-                isDragging ? 'ring-2 ring-primary ring-opacity-50' : ''
-            } ${!canDrag ? 'opacity-90' : ''}`}
+            className={`rounded-lg p-8 bg-paper border border-custom shadow-custom hover:shadow-lg cursor-pointer transition-all duration-200 ${isDragging ? 'ring-2 ring-primary ring-opacity-50' : ''
+                } ${!canDrag ? 'opacity-90' : ''}`}
         >
             <h3 className="text-[1rem] font-[600] hover:text-primary transition-colors">{p.title}</h3>
             <p className='my-3 mb-6 opacity-60 line-clamp-2'>{p.description}</p>
             <div className="flex flex-wrap gap-3 items-center">
                 {
                     p?.skills?.map((s, i) => (
-                        <motion.div 
-                            key={i} 
+                        <motion.div
+                            key={i}
                             className='rounded-full bg-very-pale px-4 py-2 text-xs'
                             whileHover={{ scale: 1.05 }}
                         >

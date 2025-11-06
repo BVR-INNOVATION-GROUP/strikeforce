@@ -25,19 +25,14 @@ export interface UserSettingsI {
   updatedAt: string;
 }
 
-// Environment configuration
-// Default to mock data in development mode
-// Can be disabled by setting NEXT_PUBLIC_USE_MOCK=false
-const isDevelopment = process.env.NODE_ENV === "development";
-const USE_MOCK_DATA =
-  isDevelopment && process.env.NEXT_PUBLIC_USE_MOCK !== "false";
+import { getUseMockData } from "@/src/utils/config";
 
 export const userSettingsRepository = {
   /**
    * Get user settings by user ID
    */
   getByUserId: async (userId: string): Promise<UserSettingsI | null> => {
-    if (USE_MOCK_DATA) {
+    if (getUseMockData()) {
       const mockData = await import("@/src/data/mockUserSettings.json");
       const settings = mockData.default as UserSettingsI[];
       const userSettings = settings.find((s) => s.userId === userId);
@@ -53,7 +48,7 @@ export const userSettingsRepository = {
     userId: string,
     settings: Partial<UserSettingsI>
   ): Promise<UserSettingsI> => {
-    if (USE_MOCK_DATA) {
+    if (getUseMockData()) {
       const existing = await userSettingsRepository.getByUserId(userId);
       const updated = {
         userId,

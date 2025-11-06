@@ -4,24 +4,27 @@
  */
 import { api } from "@/src/api/client";
 import { InvitationI } from "@/src/models/invitation";
-
-const isDevelopment = process.env.NODE_ENV === "development";
-const USE_MOCK_DATA =
-  isDevelopment && process.env.NEXT_PUBLIC_USE_MOCK !== "false";
+import { getUseMockData } from "@/src/utils/config";
+import { readJsonFile, findById } from "@/src/utils/fileHelpers";
 
 export const invitationRepository = {
   /**
    * Get all invitations
    * @param universityId - Optional filter by university
    */
-  getAll: async (universityId?: string): Promise<InvitationI[]> => {
-    if (USE_MOCK_DATA) {
+  getAll: async (universityId?: number | string): Promise<InvitationI[]> => {
+    if (getUseMockData()) {
       try {
-        const mockData = await import("@/src/data/mockInvitations.json");
-        let invitations = mockData.default as InvitationI[];
+        let invitations = await readJsonFile<InvitationI>(
+          "mockInvitations.json"
+        );
         if (universityId) {
+          const numericUniversityId =
+            typeof universityId === "string"
+              ? parseInt(universityId, 10)
+              : universityId;
           invitations = invitations.filter(
-            (inv) => inv.universityId === universityId
+            (inv) => inv.universityId === numericUniversityId
           );
         }
         return invitations;
@@ -39,12 +42,13 @@ export const invitationRepository = {
   /**
    * Get invitation by ID
    */
-  getById: async (id: string): Promise<InvitationI> => {
-    if (USE_MOCK_DATA) {
+  getById: async (id: number): Promise<InvitationI> => {
+    if (getUseMockData()) {
       try {
-        const mockData = await import("@/src/data/mockInvitations.json");
-        const invitations = mockData.default as InvitationI[];
-        const invitation = invitations.find((inv) => inv.id === id);
+        const invitations = await readJsonFile<InvitationI>(
+          "mockInvitations.json"
+        );
+        const invitation = findById(invitations, id);
         if (!invitation) {
           throw new Error(`Invitation ${id} not found`);
         }
@@ -60,10 +64,11 @@ export const invitationRepository = {
    * Get invitation by token
    */
   getByToken: async (token: string): Promise<InvitationI | null> => {
-    if (USE_MOCK_DATA) {
+    if (getUseMockData()) {
       try {
-        const mockData = await import("@/src/data/mockInvitations.json");
-        const invitations = mockData.default as InvitationI[];
+        const invitations = await readJsonFile<InvitationI>(
+          "mockInvitations.json"
+        );
         const invitation = invitations.find((inv) => inv.token === token);
         return invitation || null;
       } catch {
@@ -81,19 +86,7 @@ export const invitationRepository = {
    * Create new invitation
    */
   create: async (invitation: Partial<InvitationI>): Promise<InvitationI> => {
-    if (USE_MOCK_DATA) {
-      const newInvitation: InvitationI = {
-        id: `inv-${Date.now()}`,
-        email: invitation.email || "",
-        role: invitation.role || "student",
-        universityId: invitation.universityId,
-        token: invitation.token || "",
-        expiresAt: invitation.expiresAt || new Date().toISOString(),
-        status: invitation.status || "PENDING",
-        createdAt: new Date().toISOString(),
-      };
-      return newInvitation;
-    }
+    // Always use API route (even in mock mode) - API routes handle file operations server-side
     return api.post<InvitationI>("/api/invitations", invitation);
   },
 
@@ -101,17 +94,18 @@ export const invitationRepository = {
    * Update invitation
    */
   update: async (
-    id: string,
+    id: number,
     invitation: Partial<InvitationI>
   ): Promise<InvitationI> => {
-    if (USE_MOCK_DATA) {
-      const existing = await invitationRepository.getById(id);
-      return {
-        ...existing,
-        ...invitation,
-        updatedAt: new Date().toISOString(),
-      } as InvitationI;
-    }
+    // Always use API route (even in mock mode) - API routes handle file operations server-side
     return api.put<InvitationI>(`/api/invitations/${id}`, invitation);
+  },
+
+  /**
+   * Delete invitation
+   */
+  delete: async (id: number): Promise<void> => {
+    // Always use API route (even in mock mode) - API routes handle file operations server-side
+    return api.delete(`/api/invitations/${id}`);
   },
 };

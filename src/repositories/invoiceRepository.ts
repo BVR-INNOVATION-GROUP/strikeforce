@@ -4,23 +4,19 @@
  */
 import { api } from "@/src/api/client";
 import { InvoiceI } from "@/src/models/invoice";
-
-// Environment configuration
-// Default to mock data in development mode
-// Can be disabled by setting NEXT_PUBLIC_USE_MOCK=false
-const isDevelopment = process.env.NODE_ENV === "development";
-const USE_MOCK_DATA =
-  isDevelopment && process.env.NEXT_PUBLIC_USE_MOCK !== "false";
+import { getUseMockData } from "@/src/utils/config";
+import { readJsonFile, findById } from "@/src/utils/fileHelpers";
 
 export const invoiceRepository = {
   /**
    * Get all invoices for a partner
    */
-  getByPartnerId: async (partnerId: string): Promise<InvoiceI[]> => {
-    if (USE_MOCK_DATA) {
-      const mockData = await import("@/src/data/mockInvoices.json");
-      const invoices = mockData.default as InvoiceI[];
-      return invoices.filter((inv) => inv.partnerId === partnerId);
+  getByPartnerId: async (partnerId: number | string): Promise<InvoiceI[]> => {
+    if (getUseMockData()) {
+      const invoices = await readJsonFile<InvoiceI>("mockInvoices.json");
+      const numericPartnerId =
+        typeof partnerId === "string" ? parseInt(partnerId, 10) : partnerId;
+      return invoices.filter((inv) => inv.partnerId === numericPartnerId);
     }
     return api.get<InvoiceI[]>(`/api/invoices?partnerId=${partnerId}`);
   },
@@ -28,11 +24,10 @@ export const invoiceRepository = {
   /**
    * Get invoice by ID
    */
-  getById: async (id: string): Promise<InvoiceI> => {
-    if (USE_MOCK_DATA) {
-      const mockData = await import("@/src/data/mockInvoices.json");
-      const invoices = mockData.default as InvoiceI[];
-      const invoice = invoices.find((inv) => inv.id === id);
+  getById: async (id: number): Promise<InvoiceI> => {
+    if (getUseMockData()) {
+      const invoices = await readJsonFile<InvoiceI>("mockInvoices.json");
+      const invoice = findById(invoices, id);
       if (!invoice) {
         throw new Error(`Invoice ${id} not found`);
       }
@@ -44,8 +39,8 @@ export const invoiceRepository = {
   /**
    * Download invoice PDF
    */
-  downloadInvoice: async (id: string): Promise<Blob> => {
-    if (USE_MOCK_DATA) {
+  downloadInvoice: async (id: number): Promise<Blob> => {
+    if (getUseMockData()) {
       // In production, return actual PDF blob
       throw new Error("PDF download not available in mock mode");
     }

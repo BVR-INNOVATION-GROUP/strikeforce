@@ -3,18 +3,14 @@
  */
 import { api } from "@/src/api/client";
 import { MilestoneProposalI } from "@/src/models/milestone";
-
-// Default to mock data in development mode
-const isDevelopment = process.env.NODE_ENV === "development";
-const USE_MOCK_DATA =
-  isDevelopment && process.env.NEXT_PUBLIC_USE_MOCK !== "false";
+import { getUseMockData } from "@/src/utils/config";
 
 // In-memory store for proposals (in production, this would be a database)
 let proposalStore: MilestoneProposalI[] = [];
 
 export const proposalRepository = {
   getAll: async (projectId?: string): Promise<MilestoneProposalI[]> => {
-    if (USE_MOCK_DATA) {
+    if (getUseMockData()) {
       const filtered = projectId
         ? proposalStore.filter((p) => p.projectId === projectId)
         : proposalStore;
@@ -27,7 +23,7 @@ export const proposalRepository = {
   },
 
   getById: async (id: string): Promise<MilestoneProposalI> => {
-    if (USE_MOCK_DATA) {
+    if (getUseMockData()) {
       const proposal = proposalStore.find((p) => p.id === id);
       if (!proposal) {
         throw new Error(`Proposal ${id} not found`);
@@ -40,7 +36,7 @@ export const proposalRepository = {
   create: async (
     proposal: Partial<MilestoneProposalI>
   ): Promise<MilestoneProposalI> => {
-    if (USE_MOCK_DATA) {
+    if (getUseMockData()) {
       const newProposal = {
         id: `proposal-${Date.now()}`,
         ...proposal,
@@ -57,7 +53,7 @@ export const proposalRepository = {
     id: string,
     proposal: Partial<MilestoneProposalI>
   ): Promise<MilestoneProposalI> => {
-    if (USE_MOCK_DATA) {
+    if (getUseMockData()) {
       const index = proposalStore.findIndex((p) => p.id === id);
       if (index === -1) {
         throw new Error(`Proposal ${id} not found`);
@@ -74,7 +70,7 @@ export const proposalRepository = {
   },
 
   delete: async (id: string): Promise<void> => {
-    if (USE_MOCK_DATA) {
+    if (getUseMockData()) {
       proposalStore = proposalStore.filter((p) => p.id !== id);
       return;
     }

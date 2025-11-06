@@ -4,9 +4,9 @@
 export type InvoiceStatus = "DRAFT" | "SENT" | "PAID" | "CANCELLED";
 
 export interface InvoiceI {
-  id: string;
-  contractId?: string;
-  partnerId: string;
+  id: number;
+  contractId?: number;
+  partnerId: number;
   lineItems: InvoiceLineItemI[];
   subtotal: number;
   tax?: number;

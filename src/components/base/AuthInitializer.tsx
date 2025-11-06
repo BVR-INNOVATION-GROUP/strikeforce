@@ -1,22 +1,38 @@
 "use client";
 
 /**
- * AuthInitializer - Automatically initializes university admin user in development mode
- * This component runs on mount and sets the default university admin user if no user is logged in
+ * AuthInitializer - Ensures auth state is properly hydrated on page load
+ * In test/dev mode: Restores from localStorage and sets cookie
+ * In production: Would integrate with NextAuth session
  */
 import { useEffect } from "react";
 import { useAuthStore } from "@/src/store";
 
 export default function AuthInitializer() {
-  const { user, initializeUniversityAdmin } = useAuthStore();
+  const { _hasHydrated, initializeFromStorage, setHasHydrated } = useAuthStore();
 
   useEffect(() => {
-    // Only initialize if no user is currently set
-    // This ensures we don't override existing sessions
-    if (!user && process.env.NODE_ENV === "development") {
-      initializeUniversityAdmin();
+    // Zustand persist middleware automatically hydrates
+    // The onRehydrateStorage callback handles marking as hydrated
+    // But if there's no persisted state, we need to mark as hydrated manually
+    
+    // If already hydrated, ensure cookie is set
+    if (_hasHydrated) {
+      initializeFromStorage();
+      return;
     }
-  }, [user, initializeUniversityAdmin]);
+    
+    // If not hydrated after a short delay, mark as hydrated (no persisted state)
+    // This handles the case where there's no localStorage data
+    const timer = setTimeout(() => {
+      const currentState = useAuthStore.getState();
+      if (!currentState._hasHydrated) {
+        currentState.setHasHydrated(true);
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [_hasHydrated, initializeFromStorage, setHasHydrated]);
 
   return null; // This component doesn't render anything
 }

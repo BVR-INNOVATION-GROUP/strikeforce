@@ -4,16 +4,16 @@
 export type SupervisorRequestStatus = "PENDING" | "APPROVED" | "DENIED";
 
 export interface SupervisorCapacityI {
-  supervisorId: string;
+  supervisorId: number; // User ID (numeric)
   maxActive: number;
   currentActive: number;
 }
 
 export interface SupervisorRequestI {
-  id: string;
-  projectId: string;
-  studentOrGroupId: string;
-  supervisorId: string;
+  id: number;
+  projectId: number;
+  studentOrGroupId: number; // User ID or Group ID (numeric)
+  supervisorId: number; // User ID (numeric)
   status: SupervisorRequestStatus;
   message?: string;
   createdAt: string;

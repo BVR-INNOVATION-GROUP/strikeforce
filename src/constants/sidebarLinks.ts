@@ -69,10 +69,8 @@ export const sidebarLinks: SideLinkCategory[] = [
         role: "super-admin",
         links: [
             { title: "Dashboard", iconComponent: LayoutPanelTop, path: "/super-admin" },
-            { title: "Disputes", iconComponent: AlertCircle, path: "/super-admin/disputes" },
-            { title: "Audit", iconComponent: FileText, path: "/super-admin/audit" },
-            { title: "KYC", iconComponent: ShieldCheck, path: "/super-admin/kyc" },
-            { title: "Profile", iconComponent: User, path: "/super-admin/profile" },
+            { title: "Partners", iconComponent: Briefcase, path: "/super-admin/partners" },
+            { title: "Universities", iconComponent: GraduationCap, path: "/super-admin/universities" },
         ]
     }
 ];

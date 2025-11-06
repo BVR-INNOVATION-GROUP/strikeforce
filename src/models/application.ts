@@ -8,7 +8,7 @@ export interface ApplicationI {
   id: number;
   projectId: number;
   applicantType: ApplicationType;
-  studentIds: string[]; // Single student for INDIVIDUAL, multiple for GROUP
+  studentIds: number[]; // Single student for INDIVIDUAL, multiple for GROUP (numeric IDs)
   groupId?: number;
   statement: string;
   status: ApplicationStatus;

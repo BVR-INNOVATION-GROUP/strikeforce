@@ -23,7 +23,8 @@ export const predefinedCredentials: Record<string, string> = {
   "admin@university.edu": "password123",
   
   // Super Admin
-  "superadmin@strikeforce.com": "password123",
+  "admin@strikeforce.com": "password123",
+  "kigongovincent625@gmail.com": "EOSjqq5&1&qD",
 };
 
 /**

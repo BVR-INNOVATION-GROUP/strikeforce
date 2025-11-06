@@ -3,10 +3,10 @@
  * PRD Reference: Section 11 - Performance and Reputation
  */
 export interface PortfolioItemI {
-  id: string;
-  userId: string;
-  projectId: string;
-  milestoneId?: string;
+  id: number;
+  userId: number; // User ID (numeric)
+  projectId: number;
+  milestoneId?: number;
   role: string; // Student's role in the project
   scope: string; // Description of work done
   proof: string[]; // Links to proof files/repos
@@ -36,7 +36,7 @@ export interface ReputationFactorsI {
  * Reputation score (0-100)
  */
 export interface ReputationScoreI {
-  userId: string;
+  userId: number; // User ID (numeric)
   score: number;
   factors: ReputationFactorsI;
   lastCalculatedAt: string;

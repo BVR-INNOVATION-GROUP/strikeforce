@@ -17,13 +17,32 @@ export async function GET(request: NextRequest) {
     const partnerId = searchParams.get('partnerId');
     const universityId = searchParams.get('universityId');
 
+    // Check if MongoDB URI is configured
+    if (!process.env.MONGODB_URI) {
+      console.error('MONGODB_URI is not configured. Please set it in your .env file.');
+      return NextResponse.json(
+        { error: 'Database not configured. Please set MONGODB_URI in your .env file.' },
+        { status: 500 }
+      );
+    }
+
     const collection = await getCollection<ProjectI>('projects');
 
     // Build query filter
     const filter: Record<string, any> = {};
     if (status) filter.status = status;
-    if (partnerId) filter.partnerId = partnerId;
-    if (universityId) filter.universityId = universityId;
+    if (partnerId) {
+      // Convert partnerId to number if it's a string (for consistency with numeric IDs)
+      filter.partnerId = typeof partnerId === 'string' && !isNaN(Number(partnerId)) 
+        ? Number(partnerId) 
+        : partnerId;
+    }
+    if (universityId) {
+      // Convert universityId to number if it's a string
+      filter.universityId = typeof universityId === 'string' && !isNaN(Number(universityId))
+        ? Number(universityId)
+        : universityId;
+    }
 
     // Query projects
     const projects = await collection.find(filter).toArray();
@@ -37,8 +56,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(projectsWithStringIds, { status: 200 });
   } catch (error) {
     console.error('Error fetching projects:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to fetch projects' },
+      { error: `Failed to fetch projects: ${errorMessage}` },
       { status: 500 }
     );
   }

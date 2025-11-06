@@ -7,11 +7,11 @@ export type ProjectStatus = "draft" | "published" | "in-progress" | "on-hold" | 
 
 export interface ProjectI {
   id: number;
-  partnerId: string;
-  universityId: string;
-  departmentId: string;
-  courseId: string;
-  supervisorId?: string;
+  partnerId: number;
+  universityId: number;
+  departmentId: number;
+  courseId: number;
+  supervisorId?: number;
   title: string;
   description: string;
   status: ProjectStatus;
@@ -26,15 +26,15 @@ export interface ProjectI {
 }
 
 export interface DepartmentI {
-  id: string;
-  universityId: string;
+  id: number;
+  universityId: number;
   name: string;
   createdAt: string;
 }
 
 export interface CourseI {
-  id: string;
-  departmentId: string;
+  id: number;
+  departmentId: number;
   name: string;
   createdAt: string;
 }

@@ -6,7 +6,7 @@ export type OrganizationType = "PARTNER" | "UNIVERSITY";
 export type KycStatus = "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED";
 
 export interface OrganizationI {
-  id: string;
+  id: number;
   type: OrganizationType;
   name: string;
   email: string;
@@ -17,15 +17,18 @@ export interface OrganizationI {
 }
 
 export interface BillingProfileI {
-  orgId: string;
+  orgId: number;
   taxId?: string;
   address?: string;
   country?: string;
-  paymentMethods: PaymentMethodI[];
+  contactName?: string;
+  phone?: string;
+  website?: string;
+  paymentMethods?: PaymentMethodI[];
 }
 
 export interface PaymentMethodI {
-  id: string;
+  id: number;
   type: "BANK_TRANSFER" | "CARD" | "MOBILE_MONEY";
   details: Record<string, string>;
   isDefault: boolean;
