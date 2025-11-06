@@ -7,6 +7,13 @@ import { OrganizationI } from "@/src/models/organization";
 
 export const organizationService = {
   /**
+   * Get all organizations
+   */
+  getAllOrganizations: async (): Promise<OrganizationI[]> => {
+    return organizationRepository.getAll();
+  },
+
+  /**
    * Create a new organization
    * PRD Reference: Section 4 - Organizations sign up
    */

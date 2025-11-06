@@ -2,8 +2,9 @@
   {
     "id": 1,
     "role": "super-admin",
-    "email": "admin@strikeforce.com",
+    "email": "kigongovincent625+superadmin@gmail.com",
     "name": "Super Admin",
+    "password": "12345678",
     "profile": {
       "avatar": "https://images.pexels.com/photos/3184405/pexels-photo-3184405.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop",
       "bio": "Platform administrator",
@@ -15,33 +16,19 @@
     "updatedAt": "2024-01-01T00:00:00Z"
   },
   {
-    "role": "partner",
-    "email": "kigongovincent625@gmail.com",
-    "name": "john mcken",
-    "orgId": 10,
-    "profile": {
-      "bio": "PARTNER administrator for vinctech",
-      "skills": [],
-      "phone": "+256756644325",
-      "location": "kampala"
-    },
-    "createdAt": "2025-11-06T11:42:05.400Z",
-    "updatedAt": "2025-11-06T11:42:05.400Z",
-    "id": 2
-  },
-  {
-    "role": "partner",
-    "email": "kigongovincent625@gmail.com",
+    "role": "university-admin",
+    "email": "kigongovincent625+ku@gmail.com",
     "name": "Ntwali Andrew",
-    "orgId": 10,
+    "password": "nscS*a4bPX1E",
+    "orgId": 1,
     "profile": {
-      "bio": "PARTNER administrator for vinctech",
+      "bio": "UNIVERSITY administrator for Kyambogo University",
       "skills": [],
       "phone": "+256756644325",
       "location": "123 kenya"
     },
-    "createdAt": "2025-11-06T11:45:18.475Z",
-    "updatedAt": "2025-11-06T11:45:18.475Z",
-    "id": 3
+    "createdAt": "2025-11-06T13:35:18.506Z",
+    "updatedAt": "2025-11-06T13:35:18.506Z",
+    "id": 2
   }
 ]

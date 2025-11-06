@@ -8,6 +8,7 @@ export interface UserI {
   role: UserRole;
   email: string;
   name: string;
+  password?: string; // Password stored in mock data only (in production, passwords are hashed and stored separately)
   orgId?: number;
   universityId?: number;
   departmentId?: number;

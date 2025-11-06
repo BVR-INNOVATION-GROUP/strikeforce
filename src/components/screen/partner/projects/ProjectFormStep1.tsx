@@ -3,10 +3,15 @@
  */
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import Select, { OptionI } from "@/src/components/core/Select";
 import MultiSelect, { OptionI as MultiSelectOptionI } from "@/src/components/base/MultiSelect";
-import { topUgandanUniversities, University, commonSkills } from "@/src/constants/universities";
+import { commonSkills } from "@/src/constants/universities";
+import { organizationService } from "@/src/services/organizationService";
+import { departmentService } from "@/src/services/departmentService";
+import { courseService } from "@/src/services/courseService";
+import { OrganizationI } from "@/src/models/organization";
+import { DepartmentI, CourseI } from "@/src/models/project";
 
 export interface Props {
   university: OptionI | undefined;
@@ -38,47 +43,110 @@ const ProjectFormStep1 = ({
   onSkillsChange,
   onClearError,
 }: Props) => {
-  const getUniversities = () => {
-    return topUgandanUniversities
-      ?.filter((o) => o?.id != university?.value)
-      ?.map((u) => ({
+  const [universities, setUniversities] = useState<OrganizationI[]>([]);
+  const [departments, setDepartments] = useState<DepartmentI[]>([]);
+  const [courses, setCourses] = useState<CourseI[]>([]);
+  const [loadingUniversities, setLoadingUniversities] = useState(false);
+  const [loadingDepartments, setLoadingDepartments] = useState(false);
+  const [loadingCourses, setLoadingCourses] = useState(false);
+
+  /**
+   * Load all universities (organizations with type UNIVERSITY)
+   */
+  useEffect(() => {
+    const loadUniversities = async () => {
+      try {
+        setLoadingUniversities(true);
+        const allOrgs = await organizationService.getAllOrganizations();
+        // Filter for universities only
+        const universityOrgs = allOrgs.filter((org) => org.type === "UNIVERSITY");
+        setUniversities(universityOrgs);
+      } catch (error) {
+        console.error("Failed to load universities:", error);
+      } finally {
+        setLoadingUniversities(false);
+      }
+    };
+    loadUniversities();
+  }, []);
+
+  /**
+   * Load departments when university is selected
+   */
+  useEffect(() => {
+    const loadDepartments = async () => {
+      if (!university?.value) {
+        setDepartments([]);
+        return;
+      }
+      try {
+        setLoadingDepartments(true);
+        const depts = await departmentService.getAllDepartments(university.value);
+        setDepartments(depts);
+      } catch (error) {
+        console.error("Failed to load departments:", error);
+        setDepartments([]);
+      } finally {
+        setLoadingDepartments(false);
+      }
+    };
+    loadDepartments();
+  }, [university?.value]);
+
+  /**
+   * Load courses when department is selected
+   */
+  useEffect(() => {
+    const loadCourses = async () => {
+      if (!department?.value) {
+        setCourses([]);
+        return;
+      }
+      try {
+        setLoadingCourses(true);
+        const courseList = await courseService.getAllCourses(department.value);
+        setCourses(courseList);
+      } catch (error) {
+        console.error("Failed to load courses:", error);
+        setCourses([]);
+      } finally {
+        setLoadingCourses(false);
+      }
+    };
+    loadCourses();
+  }, [department?.value]);
+
+  /**
+   * Convert universities to Select options
+   */
+  const getUniversities = (): OptionI[] => {
+    return universities
+      .filter((u) => u.id != university?.value)
+      .map((u) => ({
         label: u.name,
-        value: u.id,
-        isSelected: university?.value === u.id,
+        value: u.id.toString(),
+        isSelected: university?.value === u.id.toString(),
       }));
   };
 
-  const getDepartments = () => {
-    if (university) {
-      const foundUniversity = topUgandanUniversities?.find(
-        (u) => u?.id == university?.value
-      );
-      return (
-        foundUniversity?.departments?.map((d) => ({
-          label: d?.name,
-          value: d?.id,
-        })) ?? []
-      );
-    }
-    return [];
+  /**
+   * Convert departments to Select options
+   */
+  const getDepartments = (): OptionI[] => {
+    return departments.map((d) => ({
+      label: d.name,
+      value: d.id.toString(),
+    }));
   };
 
-  const getCourses = () => {
-    if (department && university) {
-      const foundUniversity = topUgandanUniversities?.find(
-        (u) => u?.id == university?.value
-      );
-      const foundDepartment = foundUniversity?.departments?.find(
-        (d) => d?.id == department?.value
-      );
-      return (
-        foundDepartment?.courses?.map((c) => ({
-          label: `${c.name} (Year ${c.year})`,
-          value: c.id,
-        })) ?? []
-      );
-    }
-    return [];
+  /**
+   * Convert courses to Select options
+   */
+  const getCourses = (): OptionI[] => {
+    return courses.map((c) => ({
+      label: c.name,
+      value: c.id.toString(),
+    }));
   };
 
   /**

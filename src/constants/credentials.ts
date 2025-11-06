@@ -1,37 +1,33 @@
 /**
- * Predefined user credentials for testing
- * Format: email -> password
+ * Validate credentials by checking against user data
+ * Passwords are now stored in mockUsers.json instead of hardcoded here
+ * @param email - User email address
+ * @param password - User password
+ * @returns Promise<boolean> - True if credentials are valid
  */
-export const predefinedCredentials: Record<string, string> = {
-  // Partner
-  "john@techcorp.com": "password123",
-  
-  // Students
-  "alice@university.edu": "password123",
-  "bob@university.edu": "password123",
-  "charlie@university.edu": "password123",
-  "diana@university.edu": "password123",
-  "eve@university.edu": "password123",
-  "fiona@university.edu": "password123",
-  "george@university.edu": "password123",
-  "helen@university.edu": "password123",
-  
-  // Supervisor
-  "prof.jones@university.edu": "password123",
-  
-  // University Admin
-  "admin@university.edu": "password123",
-  
-  // Super Admin
-  "admin@strikeforce.com": "password123",
-  "kigongovincent625@gmail.com": "EOSjqq5&1&qD",
-};
+export async function validateCredentials(
+  email: string,
+  password: string
+): Promise<boolean> {
+  try {
+    // Load user data from mock file
+    const usersData = await import("@/src/data/mockUsers.json");
+    const users = usersData.default;
 
-/**
- * Check if credentials are valid
- */
-export function validateCredentials(email: string, password: string): boolean {
-  const expectedPassword = predefinedCredentials[email];
-  return expectedPassword === password;
+    // Find user by email
+    const user = users.find((u: { email: string; password?: string }) => 
+      u.email.toLowerCase() === email.toLowerCase()
+    );
+
+    // Check if user exists and password matches
+    if (!user || !user.password) {
+      return false;
+    }
+
+    return user.password === password;
+  } catch (error) {
+    console.error("Error validating credentials:", error);
+    return false;
+  }
 }
 

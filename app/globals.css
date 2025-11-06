@@ -69,8 +69,31 @@
   --muted-red-text: rgba(239, 68, 68, 0.7); /* Muted red text */
 }
 
+/* Slim scrollbar styling for WebKit browsers (Chrome, Safari, Edge) */
 ::-webkit-scrollbar {
-  display: none;
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(151, 151, 151, 0.4);
+}
+
+/* Slim scrollbar styling for Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
 
 .border-custom {

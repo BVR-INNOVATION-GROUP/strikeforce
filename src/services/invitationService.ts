@@ -109,27 +109,50 @@ export const invitationService = {
   },
 
   /**
-   * Mark invitation as used
+   * Mark invitation as used and create user account
    * PRD: One-time use; supports password set
    * @param token - Invitation token
-   * @returns Updated invitation
+   * @param password - User password
+   * @param name - User name
+   * @returns Created user account
    */
-  useInvitation: async (token: string, password?: string): Promise<InvitationI> => {
-    const { invitationRepository } = await import('@/src/repositories/invitationRepository');
-    
+  useInvitation: async (token: string, password: string, name: string): Promise<{ user: any; invitation: InvitationI }> => {
     // Validate first
     const invitation = await invitationService.validateInvitation(token);
 
-    // Update status to USED
-    const updated = await invitationRepository.update(invitation.id, {
-      status: "USED",
-      usedAt: new Date().toISOString(),
+    if (!password || password.length < 8) {
+      throw new Error("Password must be at least 8 characters");
+    }
+
+    if (!name || name.trim().length === 0) {
+      throw new Error("Name is required");
+    }
+
+    // Call API endpoint to create user account and mark invitation as used
+    const response = await fetch("/api/invitations/accept", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        token,
+        password,
+        name: name.trim(),
+      }),
     });
 
-    // In production, create user account with password here
-    // For now, just return updated invitation
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to accept invitation");
+    }
 
-    return updated;
+    const user = await response.json();
+
+    // Get updated invitation
+    const { invitationRepository } = await import('@/src/repositories/invitationRepository');
+    const updated = await invitationRepository.getById(invitation.id);
+
+    return { user, invitation: updated };
   },
 
   /**

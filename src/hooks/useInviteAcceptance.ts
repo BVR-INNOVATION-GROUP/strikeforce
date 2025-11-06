@@ -93,10 +93,14 @@ export function useInviteAcceptance(token: string | null): UseInviteAcceptanceRe
 
     setSubmitting(true);
     try {
-      await invitationService.useInvitation(token, formData.password);
+      const { user } = await invitationService.useInvitation(
+        token,
+        formData.password,
+        formData.name
+      );
       showSuccess("Account created successfully! Redirecting to login...");
       setTimeout(() => {
-        router.push("/");
+        router.push("/auth/login");
       }, 2000);
     } catch (error: any) {
       console.error("Failed to accept invitation:", error);

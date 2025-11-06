@@ -54,10 +54,45 @@ export const api = {
         },
         body: JSON.stringify(data),
       });
+      
+      // Check if response is JSON
+      const contentType = response.headers.get("content-type");
+      const isJson = contentType && contentType.includes("application/json");
+      
+      // Read response body once
+      const responseText = await response.text();
+      
       if (!response.ok) {
-        throw new Error(`POST ${url} failed: ${response.statusText}`);
+        // Try to extract error message from response body
+        let errorMessage = `POST ${url} failed: ${response.statusText}`;
+        if (isJson && responseText) {
+          try {
+            const errorData = JSON.parse(responseText);
+            errorMessage = errorData.error || errorData.message || errorMessage;
+          } catch {
+            // If parsing fails, check if it's HTML (error page)
+            if (responseText.trim().startsWith("<!DOCTYPE") || responseText.trim().startsWith("<html")) {
+              errorMessage = `Server returned an error page. Check server logs for details.`;
+            } else {
+              errorMessage = responseText.substring(0, 200) || errorMessage;
+            }
+          }
+        } else if (responseText) {
+          // Not JSON, but has content
+          if (responseText.trim().startsWith("<!DOCTYPE") || responseText.trim().startsWith("<html")) {
+            errorMessage = `Server returned an error page. Check server logs for details.`;
+          } else {
+            errorMessage = responseText.substring(0, 200) || errorMessage;
+          }
+        }
+        throw new Error(errorMessage);
       }
-      return response.json() as Promise<T>;
+      
+      if (!isJson) {
+        throw new Error(`Expected JSON response from ${url}, got ${contentType}. Response: ${responseText.substring(0, 100)}`);
+      }
+      
+      return JSON.parse(responseText) as T;
     } catch (error) {
       console.error(`API POST error for ${url}:`, error);
       throw error;

@@ -1,6 +1,6 @@
 /**
  * University Organization Sign-up Page
- * PRD Reference: Section 4 - Universities sign up → submit KYC → Super Admin approval
+ * PRD Reference: Section 4 - Universities sign up → Super Admin approval
  */
 "use client";
 
@@ -10,15 +10,12 @@ import Card from "@/src/components/core/Card";
 import Button from "@/src/components/core/Button";
 import { useToast } from "@/src/hooks/useToast";
 
-import { kycService } from "@/src/services/kycService";
 import { organizationService } from "@/src/services/organizationService";
 import OrganizationSignupForm from "@/src/components/screen/auth/signup/OrganizationSignupForm";
-import KYCStepView from "@/src/components/screen/auth/signup/KYCStepView";
 import { validateOrganizationSignup, OrganizationSignupFormData, ValidationErrors } from "@/src/utils/organizationSignupValidation";
 
 export default function UniversitySignUpPage() {
   const router = useRouter();
-  const [step, setStep] = useState<"form" | "kyc">("form");
   const [formData, setFormData] = useState<OrganizationSignupFormData>({
     orgName: "",
     email: "",
@@ -30,15 +27,20 @@ export default function UniversitySignUpPage() {
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [submitting, setSubmitting] = useState(false);
-  const [orgId, setOrgId] = useState<string | null>(null);
   const { showSuccess, showError } = useToast();
 
+  /**
+   * Validate form data
+   */
   const validate = (): boolean => {
     const validationErrors = validateOrganizationSignup(formData, true);
     setErrors(validationErrors);
     return Object.keys(validationErrors).length === 0;
   };
 
+  /**
+   * Clear error for a specific field
+   */
   const clearError = (field: string) => {
     setErrors((prev) => {
       const newErrors = { ...prev };
@@ -47,6 +49,9 @@ export default function UniversitySignUpPage() {
     });
   };
 
+  /**
+   * Handle form submission
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -72,9 +77,10 @@ export default function UniversitySignUpPage() {
         description: formData.description,
       });
 
-      setOrgId(org.id);
-      setStep("kyc");
-      showSuccess("University registered! Please upload KYC documents.");
+      showSuccess("University registered! Your application is pending Super Admin approval.");
+      setTimeout(() => {
+        router.push("/auth/login");
+      }, 2000);
     } catch (error: any) {
       console.error("Failed to register university:", error);
       showError(error.message || "Failed to register. Please try again.");
@@ -83,36 +89,9 @@ export default function UniversitySignUpPage() {
     }
   };
 
-  const handleKYCSubmit = async (documentData: any) => {
-    if (!orgId) return;
-
-    try {
-      await kycService.uploadDocument(documentData);
-      showSuccess(
-        "KYC documents uploaded! Your application is pending Super Admin approval."
-      );
-      setTimeout(() => {
-        router.push("/");
-      }, 2000);
-    } catch (error: any) {
-      console.error("Failed to upload KYC:", error);
-      throw error;
-    }
-  };
-
-  if (step === "kyc" && orgId) {
-    return (
-      <KYCStepView
-        orgId={orgId}
-        isUniversity={true}
-        onKYCSubmit={handleKYCSubmit}
-      />
-    );
-  }
-
   return (
-    <div className="flex items-center justify-center min-h-screen bg-pale">
-      <Card className="max-w-2xl w-full">
+    <div className="flex items-center justify-center min-h-screen bg-pale py-8">
+      <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="mb-6">
           <h1 className="text-2xl font-bold mb-2">University Sign Up</h1>
           <p className="text-gray-600">
@@ -135,12 +114,10 @@ export default function UniversitySignUpPage() {
             className="bg-primary w-full mt-4"
             disabled={submitting}
           >
-            {submitting ? "Registering..." : "Continue to KYC Upload"}
+            {submitting ? "Registering..." : "Register University"}
           </Button>
         </form>
       </Card>
-
-      
     </div>
   );
 }

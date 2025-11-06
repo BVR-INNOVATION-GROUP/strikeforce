@@ -12,10 +12,7 @@ import { formatDateShort } from "@/src/utils/dateFormatters";
  * Uses same date formatting as detail page for consistency
  */
 export function convertModelToUIProject(
-  modelProject: Omit<
-    ModelProjectI,
-    "id" | "createdAt" | "updatedAt" | "partnerId"
-  >
+  modelProject: ModelProjectI | Omit<ModelProjectI, "id" | "createdAt" | "updatedAt" | "partnerId">
 ): ProjectI {
   const currencyInfo = currenciesArray.find((c) => c.code === modelProject.currency);
   const currencySymbol = currencyInfo?.symbol || modelProject.currency;
@@ -30,8 +27,13 @@ export function convertModelToUIProject(
     modelProject.status === "on-hold" ? "on-hold" :
     modelProject.status === "completed" ? "completed" : "in-progress";
 
+  // Get ID from model project if available, otherwise use a temporary ID
+  const projectId = 'id' in modelProject 
+    ? (typeof modelProject.id === 'string' ? parseInt(modelProject.id, 10) : modelProject.id)
+    : Date.now();
+
   return {
-    id: Date.now(), // Temporary ID for client-side
+    id: projectId,
     title: modelProject.title,
     description: modelProject.description,
     skills: modelProject.skills,

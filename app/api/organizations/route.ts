@@ -9,7 +9,7 @@ import { OrganizationI } from "@/src/models/organization";
 import { UserI, UserRole } from "@/src/models/user";
 import { getUseMockData } from "@/src/utils/config";
 import { createItem, updateItem } from "@/src/utils/fileHelpers.server";
-import { sendEmail, sendOrganizationInvitationEmail } from "@/src/services/emailService";
+import { sendOrganizationRegistrationEmail, sendOrganizationInvitationEmail } from "@/src/services/emailService";
 import { generateSecurePassword } from "@/src/utils/passwordGenerator";
 
 export async function POST(request: NextRequest) {
@@ -108,12 +108,13 @@ export async function POST(request: NextRequest) {
         
         // Create user account for the organization admin
         if (getUseMockData()) {
-          // Create user in mock data
+          // Create user in mock data with password stored in user object
           const contactName = billingProfile?.contactName || name;
           const newUser = await createItem<UserI>("mockUsers.json", {
             role: userRole,
             email: email.toLowerCase().trim(),
             name: contactName,
+            password: password, // Store password in user data
             orgId: organization.id,
             profile: {
               avatar: undefined,
@@ -126,47 +127,7 @@ export async function POST(request: NextRequest) {
             updatedAt: new Date().toISOString(),
           } as Omit<UserI, 'id'>);
 
-          // Store password in credentials file (for mock mode)
-          try {
-            const path = require("path");
-            const fs = require("fs/promises");
-            const credentialsPath = path.join(process.cwd(), "src", "constants", "credentials.ts");
-            let credentialsContent = await fs.readFile(credentialsPath, "utf-8");
-            
-            const emailLower = email.toLowerCase().trim();
-            const escapedEmail = emailLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            
-            // Check if credential already exists
-            if (credentialsContent.includes(`"${emailLower}":`)) {
-              // Update existing credential
-              const regex = new RegExp(`("${escapedEmail}"):\\s*"[^"]*"`, 'g');
-              credentialsContent = credentialsContent.replace(regex, `$1: "${password}"`);
-            } else {
-              // Add new credential before the closing brace
-              // Find the closing brace of predefinedCredentials object
-              const closingBraceIndex = credentialsContent.indexOf('};');
-              if (closingBraceIndex !== -1) {
-                // Find the last line before the closing brace to get indentation
-                const beforeClosing = credentialsContent.substring(0, closingBraceIndex);
-                const lines = beforeClosing.split('\n');
-                const lastLine = lines[lines.length - 1];
-                const indent = lastLine.match(/^(\s*)/)?.[1] || '  ';
-                
-                // Insert new credential with proper formatting
-                const newCredential = `${indent}"${emailLower}": "${password}",\n`;
-                credentialsContent = 
-                  credentialsContent.slice(0, closingBraceIndex) + 
-                  newCredential + 
-                  credentialsContent.slice(closingBraceIndex);
-              }
-            }
-            
-            await fs.writeFile(credentialsPath, credentialsContent, "utf-8");
-            console.log(`Credentials updated for ${emailLower}`);
-          } catch (credError) {
-            // Log but don't fail if credentials file update fails
-            console.warn("Failed to update credentials file:", credError);
-          }
+          // Password is stored in user object, no need for separate credentials file
         } else {
           // Production mode - create user via API/repository
           // In production, this would create the user in the database
@@ -186,24 +147,53 @@ export async function POST(request: NextRequest) {
         console.error("Failed to create user account or send invitation email:", userError);
       }
     } else if (kycStatus === "PENDING") {
-      // Send welcome email for self-registered organizations (pending approval)
+      // Create user account and send registration email with credentials for self-registered organizations
       try {
-        await sendEmail({
-          to: email,
-          subject: `Welcome to StrikeForce - ${name}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2>Welcome to StrikeForce!</h2>
-              <p>Hello,</p>
-              <p>Thank you for registering <strong>${name}</strong> as a ${type.toLowerCase()} organization.</p>
-              <p>Your account is currently pending Super Admin approval. You'll receive an email notification once your account is approved.</p>
-              <p>In the meantime, please complete your KYC document upload.</p>
-            </div>
-          `,
-        });
-      } catch (emailError) {
-        // Log but don't fail the request if email fails
-        console.error("Failed to send welcome email:", emailError);
+        // Generate secure password for the organization admin
+        const password = generateSecurePassword(12);
+        
+        // Determine user role based on organization type
+        const userRole: UserRole = type === "PARTNER" ? "partner" : "university-admin";
+        
+        // Create user account for the organization admin
+        if (getUseMockData()) {
+          // Create user in mock data with password stored in user object
+          const contactName = billingProfile?.contactName || name;
+          const newUser = await createItem<UserI>("mockUsers.json", {
+            role: userRole,
+            email: email.toLowerCase().trim(),
+            name: contactName,
+            password: password, // Store password in user data
+            orgId: organization.id,
+            profile: {
+              avatar: undefined,
+              bio: `${type} administrator for ${name}`,
+              skills: [],
+              phone: billingProfile?.phone,
+              location: billingProfile?.address,
+            },
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          } as Omit<UserI, 'id'>);
+
+          // Password is stored in user object, no need for separate credentials file
+        } else {
+          // Production mode - create user via API/repository
+          // In production, this would create the user in the database
+          // and store the hashed password securely
+          console.log(`[Production] Would create user account for ${email} with role ${userRole}`);
+        }
+
+        // Send registration email with credentials
+        await sendOrganizationRegistrationEmail(
+          email,
+          name,
+          password,
+          userRole
+        );
+      } catch (userError) {
+        // Log but don't fail the request if user creation/email fails
+        console.error("Failed to create user account or send registration email:", userError);
       }
     }
 

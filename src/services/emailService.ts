@@ -245,7 +245,60 @@ export async function sendMilestoneNotificationEmail(
 }
 
 /**
- * Send organization invitation email with credentials
+ * Send organization registration email with credentials (for PENDING status)
+ * PRD Reference: Section 4 - Organizations register and receive credentials
+ * @param email - Organization admin email
+ * @param organizationName - Name of the organization
+ * @param password - Generated password for the account
+ * @param role - User role (partner or university-admin)
+ */
+export async function sendOrganizationRegistrationEmail(
+  email: string,
+  organizationName: string,
+  password: string,
+  role: "partner" | "university-admin"
+): Promise<void> {
+  const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/login`;
+  const roleName = role === "partner" ? "Partner" : "University Admin";
+  const orgType = role === "partner" ? "partner organization" : "university";
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2>Welcome to StrikeForce!</h2>
+      <p>Hello,</p>
+      <p>Thank you for registering <strong>${organizationName}</strong> as a ${orgType} on StrikeForce.</p>
+      <p>Your account is currently pending Super Admin approval. You'll receive an email notification once your account is approved.</p>
+      
+      <div style="background-color: #f9f9f9; border: 2px solid #e9226e; border-radius: 8px; padding: 20px; margin: 30px 0;">
+        <h3 style="margin-top: 0; color: #e9226e;">Your Login Credentials</h3>
+        <p style="margin: 10px 0;"><strong>Email:</strong> ${email}</p>
+        <p style="margin: 10px 0;"><strong>Password:</strong> <code style="background-color: white; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 14px;">${password}</code></p>
+        <p style="margin-top: 15px; font-size: 12px; color: #666;">
+          <strong>⚠️ Important:</strong> Please save these credentials securely. For security reasons, we recommend changing your password after your first login.
+        </p>
+      </div>
+
+      <p style="margin: 30px 0;">
+        <a href="${loginUrl}" style="background-color: #e9226e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+          Log In to Dashboard
+        </a>
+      </p>
+      
+      <p style="margin-top: 30px; color: #666; font-size: 12px;">
+        If you have any questions, please don't hesitate to contact our support team.
+      </p>
+    </div>
+  `;
+
+  await sendEmail({
+    to: email,
+    subject: `Welcome to StrikeForce - ${organizationName}`,
+    html,
+  });
+}
+
+/**
+ * Send organization invitation email with credentials (for APPROVED status)
  * PRD Reference: Section 4 - Organizations receive invitation with credentials
  * @param email - Organization admin email
  * @param organizationName - Name of the organization
@@ -297,6 +350,49 @@ export async function sendOrganizationInvitationEmail(
   await sendEmail({
     to: email,
     subject: `Your ${organizationName} account has been created on StrikeForce`,
+    html,
+  });
+}
+
+/**
+ * Send password reset email with reset link
+ * PRD Reference: Section 13 - Email/Notification Events
+ * @param email - User email address
+ * @param resetToken - Password reset token
+ * @param userName - User's name (optional)
+ */
+export async function sendPasswordResetEmail(
+  email: string,
+  resetToken: string,
+  userName?: string
+): Promise<void> {
+  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/reset-password?token=${resetToken}`;
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2>Reset Your Password</h2>
+      <p>Hello${userName ? ` ${userName}` : ""},</p>
+      <p>We received a request to reset your password for your StrikeForce account.</p>
+      <p>Click the link below to reset your password:</p>
+      <p style="margin: 30px 0;">
+        <a href="${resetUrl}" style="background-color: #e9226e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+          Reset Password
+        </a>
+      </p>
+      <p>Or copy and paste this link into your browser:</p>
+      <p style="color: #666; font-size: 12px; word-break: break-all;">${resetUrl}</p>
+      <p style="margin-top: 30px; color: #666; font-size: 12px;">
+        <strong>⚠️ Important:</strong> This link will expire in 1 hour. If you didn't request a password reset, please ignore this email.
+      </p>
+      <p style="margin-top: 15px; color: #666; font-size: 12px;">
+        For security reasons, never share this link with anyone.
+      </p>
+    </div>
+  `;
+
+  await sendEmail({
+    to: email,
+    subject: "Reset Your StrikeForce Password",
     html,
   });
 }

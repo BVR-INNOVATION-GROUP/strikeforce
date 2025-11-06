@@ -3,17 +3,19 @@
  */
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AuthLayout from "@/src/components/base/AuthLayout";
 import Input from "@/src/components/core/Input";
 import Button from "@/src/components/core/Button";
 import { Lock, CheckCircle, ArrowLeft } from "lucide-react";
 import { useToast } from "@/src/hooks/useToast";
+import { passwordResetService } from "@/src/services/passwordResetService";
 
-const ResetPasswordPage = () => {
+const ResetPasswordForm = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { showSuccess, showError } = useToast();
   const [formData, setFormData] = useState({
     password: "",
@@ -22,6 +24,20 @@ const ResetPasswordPage = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [reset, setReset] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const [tokenError, setTokenError] = useState<string>("");
+
+  /**
+   * Get token from URL query parameter
+   */
+  useEffect(() => {
+    const tokenParam = searchParams.get("token");
+    if (!tokenParam) {
+      setTokenError("Invalid reset link. Please request a new password reset.");
+    } else {
+      setToken(tokenParam);
+    }
+  }, [searchParams]);
 
   /**
    * Validate form data
@@ -55,10 +71,14 @@ const ResetPasswordPage = () => {
       return;
     }
 
+    if (!token) {
+      setTokenError("Reset token is missing. Please request a new password reset.");
+      return;
+    }
+
     setLoading(true);
     try {
-      // In production, this would reset the password via API
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await passwordResetService.resetPassword(token, formData.password);
       setReset(true);
       showSuccess("Password reset successfully!");
       setTimeout(() => {
@@ -66,7 +86,18 @@ const ResetPasswordPage = () => {
       }, 2000);
     } catch (error) {
       console.error("Password reset failed:", error);
-      showError("Password reset failed. Please try again.");
+      const errorMessage =
+        error instanceof Error ? error.message : "Password reset failed. Please try again.";
+      showError(errorMessage);
+      
+      // Check if token is invalid or expired
+      if (
+        errorMessage.includes("expired") ||
+        errorMessage.includes("Invalid") ||
+        errorMessage.includes("token")
+      ) {
+        setTokenError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -82,6 +113,38 @@ const ResetPasswordPage = () => {
       return newErrors;
     });
   };
+
+  // Show error if token is missing or invalid
+  if (tokenError) {
+    return (
+      <AuthLayout
+        rightContent={{
+          title: "Invalid Reset Link",
+          description:
+            "The password reset link is invalid or has expired. Please request a new password reset.",
+        }}
+      >
+        <div className="text-center">
+          <div className="w-16 h-16 bg-pale-primary rounded-full flex items-center justify-center mx-auto mb-6">
+            <Lock className="text-primary" size={32} />
+          </div>
+          <h1 className="text-3xl font-bold mb-2">Invalid Reset Link</h1>
+          <p className="text-sm opacity-60 mb-8">{tokenError}</p>
+          <Link href="/auth/forgot-password">
+            <Button className="w-full bg-primary">
+              Request New Reset Link
+            </Button>
+          </Link>
+          <Link href="/auth/login">
+            <Button className="w-full bg-pale mt-4">
+              <ArrowLeft size={16} />
+              Back to login
+            </Button>
+          </Link>
+        </div>
+      </AuthLayout>
+    );
+  }
 
   if (reset) {
     return (
@@ -167,6 +230,28 @@ const ResetPasswordPage = () => {
         </Link>
       </div>
     </AuthLayout>
+  );
+};
+
+const ResetPasswordPage = () => {
+  return (
+    <Suspense fallback={
+      <AuthLayout
+        rightContent={{
+          title: "Loading...",
+          description: "Please wait while we load the reset password page.",
+        }}
+      >
+        <div className="text-center">
+          <div className="w-16 h-16 bg-pale-primary rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+            <Lock className="text-primary" size={32} />
+          </div>
+          <h1 className="text-3xl font-bold mb-2">Loading...</h1>
+        </div>
+      </AuthLayout>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 };
 

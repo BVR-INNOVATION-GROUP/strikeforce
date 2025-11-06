@@ -9,11 +9,13 @@ import Link from "next/link";
 import AuthLayout from "@/src/components/base/AuthLayout";
 import Input from "@/src/components/core/Input";
 import Button from "@/src/components/core/Button";
+import Modal from "@/src/components/base/Modal";
 import { Mail, Lock } from "lucide-react";
 import { useAuthStore } from "@/src/store";
 import { useToast } from "@/src/hooks/useToast";
 import { UserI } from "@/src/models/user";
-import { validateCredentials } from "@/src/constants/credentials";
+import { organizationRepository } from "@/src/repositories/organizationRepository";
+import { OrganizationI } from "@/src/models/organization";
 
 const LoginPage = () => {
   const router = useRouter();
@@ -25,6 +27,8 @@ const LoginPage = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [showPendingModal, setShowPendingModal] = useState(false);
+  const [pendingOrganization, setPendingOrganization] = useState<OrganizationI | null>(null);
 
   /**
    * Validate form data
@@ -60,24 +64,36 @@ const LoginPage = () => {
 
     setLoading(true);
     try {
-      // Validate credentials
-      if (!validateCredentials(formData.email, formData.password)) {
-        showError("Invalid email or password");
-        setErrors({ email: "Invalid credentials", password: "Invalid credentials" });
-        return;
-      }
-
       // Load mock user data - in production, this would be an API call
       const usersData = await import("@/src/data/mockUsers.json");
       const users = usersData.default as UserI[];
 
       // Find user by email
-      const user = users.find((u) => u.email === formData.email);
+      const user = users.find((u) => u.email.toLowerCase() === formData.email.toLowerCase());
 
-      if (!user) {
-        showError("User not found");
-        setErrors({ email: "User not found", password: "User not found" });
+      // Validate credentials against user data
+      if (!user || !user.password || user.password !== formData.password) {
+        showError("Invalid email or password");
+        setErrors({ email: "Invalid credentials", password: "Invalid credentials" });
         return;
+      }
+
+      // Check organization approval status for partner and university-admin roles
+      if ((user.role === "partner" || user.role === "university-admin") && user.orgId) {
+        try {
+          const organization = await organizationRepository.getById(user.orgId);
+
+          // If organization is not approved, show modal and don't create session
+          if (organization.kycStatus !== "APPROVED") {
+            setPendingOrganization(organization);
+            setShowPendingModal(true);
+            return; // Don't create session
+          }
+        } catch (error) {
+          console.error("Failed to fetch organization:", error);
+          // If we can't fetch organization, allow login but log the error
+          // In production, you might want to handle this differently
+        }
       }
 
       // Set user in auth store and cookie for middleware
@@ -186,6 +202,65 @@ const LoginPage = () => {
           </Link>
         </p>
       </div>
+
+      {/* Pending Approval Modal */}
+      <Modal
+        open={showPendingModal}
+        handleClose={() => setShowPendingModal(false)}
+        title={
+          pendingOrganization?.kycStatus === "REJECTED"
+            ? "Account Not Approved"
+            : pendingOrganization?.kycStatus === "EXPIRED"
+              ? "Account Approval Expired"
+              : "Account Pending Approval"
+        }
+        actions={[
+          <Button
+            key="close"
+            onClick={() => setShowPendingModal(false)}
+            className="bg-primary"
+          >
+            Close
+          </Button>,
+        ]}
+      >
+        <div className="space-y-4">
+          {pendingOrganization?.kycStatus === "PENDING" && (
+            <>
+              <p>
+                Your organization <strong>{pendingOrganization.name}</strong> is currently pending Super Admin approval.
+              </p>
+              <p className="text-sm text-muted">
+                You will receive an email notification once your account has been approved.
+                Until then, you cannot access the dashboard.
+              </p>
+            </>
+          )}
+          {pendingOrganization?.kycStatus === "REJECTED" && (
+            <>
+              <p>
+                Your organization <strong>{pendingOrganization.name}</strong> has been rejected by Super Admin.
+              </p>
+              <p className="text-sm text-muted">
+                Please contact our support team for more information about the rejection and how to proceed.
+              </p>
+            </>
+          )}
+          {pendingOrganization?.kycStatus === "EXPIRED" && (
+            <>
+              <p>
+                Your organization <strong>{pendingOrganization.name}</strong> approval has expired.
+              </p>
+              <p className="text-sm text-muted">
+                Please contact our support team to renew your account approval.
+              </p>
+            </>
+          )}
+          <p className="text-sm text-muted">
+            If you have any questions, please contact our support team.
+          </p>
+        </div>
+      </Modal>
     </AuthLayout>
   );
 };

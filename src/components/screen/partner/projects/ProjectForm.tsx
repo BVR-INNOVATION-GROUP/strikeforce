@@ -12,6 +12,7 @@ import { useProjectForm } from "@/src/hooks/useProjectForm";
 import { getProjectFormActions } from "@/src/utils/projectFormActions";
 import { useProjectFormSubmission } from "@/src/hooks/useProjectFormSubmission";
 import { ProjectI } from "./Project";
+import { ProjectI as ModelProjectI } from "@/src/models/project";
 
 export interface Props {
   open: boolean;
@@ -30,10 +31,10 @@ export interface Props {
   }>;
   onSubmit?: (
     project: Omit<
-      ProjectI,
+      ModelProjectI,
       "id" | "createdAt" | "updatedAt" | "partnerId"
     >
-  ) => void;
+  ) => void | Promise<void>;
 }
 
 /**

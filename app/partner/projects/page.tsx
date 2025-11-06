@@ -5,49 +5,126 @@ import Board from '@/src/components/screen/partner/projects/Board'
 import Project, { ProjectI, projectStatus } from '@/src/components/screen/partner/projects/Project'
 import ProjectForm from '@/src/components/screen/partner/projects/ProjectForm'
 import { ProjectI as ModelProjectI, ProjectStatus } from '@/src/models/project'
-import { useProjectStore } from '@/src/store/useProjectStore'
 import React, { useEffect, useState } from 'react'
-import { mockPartnerProjects } from '@/src/data/mockPartnerProjects'
-import { convertModelToUIProject, convertUIToModelProject } from '@/src/utils/projectConversion'
+import { convertModelToUIProject } from '@/src/utils/projectConversion'
+import { projectService } from '@/src/services/projectService'
+import { useAuthStore } from '@/src/store'
+import { useToast } from '@/src/hooks/useToast'
 
 const page = () => {
-    const { projects: storedProjects, setProjects, addProject } = useProjectStore()
-    const [localProjects, setLocalProjects] = useState<ProjectI[]>(mockPartnerProjects)
-
-    // Initialize store with local projects on mount
-    useEffect(() => {
-        if (storedProjects.length === 0 && localProjects.length > 0) {
-            // Convert UI projects to model format for store
-            // For now, we'll keep using local state and sync when projects are added
-        }
-    }, [])
-
-    // Use local projects but sync with store when adding new ones
-    const projects = localProjects
-
+    const { user } = useAuthStore()
+    const { showSuccess, showError } = useToast()
+    const [projects, setProjects] = useState<ProjectI[]>([])
+    const [loading, setLoading] = useState(true)
     const [open, setOpen] = useState(false)
 
     /**
-     * Handle new project submission from form
-     * Adds the project to the client-side state
+     * Load projects for the current partner
      */
-    const handleProjectSubmit = (newProject: Omit<ModelProjectI, 'id' | 'createdAt' | 'updatedAt' | 'partnerId'>) => {
-        const uiProject = convertModelToUIProject(newProject)
-        setLocalProjects((prev) => [...prev, uiProject])
-        const modelProject = convertUIToModelProject(uiProject, newProject)
-        addProject(modelProject)
+    useEffect(() => {
+        const loadProjects = async () => {
+            if (!user?.id) {
+                setLoading(false)
+                return
+            }
+
+            try {
+                setLoading(true)
+                // Fetch all projects and filter by partnerId
+                const allProjects = await projectService.getAllProjects()
+                const partnerProjects = allProjects.filter(
+                    (p) => p.partnerId === user.id || p.partnerId === Number(user.id)
+                )
+
+                // Convert model projects to UI format
+                const uiProjects = partnerProjects.map((p) => convertModelToUIProject(p))
+                setProjects(uiProjects)
+            } catch (error) {
+                console.error("Failed to load projects:", error)
+                showError("Failed to load projects. Please try again.")
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        loadProjects()
+    }, [user?.id])
+
+    /**
+     * Handle new project submission from form
+     * Creates the project via service and refreshes the list
+     */
+    const handleProjectSubmit = async (newProject: Omit<ModelProjectI, 'id' | 'createdAt' | 'updatedAt' | 'partnerId'>) => {
+        if (!user?.id) {
+            showError("User not found. Please log in again.")
+            return
+        }
+
+        try {
+            // Add partnerId to the project
+            const projectWithPartner: Omit<ModelProjectI, 'id' | 'createdAt' | 'updatedAt'> = {
+                ...newProject,
+                partnerId: typeof user.id === 'string' ? parseInt(user.id, 10) : user.id,
+            }
+
+            // Create project via service
+            const createdProject = await projectService.createProject(projectWithPartner)
+
+            // Convert to UI format and add to list
+            const uiProject = convertModelToUIProject(createdProject)
+            setProjects((prev) => [...prev, uiProject])
+
+            showSuccess("Project created successfully!")
+            setOpen(false)
+        } catch (error) {
+            console.error("Failed to create project:", error)
+            showError(error instanceof Error ? error.message : "Failed to create project. Please try again.")
+        }
     }
 
-    const moveProject = (projectId: number | string, currentProjectStatus: projectStatus, x: number) => {
+    /**
+     * Handle project status change (move between boards)
+     */
+    const moveProject = async (projectId: number | string, currentProjectStatus: projectStatus, x: number) => {
+        try {
+            let newStatus: ProjectStatus
 
-        if (currentProjectStatus === "in-progress" && x > 0) {
-            setLocalProjects(projects?.map((p) => p.id === projectId ? ({ ...p, status: "on-hold" }) : p))
+            if (currentProjectStatus === "in-progress" && x > 0) {
+                newStatus = "on-hold"
+            } else if (currentProjectStatus === "on-hold") {
+                newStatus = "in-progress"
+            } else {
+                return // No change needed
+            }
+
+            // Update project via service
+            await projectService.updateProject(projectId, { status: newStatus })
+
+            // Update local state
+            setProjects((prev) =>
+                prev.map((p) => {
+                    if (p.id === projectId) {
+                        const updatedStatus: projectStatus =
+                            newStatus === "in-progress" ? "in-progress" :
+                                newStatus === "on-hold" ? "on-hold" :
+                                    newStatus === "completed" ? "completed" : "in-progress"
+                        return { ...p, status: updatedStatus }
+                    }
+                    return p
+                })
+            )
+        } catch (error) {
+            console.error("Failed to update project status:", error)
+            showError("Failed to update project status. Please try again.")
         }
-        else if (currentProjectStatus == "on-hold") {
-            setLocalProjects(projects?.map((p) => p.id === projectId ? ({ ...p, status: "in-progress" }) : p))
-        }
+    }
 
-
+    if (loading) {
+        return (
+            <div className='w-full flex flex-col h-full overflow-hidden items-center justify-center'>
+                <p>Loading projects...</p>
+            </div>
+        )
     }
 
     return (
@@ -58,7 +135,7 @@ const page = () => {
 
                 <div className="flex items-center gap-3">
                     <p className='text-[1rem] font-[600]'>Projects</p>
-                    <IconButton icon={<span>9+</span>} className='bg-pale-primary ' disableShrink />
+                    <IconButton icon={<span>{projects.length}</span>} className='bg-pale-primary ' disableShrink />
                 </div>
 
                 <Button onClick={() => setOpen(true)} className='bg-accent rounded-full'>

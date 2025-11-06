@@ -10,6 +10,7 @@ import Input from "@/src/components/core/Input";
 import Button from "@/src/components/core/Button";
 import { Mail, ArrowLeft } from "lucide-react";
 import { useToast } from "@/src/hooks/useToast";
+import { passwordResetService } from "@/src/services/passwordResetService";
 
 const ForgotPasswordPage = () => {
   const { showSuccess, showError } = useToast();
@@ -19,7 +20,7 @@ const ForgotPasswordPage = () => {
   const [sent, setSent] = useState(false);
 
   /**
-   * Validate email
+   * Validate email format
    */
   const validate = (): boolean => {
     if (!email.trim()) {
@@ -35,7 +36,7 @@ const ForgotPasswordPage = () => {
   };
 
   /**
-   * Handle form submission
+   * Handle form submission - request password reset
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,17 +47,21 @@ const ForgotPasswordPage = () => {
 
     setLoading(true);
     try {
-      // In production, this would send a reset email
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await passwordResetService.requestPasswordReset(email);
       showSuccess("Password reset link sent to your email!");
       setSent(true);
     } catch (error) {
       console.error("Failed to send reset email:", error);
-      showError("Failed to send reset email. Please try again.");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to send reset email. Please try again.";
+      showError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
+
 
   if (sent) {
     return (
