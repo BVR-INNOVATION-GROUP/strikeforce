@@ -16,6 +16,10 @@ import StudentDetailsModal from "@/src/components/screen/university-admin/studen
 import { downloadStudentsTemplate } from "@/src/utils/csvTemplateDownload";
 import { Download } from "lucide-react";
 import { getInitials, hasAvatar } from "@/src/utils/avatarUtils";
+import { userRepository } from "@/src/repositories/userRepository";
+import { departmentService } from "@/src/services/departmentService";
+import { courseService } from "@/src/services/courseService";
+import { useAuthStore } from "@/src/store";
 
 /**
  * Student Card Component - displays student information in card format
@@ -100,6 +104,7 @@ const StudentCard = ({ student, department, course, onEdit, onDelete, onViewDeta
  */
 export default function UniversityAdminStudents() {
   const { showSuccess, showError } = useToast();
+  const { user, organization } = useAuthStore();
   const [students, setStudents] = useState<UserI[]>([]);
   const [departments, setDepartments] = useState<DepartmentI[]>([]);
   const [courses, setCourses] = useState<CourseI[]>([]);
@@ -114,57 +119,51 @@ export default function UniversityAdminStudents() {
   const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    // For university-admin, use organization.id or user.orgId
+    const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
+    if (universityId) {
+      loadData();
+    } else {
+      setLoading(false);
+    }
+  }, [user?.orgId, user?.universityId, organization?.id]);
 
   /**
-   * Load students, departments, and programmes
+   * Load students, departments, and programmes from backend
    */
   const loadData = async () => {
     try {
       setLoading(true);
-      // In production, load from API
-      // Mock data
-      const mockDepartments: DepartmentI[] = [
-        { id: "1", universityId: "org-university-1", name: "Computer Science", createdAt: "2024-01-01T00:00:00Z" },
-        { id: "2", universityId: "org-university-1", name: "Engineering", createdAt: "2024-01-01T00:00:00Z" },
-      ];
-      setDepartments(mockDepartments);
+      // For university-admin, use organization.id or user.orgId
+      const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
+      if (!universityId) {
+        setLoading(false);
+        return;
+      }
 
-      const mockCourses: CourseI[] = [
-        { id: "1", departmentId: "1", name: "Bachelor of Computer Science", createdAt: "2024-01-01T00:00:00Z" },
-        { id: "2", departmentId: "1", name: "Bachelor of Information Technology", createdAt: "2024-01-01T00:00:00Z" },
-      ];
-      setCourses(mockCourses);
+      const numericUniversityId = typeof universityId === 'string' ? parseInt(universityId, 10) : universityId;
 
-      // Mock students - in production, filter by role "student"
-      const mockStudents: UserI[] = [
-        {
-          id: "1",
-          role: "student",
-          email: "student1@university.edu",
-          name: "John Doe",
-          universityId: "org-university-1",
-          departmentId: "1",
-          courseId: "1",
-          profile: {},
-          createdAt: "2024-01-01T00:00:00Z",
-          updatedAt: "2024-01-01T00:00:00Z",
-        },
-        {
-          id: "2",
-          role: "student",
-          email: "student2@university.edu",
-          name: "Jane Smith",
-          universityId: "org-university-1",
-          departmentId: "1",
-          courseId: "2",
-          profile: {},
-          createdAt: "2024-01-01T00:00:00Z",
-          updatedAt: "2024-01-01T00:00:00Z",
-        },
-      ];
-      setStudents(mockStudents);
+      // Load departments for this university
+      const departmentsData = await departmentService.getAllDepartments(numericUniversityId);
+      setDepartments(departmentsData);
+
+      // Load all courses (will filter by department when needed)
+      const coursesData = await courseService.getAllCourses();
+      // Filter courses that belong to departments in this university
+      const universityCourses = coursesData.filter(c => 
+        departmentsData.some(d => d.id === c.departmentId)
+      );
+      setCourses(universityCourses);
+
+      // Load all students, then filter by role and university
+      const allStudents = await userRepository.getByRole("student");
+      const universityStudents = allStudents.filter(
+        (s) => {
+          const studentUniId = typeof s.universityId === 'string' ? parseInt(s.universityId, 10) : s.universityId;
+          return studentUniId === numericUniversityId;
+        }
+      );
+      setStudents(universityStudents);
     } catch (error) {
       console.error("Failed to load data:", error);
       showError("Failed to load students");
@@ -188,16 +187,18 @@ export default function UniversityAdminStudents() {
       console.log("Manual submit student:", data);
 
       // If creating a student, send invitation email
-      if (data.email) {
+      // For university-admin, use organization.id or user.orgId
+      const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
+      if (data.email && universityId) {
         const { invitationService } = await import("@/src/services/invitationService");
 
-        const universityId = "org-university-1"; // Mock - get from auth
+        const universityIdStr = typeof universityId === 'string' ? universityId : universityId.toString();
 
         try {
           const invitation = await invitationService.generateInvitation(
             data.email,
             "student",
-            universityId,
+            universityIdStr,
             7 // 7 days expiry
           );
 
@@ -280,10 +281,14 @@ export default function UniversityAdminStudents() {
     if (!studentToDelete) return;
 
     try {
-      setStudents(students.filter((s) => s.id !== studentToDelete));
+      // In production, call API to delete student
+      // For now, update local state
+      await userRepository.update(studentToDelete, { role: "deleted" as any }); // Mark as deleted
+      setStudents(students.filter((s) => s.id.toString() !== studentToDelete));
       showSuccess("Student deleted successfully");
       setShowDeleteConfirm(false);
       setStudentToDelete(null);
+      loadData(); // Reload to ensure consistency
     } catch (error) {
       console.error("Failed to delete student:", error);
       showError("Failed to delete student. Please try again.");
@@ -335,13 +340,9 @@ export default function UniversityAdminStudents() {
       {/* Students Grid */}
       {students.length === 0 ? (
         <div className="text-center py-12 bg-paper rounded-lg">
-          <p className="text-[0.875rem] opacity-60 mb-4">
-            No students yet. Create your first student to get started.
+          <p className="text-[0.875rem] opacity-60">
+            No students yet. Use the "Add Student" button above to create your first student.
           </p>
-          <Button onClick={() => setIsModalOpen(true)} className="bg-primary">
-            <Plus size={16} className="mr-2" />
-            Create Student
-          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

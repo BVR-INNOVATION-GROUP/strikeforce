@@ -23,7 +23,12 @@ export default function PendingApprovalScreen({ organization, userRole }: Props)
 
   const handleLogout = () => {
     logout();
-    router.push("/");
+    // Force full page reload to ensure middleware sees cleared cookies
+    // Wait longer to ensure all cleanup completes
+    // The logout flag will be cleared by onRehydrateStorage after preventing rehydration
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 200);
   };
 
   const orgName = organization?.name || "Your organization";

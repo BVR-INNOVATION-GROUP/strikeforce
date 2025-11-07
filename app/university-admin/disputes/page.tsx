@@ -7,6 +7,8 @@ import { UserI } from "@/src/models/user";
 import { AlertCircle, Scale } from "lucide-react";
 import DisputeCard from "@/src/components/screen/university-admin/disputes/DisputeCard";
 import DisputeDetailsModal from "@/src/components/screen/university-admin/disputes/DisputeDetailsModal";
+import { disputeRepository } from "@/src/repositories/disputeRepository";
+import { userRepository } from "@/src/repositories/userRepository";
 
 /**
  * University Admin Dispute Center - review and resolve disputes
@@ -21,33 +23,17 @@ export default function UniversityAdminDisputes() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Load users data for avatars
-        const usersData = await import("@/src/data/mockUsers.json");
-        const usersList = usersData.default as UserI[];
+        // Load users data for avatars from backend
+        const usersList = await userRepository.getAll();
         const usersMap: Record<string, UserI> = {};
         usersList.forEach((user) => {
-          usersMap[user.id] = user;
+          usersMap[user.id.toString()] = user;
         });
         setUsers(usersMap);
 
-        // Mock disputes data
-        const sampleDisputes: DisputeI[] = [
-          {
-            id: "dispute-1",
-            subjectType: "MILESTONE",
-            subjectId: "milestone-1",
-            reason: "Quality concerns",
-            description: "Partner disputes the quality of submitted work",
-            evidence: ["/evidence/doc1.pdf"],
-            status: "IN_REVIEW",
-            level: "UNIVERSITY_ADMIN",
-            raisedBy: "user-partner-1",
-            assignedTo: "user-admin-1",
-            createdAt: "2024-02-15T10:00:00Z",
-            updatedAt: "2024-02-16T10:00:00Z",
-          },
-        ];
-        setDisputes(sampleDisputes);
+        // Load disputes filtered by level UNIVERSITY_ADMIN
+        const allDisputes = await disputeRepository.getAll({ level: "UNIVERSITY_ADMIN" });
+        setDisputes(allDisputes);
       } catch (error) {
         console.error("Failed to load disputes:", error);
       } finally {

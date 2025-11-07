@@ -10,12 +10,14 @@ import { OrganizationI } from "@/src/models/organization";
 import { projectService } from "@/src/services/projectService";
 import { dashboardService, UniversityAdminDashboardStats } from "@/src/services/dashboardService";
 import { useAuthStore } from "@/src/store";
+import { applicationRepository } from "@/src/repositories/applicationRepository";
+import { organizationService } from "@/src/services/organizationService";
 
 /**
  * University Admin Analytics - comprehensive analytics dashboard
  */
 export default function UniversityAdminAnalytics() {
-  const { user } = useAuthStore();
+  const { user, organization: storedOrganization } = useAuthStore();
   const [applications, setApplications] = useState<ApplicationI[]>([]);
   const [projects, setProjects] = useState<ProjectI[]>([]);
   const [organization, setOrganization] = useState<OrganizationI | null>(null);
@@ -25,20 +27,41 @@ export default function UniversityAdminAnalytics() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [applicationsData, projectsData, orgData, dashboardStats] = await Promise.all([
-          import("@/src/data/mockApplications.json"),
-          projectService.getAllProjects(),
-          import("@/src/data/mockOrganizations.json"),
-          dashboardService.getUniversityAdminDashboardStats(user?.universityId || ""),
-        ]);
+        // For university-admin, use organization.id or user.orgId
+        const universityId = storedOrganization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
+        if (!universityId) {
+          setLoading(false);
+          return;
+        }
 
-        setApplications(applicationsData.default as ApplicationI[]);
-        setProjects(projectsData);
+        // Load all applications and filter by university projects
+        const allApplications = await applicationRepository.getAll();
+        const allProjects = await projectService.getAllProjects();
         
-        const org = (orgData.default as OrganizationI[]).find(
-          (o) => o.id === user?.universityId
+        const numericUniversityId = typeof universityId === 'string' ? parseInt(universityId, 10) : universityId;
+        
+        // Filter projects for this university
+        const universityProjects = allProjects.filter(
+          (p) => {
+            const projectUniId = typeof p.universityId === 'string' ? parseInt(p.universityId, 10) : p.universityId;
+            return projectUniId === numericUniversityId;
+          }
         );
-        setOrganization(org || null);
+        
+        // Filter applications for university projects
+        const universityApplicationIds = new Set(universityProjects.map(p => p.id));
+        const universityApplications = allApplications.filter(
+          (a) => universityApplicationIds.has(a.projectId)
+        );
+        setApplications(universityApplications);
+        setProjects(universityProjects);
+
+        // Load organization (use stored one if available)
+        const org = storedOrganization || await organizationService.getOrganization(universityId.toString()).catch(() => null);
+        setOrganization(org);
+        
+        // Load dashboard stats
+        const dashboardStats = await dashboardService.getUniversityAdminDashboardStats(universityId.toString());
         setStats(dashboardStats);
       } catch (error) {
         console.error("Failed to load analytics data:", error);
@@ -47,7 +70,7 @@ export default function UniversityAdminAnalytics() {
       }
     };
     loadData();
-  }, [user?.universityId]);
+  }, [user?.orgId, user?.universityId, storedOrganization?.id]);
 
   // Chart data - student growth over time
   const studentGrowthData = useMemo(() => {
@@ -211,4 +234,5 @@ export default function UniversityAdminAnalytics() {
     </div>
   );
 }
+
 

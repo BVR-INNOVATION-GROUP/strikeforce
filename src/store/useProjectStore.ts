@@ -11,6 +11,7 @@ interface ProjectStore {
   addProject: (project: ProjectI) => void;
   updateProject: (id: string, updates: Partial<ProjectI>) => void;
   getProjectById: (id: string | number) => ProjectI | undefined;
+  reset: () => void; // Reset project store (used on logout)
 }
 
 export const useProjectStore = create<ProjectStore>((set, get) => ({
@@ -27,7 +28,9 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   getProjectById: (id) => {
     return get().projects.find((p) => p.id === id);
   },
+  reset: () => set({ projects: [] }),
 }));
+
 
 
 

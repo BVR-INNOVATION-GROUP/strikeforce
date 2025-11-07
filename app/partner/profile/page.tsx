@@ -10,36 +10,22 @@ import { UserI } from "@/src/models/user";
  * Partner Profile Page - uses unified profile component
  */
 export default function PartnerProfile() {
-  const { user, setUser } = useAuthStore();
+  const { user, _hasHydrated } = useAuthStore();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
-  // Initialize user if not set (for demo purposes)
+  // Wait for hydration before checking user
   useEffect(() => {
-    const initializeUser = async () => {
+    // Only check after hydration is complete
+    if (_hasHydrated) {
       if (!user) {
-        try {
-          // Load mock user data for partner role
-          const usersData = await import("@/src/data/mockUsers.json");
-          const users = usersData.default as UserI[];
-          const partnerUser = users.find((u) => u.role === "partner");
-          
-          if (partnerUser) {
-            setUser(partnerUser);
-          } else {
-            // Redirect to home if no user found
-            router.push("/");
-          }
-        } catch (error) {
-          console.error("Failed to load user data:", error);
-          router.push("/");
-        }
+        // No user after hydration - redirect to login
+        router.push("/auth/login");
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
-    };
-
-    initializeUser();
-  }, [user, setUser, router]);
+    }
+  }, [user, _hasHydrated, router]);
 
   if (loading || !user) {
     return (

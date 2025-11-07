@@ -96,8 +96,8 @@ const LoginPage = () => {
         }
       }
 
-      // Set user in auth store and cookie for middleware
-      setUser(user);
+      // Set user in auth store (this will also fetch and store organization for university-admin)
+      await setUser(user);
 
       // Set cookie for middleware (in production, this would be handled by NextAuth)
       document.cookie = `user=${JSON.stringify({ role: user.role, id: user.id })}; path=/; max-age=86400`; // 24 hours

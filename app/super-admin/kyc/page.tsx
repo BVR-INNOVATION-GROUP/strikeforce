@@ -7,61 +7,92 @@ import { OrganizationI } from "@/src/models/organization";
 import { KycDocumentI } from "@/src/models/kyc";
 import { getKYCColumns } from "@/src/utils/kycColumns";
 import KYCStatsCard from "@/src/components/screen/super-admin/kyc/KYCStatsCard";
+import { organizationRepository } from "@/src/repositories/organizationRepository";
+import { kycRepository } from "@/src/repositories/kycRepository";
+import { useToast } from "@/src/hooks/useToast";
 
 /**
  * Super Admin KYC Approvals - approve or reject organization KYC
+ * Uses organizationRepository and kycRepository for data access
  */
 export default function SuperAdminKYC() {
+  const { showSuccess, showError } = useToast();
   const [organizations, setOrganizations] = useState<OrganizationI[]>([]);
-  const [documents, setDocuments] = useState<Record<string, KycDocumentI[]>>({});
+  const [documents, setDocuments] = useState<Record<number, KycDocumentI[]>>({});
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const orgData = await import("@/src/data/mockOrganizations.json");
-        setOrganizations(orgData.default as OrganizationI[]);
-        
-        // Mock documents for pending organizations
-        const docsMap: Record<string, KycDocumentI[]> = {};
-        (orgData.default as OrganizationI[]).forEach((org) => {
-          if (org.kycStatus === "PENDING") {
-            docsMap[org.id] = [
-              {
-                id: `doc-${org.id}-1`,
-                orgId: org.id,
-                type: "CERTIFICATE",
-                url: `/documents/${org.id}/certificate.pdf`,
-                status: "PENDING",
-                createdAt: "2024-01-01T10:00:00Z",
-              },
-            ];
-          }
-        });
-        setDocuments(docsMap);
-      } catch (error) {
-        console.error("Failed to load organizations:", error);
-      } finally {
-        setLoading(false);
+  /**
+   * Fetch organizations and their KYC documents
+   */
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      // Fetch all organizations
+      const orgs = await organizationRepository.getAll();
+      setOrganizations(orgs);
+      
+      // Fetch KYC documents for each organization
+      const docsMap: Record<number, KycDocumentI[]> = {};
+      for (const org of orgs) {
+        if (org.kycStatus === "PENDING") {
+          const orgDocs = await kycRepository.getAll(org.id);
+          docsMap[org.id] = orgDocs;
+        }
       }
-    };
-    loadData();
-  }, []);
-
-  const handleApprove = (orgId: string) => {
-    setOrganizations(
-      organizations.map((org) =>
-        org.id === orgId ? { ...org, kycStatus: "APPROVED" } : org
-      )
-    );
+      setDocuments(docsMap);
+    } catch (error) {
+      console.error("Failed to load organizations:", error);
+      showError("Failed to load KYC data");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleReject = (orgId: string) => {
-    setOrganizations(
-      organizations.map((org) =>
-        org.id === orgId ? { ...org, kycStatus: "REJECTED" } : org
-      )
-    );
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /**
+   * Handle organization KYC approval
+   * @param orgId - Organization ID (numeric)
+   */
+  const handleApprove = async (orgId: number) => {
+    try {
+      const updated = await organizationRepository.update(orgId, {
+        kycStatus: "APPROVED",
+      });
+      
+      setOrganizations((prev) =>
+        prev.map((org) => (org.id === orgId ? updated : org))
+      );
+      
+      showSuccess("Organization KYC approved successfully");
+    } catch (error) {
+      console.error("Failed to approve organization:", error);
+      showError("Failed to approve organization. Please try again.");
+    }
+  };
+
+  /**
+   * Handle organization KYC rejection
+   * @param orgId - Organization ID (numeric)
+   */
+  const handleReject = async (orgId: number) => {
+    try {
+      const updated = await organizationRepository.update(orgId, {
+        kycStatus: "REJECTED",
+      });
+      
+      setOrganizations((prev) =>
+        prev.map((org) => (org.id === orgId ? updated : org))
+      );
+      
+      showSuccess("Organization KYC rejected");
+    } catch (error) {
+      console.error("Failed to reject organization:", error);
+      showError("Failed to reject organization. Please try again.");
+    }
   };
 
   const columns = getKYCColumns(documents, handleApprove, handleReject);

@@ -13,6 +13,8 @@ import DepartmentCard from "@/src/components/screen/university-admin/departments
 import DepartmentDetailsModal from "@/src/components/screen/university-admin/departments/DepartmentDetailsModal";
 import { downloadDepartmentsTemplate } from "@/src/utils/csvTemplateDownload";
 import { Download } from "lucide-react";
+import { departmentService } from "@/src/services/departmentService";
+import { useAuthStore } from "@/src/store";
 
 /**
  * University Admin Departments - manage university departments
@@ -20,6 +22,7 @@ import { Download } from "lucide-react";
  */
 export default function UniversityAdminDepartments() {
   const { showSuccess, showError } = useToast();
+  const { user, organization } = useAuthStore();
   const [departments, setDepartments] = useState<DepartmentI[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,23 +37,31 @@ export default function UniversityAdminDepartments() {
   const [departmentToDelete, setDepartmentToDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    loadDepartments();
-  }, []);
+    // For university-admin, use organization.id or user.orgId
+    const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
+    if (universityId) {
+      loadDepartments();
+    } else {
+      setLoading(false);
+    }
+  }, [user?.orgId, user?.universityId, organization?.id]);
 
   /**
-   * Load departments from API
+   * Load departments from backend
    */
   const loadDepartments = async () => {
     try {
       setLoading(true);
-      // In production, load from API
-      // For now, use mock data
-      const mockDepartments: DepartmentI[] = [
-        { id: "1", universityId: "org-university-1", name: "Computer Science", createdAt: "2024-01-01T00:00:00Z" },
-        { id: "2", universityId: "org-university-1", name: "Engineering", createdAt: "2024-01-01T00:00:00Z" },
-        { id: "3", universityId: "org-university-1", name: "Business Administration", createdAt: "2024-01-01T00:00:00Z" },
-      ];
-      setDepartments(mockDepartments);
+      // For university-admin, use organization.id or user.orgId
+      const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
+      if (!universityId) {
+        setLoading(false);
+        return;
+      }
+
+      const numericUniversityId = typeof universityId === 'string' ? parseInt(universityId, 10) : universityId;
+      const departmentsData = await departmentService.getAllDepartments(numericUniversityId);
+      setDepartments(departmentsData);
     } catch (error) {
       console.error("Failed to load departments:", error);
       showError("Failed to load departments");
@@ -77,25 +88,34 @@ export default function UniversityAdminDepartments() {
   const handleSubmit = async () => {
     if (!validate()) return;
 
+    // For university-admin, use organization.id or user.orgId
+    const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
+    if (!universityId) {
+      showError("University ID not found. Please log in again.");
+      return;
+    }
+
     try {
+      const numericUniversityId = typeof universityId === 'string' ? parseInt(universityId, 10) : universityId;
+
       if (editingDepartment) {
         // Update existing department
+        const updated = await departmentService.updateDepartment(
+          editingDepartment.id,
+          { name: formData.name }
+        );
         setDepartments(
           departments.map((d) =>
-            d.id === editingDepartment.id
-              ? { ...d, name: formData.name }
-              : d
+            d.id === editingDepartment.id ? updated : d
           )
         );
         showSuccess("Department updated successfully");
       } else {
         // Create new department
-        const newDepartment: DepartmentI = {
-          id: `dept-${Date.now()}`,
-          universityId: "org-university-1", // In production, get from auth
+        const newDepartment = await departmentService.createDepartment({
           name: formData.name,
-          createdAt: new Date().toISOString(),
-        };
+          universityId: numericUniversityId,
+        });
         setDepartments([...departments, newDepartment]);
         showSuccess("Department created successfully");
       }
@@ -121,10 +141,31 @@ export default function UniversityAdminDepartments() {
     if (!departmentToDelete) return;
 
     try {
-      setDepartments(departments.filter((d) => d.id !== departmentToDelete));
+      await departmentService.deleteDepartment(departmentToDelete);
+      
+      // Update UI immediately using functional update to ensure latest state
+      setDepartments((prevDepartments) =>
+        prevDepartments.filter((d) => d.id.toString() !== departmentToDelete)
+      );
+      
       showSuccess("Department deleted successfully");
       setShowDeleteConfirm(false);
       setDepartmentToDelete(null);
+      
+      // Silently reload in background to ensure consistency with backend
+      // Don't show loading state since UI is already updated
+      const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
+      if (universityId) {
+        const numericUniversityId = typeof universityId === 'string' ? parseInt(universityId, 10) : universityId;
+        departmentService.getAllDepartments(numericUniversityId)
+          .then((departmentsData) => {
+            setDepartments(departmentsData);
+          })
+          .catch((error) => {
+            console.error("Failed to reload departments:", error);
+            // Don't show error to user since UI is already updated
+          });
+      }
     } catch (error) {
       console.error("Failed to delete department:", error);
       showError("Failed to delete department. Please try again.");
@@ -236,13 +277,9 @@ export default function UniversityAdminDepartments() {
       {/* Departments Grid */}
       {departments.length === 0 ? (
         <div className="text-center py-12 bg-paper rounded-lg">
-          <p className="text-[0.875rem] opacity-60 mb-4">
-            No departments yet. Create your first department to get started.
+          <p className="text-[0.875rem] opacity-60">
+            No departments yet. Use the "Add Department" button above to create your first department.
           </p>
-          <Button onClick={handleCreate} className="bg-primary">
-            <Plus size={16} className="mr-2" />
-            Create Department
-          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

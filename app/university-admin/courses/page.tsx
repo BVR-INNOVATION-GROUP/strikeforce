@@ -15,6 +15,10 @@ import CourseCard from "@/src/components/screen/university-admin/courses/CourseC
 import ProgrammeDetailsModal from "@/src/components/screen/university-admin/courses/ProgrammeDetailsModal";
 import { downloadProgrammesTemplate } from "@/src/utils/csvTemplateDownload";
 import { Download } from "lucide-react";
+import { courseService } from "@/src/services/courseService";
+import { departmentService } from "@/src/services/departmentService";
+import { useAuthStore } from "@/src/store";
+import { readCSVFile, validateCoursesCSV } from "@/src/utils/csvParser";
 
 /**
  * University Admin Programmes - manage programmes within departments
@@ -22,6 +26,7 @@ import { Download } from "lucide-react";
  */
 export default function UniversityAdminCourses() {
   const { showSuccess, showError } = useToast();
+  const { user, organization } = useAuthStore();
   const [courses, setCourses] = useState<CourseI[]>([]);
   const [departments, setDepartments] = useState<DepartmentI[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,36 +36,58 @@ export default function UniversityAdminCourses() {
   const [selectedProgramme, setSelectedProgramme] = useState<CourseI | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [editingCourse, setEditingCourse] = useState<CourseI | null>(null);
+
+  // Debug effect to track modal state changes
+  useEffect(() => {
+    console.log('[DEBUG] isModalOpen state changed to:', isModalOpen);
+    console.log('[DEBUG] departments.length:', departments.length);
+    console.log('[DEBUG] editingCourse:', editingCourse);
+  }, [isModalOpen, departments.length, editingCourse]);
+
+  // Debug effect to track when Modal component renders
+  useEffect(() => {
+    console.log('[DEBUG] Component render - isModalOpen:', isModalOpen);
+  });
   const [formData, setFormData] = useState({ name: "", departmentId: "" });
   const [errors, setErrors] = useState<{ name?: string; departmentId?: string }>({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [programmeToDelete, setProgrammeToDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    // For university-admin, use organization.id or user.orgId
+    const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
+    if (universityId) {
+      loadData();
+    } else {
+      setLoading(false);
+    }
+  }, [user?.orgId, user?.universityId, organization?.id]);
 
   /**
-   * Load programmes and departments
+   * Load programmes and departments from backend
    */
   const loadData = async () => {
     try {
       setLoading(true);
-      // In production, load from API
-      // Mock data
-      const mockDepartments: DepartmentI[] = [
-        { id: "1", universityId: "org-university-1", name: "Computer Science", createdAt: "2024-01-01T00:00:00Z" },
-        { id: "2", universityId: "org-university-1", name: "Engineering", createdAt: "2024-01-01T00:00:00Z" },
-      ];
-      setDepartments(mockDepartments);
+      // For university-admin, use organization.id or user.orgId
+      const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
+      if (!universityId) {
+        setLoading(false);
+        return;
+      }
 
-      const mockCourses: CourseI[] = [
-        { id: "1", departmentId: "1", name: "Bachelor of Computer Science", createdAt: "2024-01-01T00:00:00Z" },
-        { id: "2", departmentId: "1", name: "Bachelor of Information Technology", createdAt: "2024-01-01T00:00:00Z" },
-        { id: "3", departmentId: "1", name: "Bachelor of Software Engineering", createdAt: "2024-01-01T00:00:00Z" },
-        { id: "4", departmentId: "2", name: "Bachelor of Engineering", createdAt: "2024-01-01T00:00:00Z" },
-      ];
-      setCourses(mockCourses);
+      const numericUniversityId = typeof universityId === 'string' ? parseInt(universityId, 10) : universityId;
+
+      // Load departments for this university
+      const departmentsData = await departmentService.getAllDepartments(numericUniversityId);
+      setDepartments(departmentsData);
+
+      // Load all courses, then filter by departments in this university
+      const allCourses = await courseService.getAllCourses();
+      const universityCourses = allCourses.filter(c =>
+        departmentsData.some(d => d.id === c.departmentId)
+      );
+      setCourses(universityCourses);
     } catch (error) {
       console.error("Failed to load data:", error);
       showError("Failed to load programmes");
@@ -72,8 +99,9 @@ export default function UniversityAdminCourses() {
   /**
    * Get department name by ID
    */
-  const getDepartmentName = (departmentId: string): string => {
-    const dept = departments.find((d) => d.id === departmentId);
+  const getDepartmentName = (departmentId: string | number): string => {
+    const numericId = typeof departmentId === 'string' ? parseInt(departmentId, 10) : departmentId;
+    const dept = departments.find((d) => d.id === numericId);
     return dept?.name || "Unknown";
   };
 
@@ -99,39 +127,46 @@ export default function UniversityAdminCourses() {
     if (!validate()) return;
 
     try {
+      const departmentId = typeof formData.departmentId === 'string' ? parseInt(formData.departmentId, 10) : formData.departmentId;
+
       if (editingCourse) {
         // Update existing course
-        setCourses(
-          courses.map((c) =>
-            c.id === editingCourse.id
-              ? { ...c, name: formData.name, departmentId: formData.departmentId }
-              : c
-          )
+        await courseService.updateCourse(
+          editingCourse.id,
+          { name: formData.name, departmentId: departmentId }
         );
         showSuccess("Programme updated successfully");
+        handleClose();
+        // Force page reload after update to ensure consistency
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
       } else {
         // Create new programme
-        const newCourse: CourseI = {
-          id: `course-${Date.now()}`,
-          departmentId: formData.departmentId,
+        await courseService.createCourse({
           name: formData.name,
-          createdAt: new Date().toISOString(),
-        };
-        setCourses([...courses, newCourse]);
+          departmentId: departmentId,
+        });
         showSuccess("Programme created successfully");
+        handleClose();
+        // Force page reload after creation (with small delay to show success message)
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
       }
-      handleClose();
     } catch (error) {
       console.error("Failed to save programme:", error);
-      showError("Failed to save programme. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      showError(`Failed to save programme: ${errorMessage}`);
     }
   };
 
   /**
    * Handle delete programme click - show confirmation
    */
-  const handleDeleteClick = (courseId: string) => {
-    setProgrammeToDelete(courseId);
+  const handleDeleteClick = (courseId: string | number) => {
+    const courseIdString = String(courseId);
+    setProgrammeToDelete(courseIdString);
     setShowDeleteConfirm(true);
   };
 
@@ -142,13 +177,18 @@ export default function UniversityAdminCourses() {
     if (!programmeToDelete) return;
 
     try {
-      setCourses(courses.filter((c) => c.id !== programmeToDelete));
+      await courseService.deleteCourse(programmeToDelete);
       showSuccess("Programme deleted successfully");
       setShowDeleteConfirm(false);
       setProgrammeToDelete(null);
+      // Force page reload after deletion to ensure consistency
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error("Failed to delete programme:", error);
-      showError("Failed to delete programme. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      showError(`Failed to delete programme: ${errorMessage}`);
       setShowDeleteConfirm(false);
       setProgrammeToDelete(null);
     }
@@ -158,16 +198,20 @@ export default function UniversityAdminCourses() {
    * Open edit modal
    */
   const handleEdit = (course: CourseI) => {
+    console.log('[DEBUG] handleEdit called with course:', course);
     setEditingCourse(course);
     setFormData({
       name: course.name,
-      departmentId: course.departmentId,
+      departmentId: String(course.departmentId), // Convert to string for Select component
     });
+    setErrors({});
+    // Use direct state update like create button
     setIsModalOpen(true);
   };
 
   /**
    * Open create modal
+   * Note: This function is kept for backward compatibility but the button now uses direct state update
    */
   const handleCreate = () => {
     setEditingCourse(null);
@@ -196,6 +240,7 @@ export default function UniversityAdminCourses() {
 
   /**
    * Handle bulk upload
+   * Parses CSV file and creates courses in the database
    */
   const handleBulkUpload = async () => {
     if (selectedFiles.length === 0) {
@@ -211,16 +256,67 @@ export default function UniversityAdminCourses() {
     }
 
     try {
-      // In production, process CSV file
-      // Parse CSV, create courses
-      console.log("Bulk upload programmes:", selectedFiles);
-      showSuccess(`Processing ${selectedFiles.length} file(s)... Programmes will be created once processing is complete.`);
+      const file = selectedFiles[0];
+
+      // Read and parse CSV file
+      const parsedRows = await readCSVFile(file);
+
+      // Validate CSV structure
+      const validation = validateCoursesCSV(parsedRows);
+      if (!validation.valid) {
+        showError(`CSV validation failed:\n${validation.errors.join('\n')}`);
+        return;
+      }
+
+      // Create courses from parsed data
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: string[] = [];
+
+      for (const row of parsedRows) {
+        try {
+          const departmentId = parseInt(row.departmentId, 10);
+
+          // Check if department exists
+          const departmentExists = departments.some(d => d.id === departmentId);
+          if (!departmentExists) {
+            errors.push(`Course "${row.name}": Department ID ${departmentId} not found`);
+            errorCount++;
+            continue;
+          }
+
+          // Create course
+          await courseService.createCourse({
+            name: row.name.trim(),
+            departmentId: departmentId,
+          });
+          successCount++;
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
+          errors.push(`Course "${row.name}": ${errorMessage}`);
+          errorCount++;
+        }
+      }
+
+      // Show results
+      if (errorCount === 0) {
+        showSuccess(`Successfully created ${successCount} programme(s)`);
+      } else if (successCount > 0) {
+        showError(
+          `Created ${successCount} programme(s), but ${errorCount} failed:\n${errors.join('\n')}`
+        );
+      } else {
+        showError(`Failed to create programmes:\n${errors.join('\n')}`);
+      }
+
+      // Reset and reload
       setSelectedFiles([]);
       setIsBulkUploadModalOpen(false);
-      loadData(); // Reload to show new courses
+      await loadData(); // Reload to show new courses
     } catch (error) {
       console.error("Failed to upload:", error);
-      showError("Failed to process upload. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      showError(`Failed to process upload: ${errorMessage}`);
     }
   };
 
@@ -249,11 +345,31 @@ export default function UniversityAdminCourses() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => setIsBulkUploadModalOpen(true)} className="bg-pale text-primary" disabled={departments.length === 0}>
+            <Button
+              onClick={(e) => {
+                console.log('[DEBUG] Bulk Upload button clicked');
+                console.log('[DEBUG] Departments length:', departments.length);
+                e.preventDefault();
+                e.stopPropagation();
+                setIsBulkUploadModalOpen(true);
+              }}
+              className="bg-pale text-primary"
+              disabled={departments.length === 0}
+            >
               <Upload size={16} className="mr-2" />
               Bulk Upload
             </Button>
-            <Button onClick={handleCreate} className="bg-primary" disabled={departments.length === 0}>
+            <Button
+              onClick={() => {
+                setEditingCourse(null);
+                setFormData({ name: "", departmentId: "" });
+                setErrors({});
+                setIsModalOpen(true);
+              }}
+              className="bg-primary"
+              disabled={departments.length === 0}
+              type="button"
+            >
               <Plus size={16} className="mr-2" />
               Add Programme
             </Button>
@@ -269,13 +385,9 @@ export default function UniversityAdminCourses() {
       {/* Courses Grid */}
       {courses.length === 0 ? (
         <div className="text-center py-12 bg-paper rounded-lg">
-          <p className="text-[0.875rem] opacity-60 mb-4">
-            No programmes yet. Create your first programme to get started.
+          <p className="text-[0.875rem] opacity-60">
+            No programmes yet. Use the "Add Programme" button above to create your first programme.
           </p>
-          <Button onClick={handleCreate} className="bg-primary" disabled={departments.length === 0}>
-            <Plus size={16} className="mr-2" />
-            Create Programme
-          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -296,7 +408,10 @@ export default function UniversityAdminCourses() {
       <Modal
         title={editingCourse ? "Edit Programme" : "Create Programme"}
         open={isModalOpen}
-        handleClose={handleClose}
+        handleClose={() => {
+          console.log('[DEBUG] Modal handleClose called');
+          handleClose();
+        }}
         actions={[
           <Button key="cancel" onClick={handleClose} className="bg-pale text-primary">
             Cancel
@@ -310,9 +425,13 @@ export default function UniversityAdminCourses() {
           <Select
             title="Department *"
             options={departmentOptions}
-            value={formData.departmentId}
+            value={formData.departmentId || null}
             onChange={(value) => {
-              setFormData({ ...formData, departmentId: value });
+              // Handle both OptionI object and string/number values
+              const departmentIdValue = typeof value === 'object' && value !== null
+                ? String(value.value)
+                : String(value);
+              setFormData({ ...formData, departmentId: departmentIdValue });
               if (errors.departmentId) {
                 setErrors({ ...errors, departmentId: undefined });
               }

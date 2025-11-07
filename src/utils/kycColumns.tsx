@@ -13,9 +13,9 @@ import { ShieldCheck, XCircle, FileText } from "lucide-react";
  * Get columns configuration for KYC approvals data table
  */
 export function getKYCColumns(
-  documents: Record<string, KycDocumentI[]>,
-  onApprove: (orgId: string) => void,
-  onReject: (orgId: string) => void
+  documents: Record<number, KycDocumentI[]>,
+  onApprove: (orgId: number) => void,
+  onReject: (orgId: number) => void
 ): Column<OrganizationI>[] {
   return [
     {
@@ -73,6 +73,7 @@ export function getKYCColumns(
     },
   ];
 }
+
 
 
 

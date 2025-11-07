@@ -33,7 +33,12 @@ const AccountDeletionSection = ({ userId }: Props) => {
       // TODO: Implement account deletion API call
       // await userService.deleteAccount(userId);
       logout();
-      router.push("/");
+      // Force full page reload to ensure middleware sees cleared cookies
+      // Wait longer to ensure all cleanup completes
+      // The logout flag will be cleared by onRehydrateStorage after preventing rehydration
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 200);
       showSuccess("Account deleted successfully");
     } catch (error) {
       console.error("Failed to delete account:", error);

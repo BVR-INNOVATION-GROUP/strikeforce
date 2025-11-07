@@ -96,3 +96,4 @@ const SideModal = ({ open, onClose, title, children, width = "500px" }: Props) =
 
 export default SideModal;
 
+

@@ -47,7 +47,7 @@ export async function sendEmail(options: EmailOptions): Promise<any> {
   // Check if Mailjet is configured - if not, log and return (don't fail)
   const apiKey = process.env.MAILJET_API_KEY;
   const apiSecret = process.env.MAILJET_API_SECRET;
-  
+
   if (!apiKey || !apiSecret) {
     console.warn(
       "Mailjet not configured. Email not sent. Set MAILJET_API_KEY and MAILJET_API_SECRET in .env to enable emails."
@@ -58,8 +58,14 @@ export async function sendEmail(options: EmailOptions): Promise<any> {
 
   try {
     const mailjet = getMailjetClient();
-    const fromEmail = options.from?.email || process.env.MAILJET_FROM_EMAIL || "noreply@strikeforce.com";
-    const fromName = options.from?.name || process.env.MAILJET_FROM_NAME || "StrikeForce Platform";
+    const fromEmail =
+      options.from?.email ||
+      process.env.MAILJET_FROM_EMAIL ||
+      "noreply@strikeforce.com";
+    const fromName =
+      options.from?.name ||
+      process.env.MAILJET_FROM_NAME ||
+      "StrikeForce Platform";
 
     // Convert single recipient to array
     const recipients = Array.isArray(options.to) ? options.to : [options.to];
@@ -97,8 +103,10 @@ export async function sendInvitationEmail(
   role: "student" | "supervisor",
   organizationName: string
 ): Promise<void> {
-  const invitationUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/invite?token=${invitationToken}`;
-  
+  const invitationUrl = `${
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  }/auth/invite?token=${invitationToken}`;
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2>You've been invited to join StrikeForce</h2>
@@ -146,7 +154,9 @@ export async function sendKYCApprovalEmail(
         <p>Great news! <strong>${organizationName}</strong> has been approved by our Super Admin team.</p>
         <p>You can now access your dashboard and start using StrikeForce.</p>
         <p style="margin: 30px 0;">
-          <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/login" style="background-color: #e9226e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+          <a href="${
+            process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+          }/auth/login" style="background-color: #e9226e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
             Log In to Dashboard
           </a>
         </p>
@@ -159,7 +169,9 @@ export async function sendKYCApprovalEmail(
         <p>Unfortunately, the KYC documents for <strong>${organizationName}</strong> have been rejected.</p>
         <p>Please review the feedback and upload new documents through your account.</p>
         <p style="margin: 30px 0;">
-          <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/login" style="background-color: #e9226e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+          <a href="${
+            process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+          }/auth/login" style="background-color: #e9226e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
             Log In to Upload Documents
           </a>
         </p>
@@ -189,7 +201,9 @@ export async function sendSupervisorRequestEmail(
       <p><strong>${studentName}</strong> has requested you as a supervisor for the project: <strong>${projectTitle}</strong>.</p>
       <p>Please log in to your dashboard to review and respond to this request.</p>
       <p style="margin: 30px 0;">
-        <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supervisor/requests" style="background-color: #e9226e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+        <a href="${
+          process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+        }/supervisor/requests" style="background-color: #e9226e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
           View Request
         </a>
       </p>
@@ -210,7 +224,14 @@ export async function sendSupervisorRequestEmail(
 export async function sendMilestoneNotificationEmail(
   email: string,
   milestoneTitle: string,
-  status: "proposed" | "accepted" | "finalized" | "funded" | "submitted" | "approved" | "released",
+  status:
+    | "proposed"
+    | "accepted"
+    | "finalized"
+    | "funded"
+    | "submitted"
+    | "approved"
+    | "released",
   projectTitle: string
 ): Promise<void> {
   const statusMessages: Record<string, string> = {
@@ -230,7 +251,9 @@ export async function sendMilestoneNotificationEmail(
       <p>The milestone <strong>${milestoneTitle}</strong> for project <strong>${projectTitle}</strong> has been updated.</p>
       <p>Status: <strong>${status}</strong></p>
       <p style="margin: 30px 0;">
-        <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/partner/projects" style="background-color: #e9226e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+        <a href="${
+          process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+        }/partner/projects" style="background-color: #e9226e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
           View Project
         </a>
       </p>
@@ -258,7 +281,9 @@ export async function sendOrganizationRegistrationEmail(
   password: string,
   role: "partner" | "university-admin"
 ): Promise<void> {
-  const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/login`;
+  const loginUrl = `${
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  }/auth/login`;
   const roleName = role === "partner" ? "Partner" : "University Admin";
   const orgType = role === "partner" ? "partner organization" : "university";
 
@@ -311,11 +336,16 @@ export async function sendOrganizationInvitationEmail(
   password: string,
   role: "partner" | "university-admin"
 ): Promise<void> {
-  const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/login`;
+  const loginUrl = `${
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  }/auth/login`;
   const roleName = role === "partner" ? "Partner" : "University Admin";
-  const dashboardUrl = role === "partner" 
-    ? `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/partner`
-    : `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/university-admin`;
+  const dashboardUrl =
+    role === "partner"
+      ? `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/partner`
+      : `${
+          process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+        }/university-admin`;
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -366,8 +396,10 @@ export async function sendPasswordResetEmail(
   resetToken: string,
   userName?: string
 ): Promise<void> {
-  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/reset-password?token=${resetToken}`;
-  
+  const resetUrl = `${
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  }/auth/reset-password?token=${resetToken}`;
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2>Reset Your Password</h2>
@@ -396,4 +428,3 @@ export async function sendPasswordResetEmail(
     html,
   });
 }
-

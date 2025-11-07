@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
  * University Admin Dashboard - overview of organization, students, and applications
  */
 export default function UniversityAdminDashboard() {
-  const { user } = useAuthStore();
+  const { user, organization: storedOrganization } = useAuthStore();
   const router = useRouter();
   const [organization, setOrganization] = useState<OrganizationI | null>(null);
   const [stats, setStats] = useState<UniversityAdminDashboardStats | null>(null);
@@ -25,15 +25,20 @@ export default function UniversityAdminDashboard() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [orgData, dashboardStats] = await Promise.all([
-          import("@/src/data/mockOrganizations.json"),
-          dashboardService.getUniversityAdminDashboardStats(user?.universityId || ""),
+        // For university-admin, use organization.id or user.orgId
+        const universityId = storedOrganization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
+        if (!universityId) {
+          setLoading(false);
+          return;
+        }
+
+        const { organizationService } = await import("@/src/services/organizationService");
+        const [org, dashboardStats] = await Promise.all([
+          organizationService.getOrganization(universityId.toString()).catch(() => null),
+          dashboardService.getUniversityAdminDashboardStats(universityId.toString()),
         ]);
         
-        const org = (orgData.default as OrganizationI[]).find(
-          (o) => o.id === user?.universityId
-        );
-        setOrganization(org || null);
+        setOrganization(org || storedOrganization);
         setStats(dashboardStats);
       } catch (error) {
         console.error("Failed to load data:", error);
@@ -42,7 +47,7 @@ export default function UniversityAdminDashboard() {
       }
     };
     loadData();
-  }, [user?.universityId]);
+  }, [user?.orgId, user?.universityId, storedOrganization?.id]);
 
   // Chart data - student growth over time
   const studentGrowthData = useMemo(() => {

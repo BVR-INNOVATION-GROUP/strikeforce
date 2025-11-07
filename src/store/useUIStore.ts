@@ -20,6 +20,7 @@ interface UIState {
   addNotification: (notification: Omit<NotificationI, "id" | "timestamp">) => void;
   removeNotification: (id: string) => void;
   setActiveModal: (modalId: string | null) => void;
+  reset: () => void; // Reset UI state (used on logout)
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -45,5 +46,11 @@ export const useUIStore = create<UIState>((set) => ({
     })),
   setActiveModal: (modalId) =>
     set({ activeModal: modalId }),
+  reset: () =>
+    set({
+      isSidebarOpen: true,
+      notifications: [],
+      activeModal: null,
+    }),
 }));
 

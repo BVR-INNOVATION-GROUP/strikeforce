@@ -89,7 +89,7 @@ const ResetPasswordForm = () => {
       const errorMessage =
         error instanceof Error ? error.message : "Password reset failed. Please try again.";
       showError(errorMessage);
-      
+
       // Check if token is invalid or expired
       if (
         errorMessage.includes("expired") ||

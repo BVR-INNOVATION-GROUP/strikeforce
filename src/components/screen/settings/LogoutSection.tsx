@@ -24,8 +24,12 @@ const LogoutSection = () => {
   // Handle logout
   const handleLogout = () => {
     logout();
-    router.push("/");
-    showSuccess("Logged out successfully");
+    // Force full page reload to ensure middleware sees cleared cookies
+    // Wait longer to ensure all cleanup (localStorage, cookies, etc.) completes
+    // The logout flag will be cleared by onRehydrateStorage after preventing rehydration
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 200);
   };
 
   return (

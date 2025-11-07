@@ -53,7 +53,7 @@ const OnboardingPage = () => {
             // Load full user data
             const fullUser = await userRepository.getById(userData.id);
             if (fullUser) {
-              setUser(fullUser);
+              await setUser(fullUser);
               currentUser = fullUser;
             }
           } catch (error) {
@@ -153,9 +153,9 @@ const OnboardingPage = () => {
           },
         };
         const finalUser = await userRepository.update(user.id, userWithSkills);
-        setUser(finalUser);
+        await setUser(finalUser);
       } else {
-        setUser(updatedUser);
+        await setUser(updatedUser);
       }
 
       showSuccess("Profile completed successfully!");

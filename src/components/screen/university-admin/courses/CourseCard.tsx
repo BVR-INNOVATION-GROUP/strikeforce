@@ -52,15 +52,25 @@ const CourseCard = ({ course, department, onEdit, onDelete, onViewDetails }: Pro
         {/* Action buttons */}
         <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
           <Button
-            onClick={() => onEdit(course)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onEdit(course);
+            }}
             className="bg-pale text-primary flex-1 text-[0.875rem] py-2.5"
+            type="button"
           >
             <Edit size={14} className="mr-1" />
             Edit
           </Button>
           <Button
-            onClick={() => onDelete(course.id)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete(String(course.id));
+            }}
             className="bg-primary text-[0.875rem] py-2.5 flex-1"
+            type="button"
           >
             <Trash2 size={14} className="mr-1" />
             Delete

@@ -68,25 +68,8 @@ const Navbar = () => {
     const [userMenuOpen, setUserMenuOpen] = useState(false)
     const [unreadCount, setUnreadCount] = useState(0)
 
-    // Initialize user if not set (for demo purposes)
-    useEffect(() => {
-        const initializeUser = async () => {
-            if (!user) {
-                try {
-                    const usersData = await import("@/src/data/mockUsers.json")
-                    const users = usersData.default as UserI[]
-                    // Try to get partner user first, fallback to first user
-                    const partnerUser = users.find((u) => u.role === "partner") || users[0]
-                    if (partnerUser) {
-                        setUser(partnerUser)
-                    }
-                } catch (error) {
-                    console.error("Failed to load user data:", error)
-                }
-            }
-        }
-        initializeUser()
-    }, [user, setUser])
+    // Note: Removed auto-initialization - users should log in through proper login flow
+    // Auto-initialization was causing issues where logged-in users were being overridden on refresh
 
     // Calculate unread notifications count
     useEffect(() => {
@@ -129,7 +112,12 @@ const Navbar = () => {
      */
     const handleLogout = () => {
         logout()
-        router.push('/')
+        // Force full page reload to ensure middleware sees cleared cookies
+        // Wait longer to ensure all cleanup (localStorage, cookies, etc.) completes
+        // The logout flag will be cleared by onRehydrateStorage after preventing rehydration
+        setTimeout(() => {
+            window.location.href = '/'
+        }, 200)
     }
 
     /**

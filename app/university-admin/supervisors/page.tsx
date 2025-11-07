@@ -14,6 +14,9 @@ import SupervisorDetailsModal from "@/src/components/screen/university-admin/sup
 import { downloadSupervisorsTemplate } from "@/src/utils/csvTemplateDownload";
 import { Download } from "lucide-react";
 import { getInitials, hasAvatar } from "@/src/utils/avatarUtils";
+import { userRepository } from "@/src/repositories/userRepository";
+import { departmentService } from "@/src/services/departmentService";
+import { useAuthStore } from "@/src/store";
 
 /**
  * Supervisor Card Component - displays supervisor information in card format
@@ -92,6 +95,7 @@ const SupervisorCard = ({ supervisor, department, onEdit, onDelete, onViewDetail
  */
 export default function UniversityAdminSupervisors() {
   const { showSuccess, showError } = useToast();
+  const { user, organization } = useAuthStore();
   const [supervisors, setSupervisors] = useState<UserI[]>([]);
   const [departments, setDepartments] = useState<DepartmentI[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,49 +109,43 @@ export default function UniversityAdminSupervisors() {
   const [supervisorToDelete, setSupervisorToDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    // For university-admin, use organization.id or user.orgId
+    const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
+    if (universityId) {
+      loadData();
+    } else {
+      setLoading(false);
+    }
+  }, [user?.orgId, user?.universityId, organization?.id]);
 
   /**
-   * Load supervisors and departments
+   * Load supervisors and departments from backend
    */
   const loadData = async () => {
     try {
       setLoading(true);
-      // In production, load from API
-      // Mock data
-      const mockDepartments: DepartmentI[] = [
-        { id: "1", universityId: "org-university-1", name: "Computer Science", createdAt: "2024-01-01T00:00:00Z" },
-        { id: "2", universityId: "org-university-1", name: "Engineering", createdAt: "2024-01-01T00:00:00Z" },
-      ];
-      setDepartments(mockDepartments);
+      // For university-admin, use organization.id or user.orgId
+      const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
+      if (!universityId) {
+        setLoading(false);
+        return;
+      }
 
-      // Mock supervisors - in production, filter by role "supervisor"
-      const mockSupervisors: UserI[] = [
-        {
-          id: "1",
-          role: "supervisor",
-          email: "supervisor1@university.edu",
-          name: "Dr. Jane Smith",
-          universityId: "org-university-1",
-          departmentId: "1",
-          profile: {},
-          createdAt: "2024-01-01T00:00:00Z",
-          updatedAt: "2024-01-01T00:00:00Z",
-        },
-        {
-          id: "2",
-          role: "supervisor",
-          email: "supervisor2@university.edu",
-          name: "Prof. John Doe",
-          universityId: "org-university-1",
-          departmentId: "2",
-          profile: {},
-          createdAt: "2024-01-01T00:00:00Z",
-          updatedAt: "2024-01-01T00:00:00Z",
-        },
-      ];
-      setSupervisors(mockSupervisors);
+      const numericUniversityId = typeof universityId === 'string' ? parseInt(universityId, 10) : universityId;
+
+      // Load departments for this university
+      const departmentsData = await departmentService.getAllDepartments(numericUniversityId);
+      setDepartments(departmentsData);
+
+      // Load all supervisors, then filter by role and university
+      const allSupervisors = await userRepository.getByRole("supervisor");
+      const universitySupervisors = allSupervisors.filter(
+        (s) => {
+          const supervisorUniId = typeof s.universityId === 'string' ? parseInt(s.universityId, 10) : s.universityId;
+          return supervisorUniId === numericUniversityId;
+        }
+      );
+      setSupervisors(universitySupervisors);
     } catch (error) {
       console.error("Failed to load data:", error);
       showError("Failed to load supervisors");
@@ -230,10 +228,14 @@ export default function UniversityAdminSupervisors() {
     if (!supervisorToDelete) return;
 
     try {
-      setSupervisors(supervisors.filter((s) => s.id !== supervisorToDelete));
+      // In production, call API to delete supervisor
+      // For now, update local state
+      await userRepository.update(supervisorToDelete, { role: "deleted" as any }); // Mark as deleted
+      setSupervisors(supervisors.filter((s) => s.id.toString() !== supervisorToDelete));
       showSuccess("Supervisor deleted successfully");
       setShowDeleteConfirm(false);
       setSupervisorToDelete(null);
+      loadData(); // Reload to ensure consistency
     } catch (error) {
       console.error("Failed to delete supervisor:", error);
       showError("Failed to delete supervisor. Please try again.");
@@ -281,13 +283,9 @@ export default function UniversityAdminSupervisors() {
       {/* Supervisors Grid */}
       {supervisors.length === 0 ? (
         <div className="text-center py-12 bg-paper rounded-lg">
-          <p className="text-[0.875rem] opacity-60 mb-4">
-            No supervisors yet. Create your first supervisor to get started.
+          <p className="text-[0.875rem] opacity-60">
+            No supervisors yet. Use the "Add Supervisor" button above to create your first supervisor.
           </p>
-          <Button onClick={() => setIsModalOpen(true)} className="bg-primary">
-            <Plus size={16} className="mr-2" />
-            Create Supervisor
-          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -5,55 +5,37 @@ import Card from "@/src/components/core/Card";
 import DataTable from "@/src/components/base/DataTable";
 import { getAuditColumns, AuditEventI } from "@/src/utils/auditColumns";
 import AuditStatsCards from "@/src/components/screen/super-admin/audit/AuditStatsCards";
+import { auditRepository } from "@/src/repositories/auditRepository";
+import { useToast } from "@/src/hooks/useToast";
 
 /**
  * Super Admin Global Audit - view platform-wide audit logs and metrics
+ * Uses auditRepository for data access (supports mock and real API)
  */
 export default function SuperAdminAudit() {
+    const { showError } = useToast();
     const [events, setEvents] = useState<AuditEventI[]>([]);
     const [loading, setLoading] = useState(true);
 
+    /**
+     * Fetch audit events from repository
+     */
+    const fetchEvents = async () => {
+        try {
+            setLoading(true);
+            const auditEvents = await auditRepository.getAll();
+            setEvents(auditEvents);
+        } catch (error) {
+            console.error("Failed to load audit events:", error);
+            showError("Failed to load audit events");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const loadData = async () => {
-            try {
-                // Mock audit events
-                const sampleEvents: AuditEventI[] = [
-                    {
-                        id: "event-1",
-                        type: "KYC_APPROVAL",
-                        actor: "super-admin-1",
-                        action: "APPROVED",
-                        target: "org-partner-1",
-                        timestamp: "2024-01-15T10:00:00Z",
-                        details: "Partner organization KYC approved",
-                    },
-                    {
-                        id: "event-2",
-                        type: "MILESTONE_RELEASE",
-                        actor: "user-partner-1",
-                        action: "RELEASED",
-                        target: "milestone-1",
-                        timestamp: "2024-02-15T10:00:00Z",
-                        details: "Escrow released for milestone completion",
-                    },
-                    {
-                        id: "event-3",
-                        type: "DISPUTE_ESCALATION",
-                        actor: "user-student-1",
-                        action: "ESCALATED",
-                        target: "dispute-1",
-                        timestamp: "2024-02-16T10:00:00Z",
-                        details: "Dispute escalated to Super Admin",
-                    },
-                ];
-                setEvents(sampleEvents);
-            } catch (error) {
-                console.error("Failed to load audit events:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadData();
+        fetchEvents();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const columns = getAuditColumns();

@@ -9,6 +9,8 @@ import ApplicationOfferCard from "@/src/components/screen/university-admin/offer
 import { ApplicationI } from "@/src/models/application";
 import { UserI } from "@/src/models/user";
 import { GroupI } from "@/src/models/group";
+import { userRepository } from "@/src/repositories/userRepository";
+import { groupRepository } from "@/src/repositories/groupRepository";
 
 /**
  * University Admin Offers - issue offers to shortlisted applications
@@ -35,24 +37,22 @@ export default function UniversityAdminOffers() {
   } = useUniversityAdminOffers();
 
   /**
-   * Load users and groups data for avatars
+   * Load users and groups data for avatars from backend
    */
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        const [usersData, groupsData] = await Promise.all([
-          import("@/src/data/mockUsers.json"),
-          import("@/src/data/mockGroups.json"),
+        const [usersList, groupsList] = await Promise.all([
+          userRepository.getAll(),
+          groupRepository.getAll(),
         ]);
         
-        const usersList = usersData.default as UserI[];
         const usersMap: Record<string, UserI> = {};
         usersList.forEach((user) => {
-          usersMap[user.id] = user;
+          usersMap[user.id.toString()] = user;
         });
         setUsers(usersMap);
 
-        const groupsList = groupsData.default as GroupI[];
         const groupsMap: Record<number, GroupI> = {};
         groupsList.forEach((group) => {
           groupsMap[group.id] = group;
