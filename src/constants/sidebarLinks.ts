@@ -3,9 +3,9 @@
  * Separated from Sidebar component to reduce size
  */
 import {
-    LayoutPanelTop, Briefcase, User, Settings, File, MessageCircle,
-    Search, Users, FolderKanban, GraduationCap, Shield, ShieldCheck,
-    ClipboardList, AlertCircle, BarChart3, FileText, UserPlus, Mail, BookOpen, Building2, UserCheck
+    LayoutPanelTop, Briefcase, User, Settings,
+    Search, Users, GraduationCap,
+    ClipboardList, AlertCircle, BarChart3, FileText, UserPlus, BookOpen, Building2, UserCheck
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { SidebarLinkI } from "@/src/components/base/SidebarLink";

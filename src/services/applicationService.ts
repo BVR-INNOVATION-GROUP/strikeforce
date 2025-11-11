@@ -3,7 +3,6 @@
  * PRD Reference: Section 6 - Groups and Applications
  */
 import { ApplicationI, ApplicationType } from '@/src/models/application';
-import { ProjectI } from '@/src/models/project';
 import { applicationRepository } from '@/src/repositories/applicationRepository';
 
 /**
@@ -25,7 +24,18 @@ export const applicationService = {
       throw new Error("Applicant type is required");
     }
 
-    if (!applicationData.statement || applicationData.statement.trim().length < 50) {
+    // Strip HTML tags for validation (statement is now HTML from rich text editor)
+    const stripHtml = (html: string): string => {
+      if (typeof window !== "undefined") {
+        const tmp = document.createElement("div");
+        tmp.innerHTML = html;
+        return tmp.textContent || tmp.innerText || "";
+      }
+      return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+    };
+
+    const plainTextStatement = stripHtml(applicationData.statement || "");
+    if (!applicationData.statement || plainTextStatement.length < 50) {
       throw new Error("Application statement must be at least 50 characters");
     }
 
@@ -92,6 +102,50 @@ export const applicationService = {
     } catch {
       return [];
     }
+  },
+
+  /**
+   * Withdraw an application (student action)
+   * @param applicationId - Application ID
+   * @returns Updated application
+   */
+  withdrawApplication: async (applicationId: number): Promise<ApplicationI> => {
+    // Business validation - can only withdraw if status is SUBMITTED, SHORTLISTED, or WAITLIST
+    const application = await applicationRepository.getById(applicationId);
+    
+    if (application.status === "ASSIGNED") {
+      throw new Error("Cannot withdraw an assigned application. Use terminate contract instead.");
+    }
+    
+    if (application.status === "REJECTED" || application.status === "DECLINED") {
+      throw new Error("Cannot withdraw a rejected or declined application.");
+    }
+
+    // Update status to DECLINED (student withdrew)
+    return applicationRepository.update(applicationId, {
+      status: "DECLINED",
+      updatedAt: new Date().toISOString(),
+    });
+  },
+
+  /**
+   * Terminate contract (student action for assigned applications)
+   * @param applicationId - Application ID
+   * @returns Updated application
+   */
+  terminateContract: async (applicationId: number): Promise<ApplicationI> => {
+    // Business validation - can only terminate if status is ASSIGNED
+    const application = await applicationRepository.getById(applicationId);
+    
+    if (application.status !== "ASSIGNED") {
+      throw new Error("Can only terminate an assigned application.");
+    }
+
+    // Update status to DECLINED (student terminated)
+    return applicationRepository.update(applicationId, {
+      status: "DECLINED",
+      updatedAt: new Date().toISOString(),
+    });
   },
 };
 

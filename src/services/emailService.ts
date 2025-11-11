@@ -43,7 +43,7 @@ export interface EmailOptions {
  * @returns Promise resolving to Mailjet response
  * @throws Error if Mailjet is not configured (in development, this is logged but doesn't fail)
  */
-export async function sendEmail(options: EmailOptions): Promise<any> {
+export async function sendEmail(options: EmailOptions): Promise<unknown> {
   // Check if Mailjet is configured - if not, log and return (don't fail)
   const apiKey = process.env.MAILJET_API_KEY;
   const apiSecret = process.env.MAILJET_API_SECRET;
@@ -58,12 +58,16 @@ export async function sendEmail(options: EmailOptions): Promise<any> {
 
   try {
     const mailjet = getMailjetClient();
+    // Use sender email from environment variable to avoid mail sending issues
+    // Checks EMAIL_SENDER first (common in .env), then MAILJET_FROM_EMAIL
     const fromEmail =
       options.from?.email ||
+      process.env.EMAIL_SENDER ||
       process.env.MAILJET_FROM_EMAIL ||
       "noreply@strikeforce.com";
     const fromName =
       options.from?.name ||
+      process.env.EMAIL_SENDER_NAME ||
       process.env.MAILJET_FROM_NAME ||
       "StrikeForce Platform";
 
@@ -284,7 +288,6 @@ export async function sendOrganizationRegistrationEmail(
   const loginUrl = `${
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
   }/auth/login`;
-  const roleName = role === "partner" ? "Partner" : "University Admin";
   const orgType = role === "partner" ? "partner organization" : "university";
 
   const html = `
@@ -310,7 +313,7 @@ export async function sendOrganizationRegistrationEmail(
       </p>
       
       <p style="margin-top: 30px; color: #666; font-size: 12px;">
-        If you have any questions, please don't hesitate to contact our support team.
+        If you have unknown questions, please don't hesitate to contact our support team.
       </p>
     </div>
   `;
@@ -372,7 +375,7 @@ export async function sendOrganizationInvitationEmail(
       <p>Or visit: <a href="${dashboardUrl}">${dashboardUrl}</a></p>
       
       <p style="margin-top: 30px; color: #666; font-size: 12px;">
-        If you have any questions, please don't hesitate to contact our support team.
+        If you have unknown questions, please don't hesitate to contact our support team.
       </p>
     </div>
   `;

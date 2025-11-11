@@ -70,10 +70,10 @@ const getDefaultUniversityAdminUser = async (): Promise<UserI | null> => {
  */
 function getUserFromCookie(): { role: string; id: number } | null {
   if (typeof document === "undefined") return null;
-  
+
   const cookies = document.cookie.split(";");
   const userCookie = cookies.find((c) => c.trim().startsWith("user="));
-  
+
   if (userCookie) {
     try {
       const userData = userCookie.split("=")[1];
@@ -103,7 +103,7 @@ async function loadUserById(id: number): Promise<UserI | null> {
  * Check if we should use test/dev auth (localStorage) or production auth (NextAuth)
  * In production, NextAuth handles sessions via cookies
  */
-const useTestAuth = () => {
+const UseTestAuth = () => {
   // Use test auth if explicitly set or in development
   return (
     process.env.NEXT_PUBLIC_USE_TEST_AUTH === "true" ||
@@ -126,12 +126,16 @@ export const useAuthStore = create<AuthState>()(
       },
       setUser: async (user) => {
         set({ user, isAuthenticated: !!user });
-        
+
         // If university-admin, fetch and store organization using orgId
         if (user && user.role === "university-admin" && user.orgId) {
           try {
-            const { organizationService } = await import("@/src/services/organizationService");
-            const organization = await organizationService.getOrganization(user.orgId.toString()).catch(() => null);
+            const { organizationService } = await import(
+              "@/src/services/organizationService"
+            );
+            const organization = await organizationService
+              .getOrganization(user.orgId.toString())
+              .catch(() => null);
             set({ organization });
           } catch (error) {
             console.error("Failed to fetch organization:", error);
@@ -140,11 +144,14 @@ export const useAuthStore = create<AuthState>()(
         } else {
           set({ organization: null });
         }
-        
+
         // Set cookie for middleware (in production, handled by NextAuth)
         if (typeof document !== "undefined") {
           if (user) {
-            document.cookie = `user=${JSON.stringify({ role: user.role, id: user.id })}; path=/; max-age=86400`;
+            document.cookie = `user=${JSON.stringify({
+              role: user.role,
+              id: user.id,
+            })}; path=/; max-age=86400`;
           } else {
             document.cookie = "user=; path=/; max-age=0";
           }
@@ -159,17 +166,17 @@ export const useAuthStore = create<AuthState>()(
             console.error("Failed to set logout flag:", error);
           }
         }
-        
+
         // Clear Zustand store state
         set({ user: null, organization: null, isAuthenticated: false });
-        
+
         if (typeof window === "undefined") return;
-        
+
         // Clear localStorage for auth store (Zustand persist)
         // Do this BEFORE clearing cookies to ensure state is cleared
         try {
           localStorage.removeItem("auth-storage");
-          // Also clear any other auth-related localStorage items
+          // Also clear unknown other auth-related localStorage items
           Object.keys(localStorage).forEach((key) => {
             if (key.startsWith("auth-") || key.includes("user")) {
               localStorage.removeItem(key);
@@ -178,7 +185,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           console.error("Failed to clear auth localStorage:", error);
         }
-        
+
         // Clear sessionStorage (but keep logout flag for now)
         try {
           const logoutFlag = sessionStorage.getItem("__logout_flag__");
@@ -190,27 +197,28 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           console.error("Failed to clear sessionStorage:", error);
         }
-        
-        // Clear all cookies (including user cookie and any NextAuth cookies)
+
+        // Clear all cookies (including user cookie and unknown NextAuth cookies)
         // Get all cookies first
         const cookies = document.cookie.split(";");
         const hostname = window.location.hostname;
         const domainParts = hostname.split(".");
-        
+
         // Clear each cookie with multiple variations to ensure it's removed
         cookies.forEach((cookie) => {
           const eqPos = cookie.indexOf("=");
-          const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-          
+          const name =
+            eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+
           if (!name) return;
-          
+
           // Clear with different path and domain combinations
           const clearVariations = [
             `${name}=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT`,
             `${name}=; path=/; domain=${hostname}; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT`,
             `${name}=; path=/; domain=.${hostname}; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT`,
           ];
-          
+
           // If domain has multiple parts, also try parent domain
           if (domainParts.length > 1) {
             const parentDomain = "." + domainParts.slice(-2).join(".");
@@ -218,30 +226,30 @@ export const useAuthStore = create<AuthState>()(
               `${name}=; path=/; domain=${parentDomain}; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT`
             );
           }
-          
+
           clearVariations.forEach((clearString) => {
             document.cookie = clearString;
           });
         });
-        
+
         // Explicitly clear the user cookie with all variations
         const userCookieClearVariations = [
           "user=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT",
           `user=; path=/; domain=${hostname}; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT`,
           `user=; path=/; domain=.${hostname}; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT`,
         ];
-        
+
         if (domainParts.length > 1) {
           const parentDomain = "." + domainParts.slice(-2).join(".");
           userCookieClearVariations.push(
             `user=; path=/; domain=${parentDomain}; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT`
           );
         }
-        
+
         userCookieClearVariations.forEach((clearString) => {
           document.cookie = clearString;
         });
-        
+
         // Verify cookie is cleared by checking document.cookie
         // Force clear one more time after a brief delay to ensure it's gone
         setTimeout(() => {
@@ -250,7 +258,7 @@ export const useAuthStore = create<AuthState>()(
             document.cookie = clearString;
           });
         }, 50);
-        
+
         // Reset other stores (UI store, project store)
         try {
           useUIStore.getState().reset();
@@ -259,17 +267,19 @@ export const useAuthStore = create<AuthState>()(
           console.error("Failed to reset stores:", error);
           // Continue with logout even if store reset fails
         }
-        
+
         // Clear NextAuth session if available
         try {
           // Dynamically import next-auth to avoid errors if not configured
-          import("next-auth/react").then(({ signOut }) => {
-            signOut({ redirect: false, callbackUrl: "/" }).catch(() => {
-              // NextAuth not configured or no session, ignore error
+          import("next-auth/react")
+            .then(({ signOut }) => {
+              signOut({ redirect: false, callbackUrl: "/" }).catch(() => {
+                // NextAuth not configured or no session, ignore error
+              });
+            })
+            .catch(() => {
+              // NextAuth not available, continue with logout
             });
-          }).catch(() => {
-            // NextAuth not available, continue with logout
-          });
         } catch (error) {
           // NextAuth not available, continue with logout
         }
@@ -279,7 +289,10 @@ export const useAuthStore = create<AuthState>()(
         if (student) {
           set({ user: student, isAuthenticated: true });
           if (typeof document !== "undefined") {
-            document.cookie = `user=${JSON.stringify({ role: student.role, id: student.id })}; path=/; max-age=86400`;
+            document.cookie = `user=${JSON.stringify({
+              role: student.role,
+              id: student.id,
+            })}; path=/; max-age=86400`;
           }
         }
       },
@@ -287,37 +300,47 @@ export const useAuthStore = create<AuthState>()(
         const universityAdmin = await getDefaultUniversityAdminUser();
         if (universityAdmin) {
           set({ user: universityAdmin, isAuthenticated: true });
-          
+
           // Fetch and store organization for university-admin using orgId
           if (universityAdmin.orgId) {
             try {
-              const { organizationService } = await import("@/src/services/organizationService");
-              const organization = await organizationService.getOrganization(universityAdmin.orgId.toString()).catch(() => null);
+              const { organizationService } = await import(
+                "@/src/services/organizationService"
+              );
+              const organization = await organizationService
+                .getOrganization(universityAdmin.orgId.toString())
+                .catch(() => null);
               set({ organization });
             } catch (error) {
               console.error("Failed to fetch organization:", error);
               set({ organization: null });
             }
           }
-          
+
           if (typeof document !== "undefined") {
-            document.cookie = `user=${JSON.stringify({ role: universityAdmin.role, id: universityAdmin.id })}; path=/; max-age=86400`;
+            document.cookie = `user=${JSON.stringify({
+              role: universityAdmin.role,
+              id: universityAdmin.id,
+            })}; path=/; max-age=86400`;
           }
         }
       },
       initializeFromStorage: async () => {
         // Only use test auth in dev/test mode
-        if (!useTestAuth()) {
+        if (!UseTestAuth()) {
           // In production, NextAuth handles sessions
           return;
         }
-        
+
         // Zustand persist middleware automatically restores state from localStorage
         // We just need to ensure the cookie is set for middleware compatibility
         const state = get();
         if (state.user && typeof document !== "undefined") {
           // Ensure cookie is set for middleware
-          document.cookie = `user=${JSON.stringify({ role: state.user.role, id: state.user.id })}; path=/; max-age=86400`;
+          document.cookie = `user=${JSON.stringify({
+            role: state.user.role,
+            id: state.user.id,
+          })}; path=/; max-age=86400`;
         }
       },
     }),
@@ -325,7 +348,7 @@ export const useAuthStore = create<AuthState>()(
       name: "auth-storage", // localStorage key
       storage: createJSONStorage(() => localStorage),
       // Only persist user data and organization (not hydration flag)
-      partialize: (state) => ({ 
+      partialize: (state) => ({
         user: state.user,
         organization: state.organization,
         isAuthenticated: state.isAuthenticated,
@@ -350,7 +373,8 @@ export const useAuthStore = create<AuthState>()(
                   store.setUser(null);
                   store.setHasHydrated(true);
                   // Clear cookie
-                  document.cookie = "user=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                  document.cookie =
+                    "user=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
                 } catch (err) {
                   // If store not ready, the state will be null anyway from logout
                   console.warn("Store access during logout rehydration:", err);
@@ -359,7 +383,7 @@ export const useAuthStore = create<AuthState>()(
               return;
             }
           }
-          
+
           // Called after rehydration
           if (error) {
             console.error("Error rehydrating auth state:", error);
@@ -375,20 +399,23 @@ export const useAuthStore = create<AuthState>()(
             }
             return;
           }
-          
+
           // Mark as hydrated after successful rehydration
           if (rehydratedState && typeof window !== "undefined") {
             // Use setTimeout to ensure this runs after state is set
             setTimeout(() => {
               try {
                 useAuthStore.getState().setHasHydrated(true);
-                
+
                 // Set cookie for middleware compatibility (only in test/dev mode)
                 // Only set cookie if user exists and we didn't just logout
-                if (useTestAuth() && rehydratedState.user) {
+                if (UseTestAuth() && rehydratedState.user) {
                   const logoutFlag = sessionStorage.getItem("__logout_flag__");
                   if (logoutFlag !== "true") {
-                    document.cookie = `user=${JSON.stringify({ role: rehydratedState.user.role, id: rehydratedState.user.id })}; path=/; max-age=86400`;
+                    document.cookie = `user=${JSON.stringify({
+                      role: rehydratedState.user.role,
+                      id: rehydratedState.user.id,
+                    })}; path=/; max-age=86400`;
                   }
                 }
               } catch (err) {
@@ -412,4 +439,3 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
-

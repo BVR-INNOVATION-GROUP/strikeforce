@@ -30,5 +30,2395 @@
     "createdAt": "2025-11-06T13:35:18.506Z",
     "updatedAt": "2025-11-06T13:35:18.506Z",
     "id": 2
+  },
+  {
+    "role": "student",
+    "email": "kigongovincent625+v4@gmail.com",
+    "name": "kigongovincent625+v4@gmail.com",
+    "universityId": 1,
+    "courseId": 1,
+    "departmentId": 1,
+    "profile": {
+      "bio": "",
+      "skills": []
+    },
+    "createdAt": "2025-11-07T06:38:33.179Z",
+    "updatedAt": "2025-11-07T06:46:44.153Z",
+    "id": 4,
+    "password": "12345678"
+  },
+  {
+    "role": "supervisor",
+    "email": "kigongovincent625+jane@gmail.com",
+    "name": "jane",
+    "universityId": 1,
+    "departmentId": 1,
+    "profile": {
+      "bio": "",
+      "skills": []
+    },
+    "createdAt": "2025-11-07T06:55:02.255Z",
+    "updatedAt": "2025-11-07T06:55:02.255Z",
+    "id": 5
+  },
+  {
+    "role": "student",
+    "email": "kigongovincent625+b1@gmail.com",
+    "name": "brian",
+    "universityId": 1,
+    "courseId": 1,
+    "departmentId": 1,
+    "profile": {
+      "bio": "",
+      "skills": []
+    },
+    "createdAt": "2025-11-07T07:11:54.702Z",
+    "updatedAt": "2025-11-07T07:11:54.702Z",
+    "id": 6
+  },
+  {
+    "role": "partner",
+    "email": "kigongovincent625+mtn@gmail.com",
+    "name": "kigongo micheal",
+    "password": "12345678",
+    "orgId": 2,
+    "profile": {
+      "bio": "PARTNER administrator for MTN UGANDA",
+      "skills": [],
+      "phone": "+256756644325",
+      "location": "123 kampala, Lumumba AV"
+    },
+    "createdAt": "2025-11-07T07:15:13.853Z",
+    "updatedAt": "2025-11-07T07:15:13.853Z",
+    "id": 7
+  },
+  {
+    "role": "partner",
+    "email": "partnerships@ug.airtel.com",
+    "name": "Agnes Nalwoga",
+    "password": "Airtel@2025",
+    "orgId": 12,
+    "profile": {
+      "bio": "Leads strategic partnerships at Airtel Uganda with a focus on digital skilling initiatives.",
+      "skills": ["Strategic Partnerships", "Telecommunications"],
+      "phone": "+256312200200",
+      "location": "Kololo, Kampala"
+    },
+    "createdAt": "2025-10-05T08:05:00.000Z",
+    "updatedAt": "2025-11-03T09:45:00.000Z",
+    "id": 8
+  },
+  {
+    "role": "partner",
+    "email": "enterprise@stanbic.com.ug",
+    "name": "James Byaruhanga",
+    "password": "Stanbic@2025",
+    "orgId": 13,
+    "profile": {
+      "bio": "Heads enterprise programs at Stanbic Bank Uganda supporting innovation and SMEs.",
+      "skills": ["Corporate Banking", "SME Financing"],
+      "phone": "+256312224600",
+      "location": "Kampala Road, Kampala"
+    },
+    "createdAt": "2025-10-07T09:25:00.000Z",
+    "updatedAt": "2025-11-04T12:05:00.000Z",
+    "id": 9
+  },
+  {
+    "role": "partner",
+    "email": "projects@nwsc.co.ug",
+    "name": "Eng. Silver Mugisha",
+    "password": "NWSC@2025",
+    "orgId": 14,
+    "profile": {
+      "bio": "Managing director overseeing infrastructure partnerships for safe water delivery.",
+      "skills": ["Water Utilities", "Infrastructure Projects"],
+      "phone": "+256313315800",
+      "location": "Jinja Road, Kampala"
+    },
+    "createdAt": "2025-10-09T08:15:00.000Z",
+    "updatedAt": "2025-11-02T14:30:00.000Z",
+    "id": 10
+  },
+  {
+    "role": "partner",
+    "email": "partnerships@unra.go.ug",
+    "name": "Allen Kagina",
+    "password": "UNRA@2025",
+    "orgId": 15,
+    "profile": {
+      "bio": "Commissioner general coordinating national road development and partner engagements.",
+      "skills": ["Infrastructure Planning", "Government Relations"],
+      "phone": "+256417300000",
+      "location": "New Port Bell Road, Kampala"
+    },
+    "createdAt": "2025-10-12T07:45:00.000Z",
+    "updatedAt": "2025-11-05T10:15:00.000Z",
+    "id": 11
+  },
+  {
+    "role": "partner",
+    "email": "corporate@newvision.co.ug",
+    "name": "Don Wanyama",
+    "password": "Vision@2025",
+    "orgId": 16,
+    "profile": {
+      "bio": "Chief executive connecting Vision Group media platforms with youth innovation programs.",
+      "skills": ["Media Strategy", "Public Relations"],
+      "phone": "+256414337000",
+      "location": "Industrial Area, Kampala"
+    },
+    "createdAt": "2025-10-13T10:00:00.000Z",
+    "updatedAt": "2025-11-04T11:20:00.000Z",
+    "id": 12
+  },
+  {
+    "role": "partner",
+    "email": "ops@safeboda.com",
+    "name": "Ricky Rapa Thomson",
+    "password": "SafeBoda@2025",
+    "orgId": 17,
+    "profile": {
+      "bio": "Co-founder enabling student engagement programs with SafeBoda's digital platform.",
+      "skills": ["Product Operations", "Mobility Innovation"],
+      "phone": "+256702900900",
+      "location": "Bukoto, Kampala"
+    },
+    "createdAt": "2025-10-14T08:30:00.000Z",
+    "updatedAt": "2025-11-03T13:05:00.000Z",
+    "id": 13
+  },
+  {
+    "role": "partner",
+    "email": "marketplace@jumia.ug",
+    "name": "Ron Kawamara",
+    "password": "Jumia@2025",
+    "orgId": 18,
+    "profile": {
+      "bio": "CEO leading digital commerce projects and internships for university talent.",
+      "skills": ["E-commerce", "Growth Strategy"],
+      "phone": "+256414567800",
+      "location": "Nakasero, Kampala"
+    },
+    "createdAt": "2025-10-16T10:10:00.000Z",
+    "updatedAt": "2025-11-06T09:15:00.000Z",
+    "id": 14
+  },
+  {
+    "role": "partner",
+    "email": "community@ubl.co.ug",
+    "name": "Alfred Balinda",
+    "password": "UBL@2025",
+    "orgId": 19,
+    "profile": {
+      "bio": "Corporate relations manager supporting sustainability innovation challenges.",
+      "skills": ["Corporate Social Responsibility", "Stakeholder Engagement"],
+      "phone": "+256414505800",
+      "location": "Luzira, Kampala"
+    },
+    "createdAt": "2025-10-18T09:40:00.000Z",
+    "updatedAt": "2025-11-05T15:25:00.000Z",
+    "id": 15
+  },
+  {
+    "role": "partner",
+    "email": "csr@nilebreweries.com",
+    "name": "Onapito Ekomoloit",
+    "password": "Nile@2025",
+    "orgId": 20,
+    "profile": {
+      "bio": "Director of legal and corporate affairs championing community entrepreneurship labs.",
+      "skills": ["Corporate Affairs", "Community Partnerships"],
+      "phone": "+256392730200",
+      "location": "Jinja Road, Kampala"
+    },
+    "createdAt": "2025-10-19T08:00:00.000Z",
+    "updatedAt": "2025-11-03T10:40:00.000Z",
+    "id": 16
+  },
+  {
+    "role": "partner",
+    "email": "enterprise@dfcugroup.com",
+    "name": "Charles Mudiwa",
+    "password": "dfcu@2025",
+    "orgId": 21,
+    "profile": {
+      "bio": "Chief executive providing financial literacy and innovation finance support.",
+      "skills": ["Banking Leadership", "Financial Inclusion"],
+      "phone": "+256312300000",
+      "location": "Kololo, Kampala"
+    },
+    "createdAt": "2025-10-20T08:50:00.000Z",
+    "updatedAt": "2025-11-02T12:55:00.000Z",
+    "id": 17
+  },
+  {
+    "role": "partner",
+    "email": "partnerships@ciplaqci.com",
+    "name": "Ajay Kumar",
+    "password": "Cipla@2025",
+    "orgId": 22,
+    "profile": {
+      "bio": "Head of partnerships building pharmaceutical manufacturing internships.",
+      "skills": ["Pharmaceutical Manufacturing", "Operations Excellence"],
+      "phone": "+256417335000",
+      "location": "Luzira Industrial Park, Kampala"
+    },
+    "createdAt": "2025-10-21T10:15:00.000Z",
+    "updatedAt": "2025-11-01T14:45:00.000Z",
+    "id": 18
+  },
+  {
+    "role": "partner",
+    "email": "innovation@ucc.co.ug",
+    "name": "Irene Kaggwa Sewankambo",
+    "password": "UCC@2025",
+    "orgId": 23,
+    "profile": {
+      "bio": "Executive director fostering regulatory sandboxes for university innovators.",
+      "skills": ["Policy Development", "Regulatory Affairs"],
+      "phone": "+256417333000",
+      "location": "Bugolobi, Kampala"
+    },
+    "createdAt": "2025-10-22T07:30:00.000Z",
+    "updatedAt": "2025-11-02T09:35:00.000Z",
+    "id": 19
+  },
+  {
+    "role": "partner",
+    "email": "projects@era.go.ug",
+    "name": "Ziria Tibalwa Waako",
+    "password": "ERA@2025",
+    "orgId": 24,
+    "profile": {
+      "bio": "Chief executive working on clean energy innovation challenges for students.",
+      "skills": ["Energy Regulation", "Sustainable Energy"],
+      "phone": "+256417712260",
+      "location": "Shimoni Road, Kampala"
+    },
+    "createdAt": "2025-10-24T08:10:00.000Z",
+    "updatedAt": "2025-11-06T11:50:00.000Z",
+    "id": 20
+  },
+  {
+    "role": "partner",
+    "email": "partnerships@ugandacoffee.go.ug",
+    "name": "Dr. Emmanuel Iyamulemye",
+    "password": "UCDA@2025",
+    "orgId": 25,
+    "profile": {
+      "bio": "Managing director engaging universities on coffee value chain innovation.",
+      "skills": ["Agribusiness", "Value Chain Development"],
+      "phone": "+256313260372",
+      "location": "Jinja Road, Kampala"
+    },
+    "createdAt": "2025-10-25T09:20:00.000Z",
+    "updatedAt": "2025-11-05T13:30:00.000Z",
+    "id": 21
+  },
+  {
+    "role": "partner",
+    "email": "csr@roofingsgroup.com",
+    "name": "Oliver Lalani",
+    "password": "Roofings@2025",
+    "orgId": 26,
+    "profile": {
+      "bio": "Executive director driving manufacturing innovation and apprenticeship programs.",
+      "skills": ["Manufacturing", "Supply Chain Management"],
+      "phone": "+256312242400",
+      "location": "Lubowa, Wakiso"
+    },
+    "createdAt": "2025-10-26T07:40:00.000Z",
+    "updatedAt": "2025-11-04T14:10:00.000Z",
+    "id": 22
+  },
+  {
+    "role": "partner",
+    "email": "partnerships@innovationvillage.co.ug",
+    "name": "CK Japheth",
+    "password": "Innovation@2025",
+    "orgId": 27,
+    "profile": {
+      "bio": "Founder connecting startups with campus talent across Uganda.",
+      "skills": ["Ecosystem Building", "Startup Mentorship"],
+      "phone": "+256393194719",
+      "location": "Kimathi Avenue, Kampala"
+    },
+    "createdAt": "2025-10-27T08:55:00.000Z",
+    "updatedAt": "2025-11-03T16:05:00.000Z",
+    "id": 23
+  },
+  {
+    "role": "partner",
+    "email": "hello@outbox.co.ug",
+    "name": "Richard Zulu",
+    "password": "Outbox@2025",
+    "orgId": 28,
+    "profile": {
+      "bio": "Managing partner facilitating hackathons and incubation for student founders.",
+      "skills": ["Product Design", "Innovation Programs"],
+      "phone": "+256393100182",
+      "location": "Lumumba Avenue, Kampala"
+    },
+    "createdAt": "2025-10-28T09:10:00.000Z",
+    "updatedAt": "2025-11-05T08:40:00.000Z",
+    "id": 24
+  },
+  {
+    "role": "partner",
+    "email": "partnerships@tugende.com",
+    "name": "Michael Wilkerson",
+    "password": "Tugende@2025",
+    "orgId": 29,
+    "profile": {
+      "bio": "Co-founder extending asset financing innovation labs for students.",
+      "skills": ["Social Entrepreneurship", "Microfinance"],
+      "phone": "+256392177226",
+      "location": "Ntinda, Kampala"
+    },
+    "createdAt": "2025-10-29T10:25:00.000Z",
+    "updatedAt": "2025-11-06T12:55:00.000Z",
+    "id": 25
+  },
+  {
+    "role": "partner",
+    "email": "community@fenixintl.com",
+    "name": "Daniel Wilkins",
+    "password": "Fenix@2025",
+    "orgId": 30,
+    "profile": {
+      "bio": "Country director collaborating on off-grid energy innovation projects.",
+      "skills": ["Renewable Energy", "Rural Electrification"],
+      "phone": "+256417202400",
+      "location": "Bugolobi, Kampala"
+    },
+    "createdAt": "2025-10-30T08:45:00.000Z",
+    "updatedAt": "2025-11-06T09:50:00.000Z",
+    "id": 26
+  },
+  {
+    "role": "university-admin",
+    "email": "partnerships@mak.ac.ug",
+    "name": "Dr. Patrick Kamya",
+    "password": "MakAdmin@2025",
+    "orgId": 3,
+    "profile": {
+      "bio": "Coordinates industry liaison programs for Makerere University.",
+      "skills": ["University Partnerships", "Program Management"],
+      "phone": "+256414543222",
+      "location": "Makerere Hill, Kampala"
+    },
+    "createdAt": "2025-10-10T08:30:00.000Z",
+    "updatedAt": "2025-10-25T11:30:00.000Z",
+    "id": 27
+  },
+  {
+    "role": "university-admin",
+    "email": "partnerships@ucu.ac.ug",
+    "name": "Rev. Susan Kayanja",
+    "password": "UCUAdmin@2025",
+    "orgId": 4,
+    "profile": {
+      "bio": "Manages experiential learning partnerships at Uganda Christian University.",
+      "skills": ["Stakeholder Engagement", "Curriculum Integration"],
+      "phone": "+256312350801",
+      "location": "Mukono, Uganda"
+    },
+    "createdAt": "2025-10-12T09:10:00.000Z",
+    "updatedAt": "2025-10-28T10:20:00.000Z",
+    "id": 28
+  },
+  {
+    "role": "university-admin",
+    "email": "industryliaison@must.ac.ug",
+    "name": "Dr. Sylvia Turyasingura",
+    "password": "MUSTAdmin@2025",
+    "orgId": 5,
+    "profile": {
+      "bio": "Oversees innovation partnerships for MUST's science faculties.",
+      "skills": ["Research Management", "Innovation Partnerships"],
+      "phone": "+256414668123",
+      "location": "Mbarara, Uganda"
+    },
+    "createdAt": "2025-10-15T08:45:00.000Z",
+    "updatedAt": "2025-10-29T13:10:00.000Z",
+    "id": 29
+  },
+  {
+    "role": "university-admin",
+    "email": "partnerships@gulu.ac.ug",
+    "name": "Dr. Nelson Onono",
+    "password": "GuluAdmin@2025",
+    "orgId": 6,
+    "profile": {
+      "bio": "Coordinates community innovation labs and agricultural partnerships in Northern Uganda.",
+      "skills": ["Community Engagement", "Agricultural Extension"],
+      "phone": "+256471432129",
+      "location": "Gulu City, Uganda"
+    },
+    "createdAt": "2025-10-18T09:00:00.000Z",
+    "updatedAt": "2025-11-02T12:20:00.000Z",
+    "id": 30
+  },
+  {
+    "role": "university-admin",
+    "email": "partnerships@kiu.ac.ug",
+    "name": "Dr. Juliet Nabukeera",
+    "password": "KIUAdmin@2025",
+    "orgId": 7,
+    "profile": {
+      "bio": "Leads Kampala International University's innovation and internship programs.",
+      "skills": ["Program Design", "Industry Collaboration"],
+      "phone": "+256414267043",
+      "location": "Kansanga, Kampala"
+    },
+    "createdAt": "2025-10-19T08:55:00.000Z",
+    "updatedAt": "2025-10-29T13:45:00.000Z",
+    "id": 31
+  },
+  {
+    "role": "university-admin",
+    "email": "partnerships@umu.ac.ug",
+    "name": "Sr. Angella Nakimera",
+    "password": "UMUAdmin@2025",
+    "orgId": 8,
+    "profile": {
+      "bio": "Facilitates social impact partnerships for Uganda Martyrs University.",
+      "skills": ["Social Impact", "Academic Partnerships"],
+      "phone": "+256382410611",
+      "location": "Nkozi, Mpigi"
+    },
+    "createdAt": "2025-10-20T09:40:00.000Z",
+    "updatedAt": "2025-10-31T15:00:00.000Z",
+    "id": 32
+  },
+  {
+    "role": "university-admin",
+    "email": "engagement@nkumbauniversity.ac.ug",
+    "name": "Assoc. Prof. Josephine Aseey",
+    "password": "NkumbaAdmin@2025",
+    "orgId": 9,
+    "profile": {
+      "bio": "Drives tourism and ICT collaborations for Nkumba University students.",
+      "skills": ["Tourism Development", "Academic Administration"],
+      "phone": "+256312301000",
+      "location": "Entebbe, Wakiso"
+    },
+    "createdAt": "2025-10-21T10:15:00.000Z",
+    "updatedAt": "2025-10-30T09:50:00.000Z",
+    "id": 33
+  },
+  {
+    "role": "university-admin",
+    "email": "partnerships@busitema.ac.ug",
+    "name": "Dr. Stephen Ochola",
+    "password": "BusitemaAdmin@2025",
+    "orgId": 10,
+    "profile": {
+      "bio": "Coordinates engineering placement programs for Busitema University.",
+      "skills": ["Engineering Education", "Industry Linkages"],
+      "phone": "+256465443610",
+      "location": "Tororo, Uganda"
+    },
+    "createdAt": "2025-10-22T11:00:00.000Z",
+    "updatedAt": "2025-10-26T14:35:00.000Z",
+    "id": 34
+  },
+  {
+    "role": "university-admin",
+    "email": "partnerships@kab.ac.ug",
+    "name": "Dr. Evelyne Nyesiga",
+    "password": "KabaleAdmin@2025",
+    "orgId": 11,
+    "profile": {
+      "bio": "Oversees Kabale University's climate innovation and community outreach portfolio.",
+      "skills": ["Environmental Management", "Project Coordination"],
+      "phone": "+256392000040",
+      "location": "Kabale, Uganda"
+    },
+    "createdAt": "2025-10-23T11:25:00.000Z",
+    "updatedAt": "2025-11-01T08:25:00.000Z",
+    "id": 35
+  },
+  {
+    "role": "supervisor",
+    "email": "d.kawuma@mak.ac.ug",
+    "name": "Dr. Daniel Kawuma",
+    "universityId": 3,
+    "departmentId": 3,
+    "profile": {
+      "bio": "Senior lecturer in software engineering mentoring final year capstone teams.",
+      "skills": ["JavaScript", "Cloud Architecture", "Agile Coaching"]
+    },
+    "createdAt": "2025-10-12T08:20:00.000Z",
+    "updatedAt": "2025-11-04T10:40:00.000Z",
+    "id": 36
+  },
+  {
+    "role": "supervisor",
+    "password": "12345678",
+    "email": "r.mutebi@mak.ac.ug",
+    "name": "Eng. Ruth Mutebi",
+    "universityId": 3,
+    "departmentId": 4,
+    "profile": {
+      "bio": "Civil engineering consultant guiding infrastructure design teams.",
+      "skills": ["Structural Analysis", "Project Management", "AutoCAD"]
+    },
+    "createdAt": "2025-10-15T09:35:00.000Z",
+    "updatedAt": "2025-11-02T11:05:00.000Z",
+    "id": 37
+  },
+  {
+    "role": "supervisor",
+    "email": "s.aturinda@must.ac.ug",
+    "name": "Dr. Stella Aturinda",
+    "universityId": 5,
+    "departmentId": 8,
+    "profile": {
+      "bio": "Research fellow in health informatics supervising telemedicine pilots.",
+      "skills": ["Health Informatics", "Data Analysis", "Python"]
+    },
+    "createdAt": "2025-10-18T10:50:00.000Z",
+    "updatedAt": "2025-11-03T09:25:00.000Z",
+    "id": 38
+  },
+  {
+    "role": "supervisor",
+    "email": "m.kansiime@ucu.ac.ug",
+    "name": "Mr. Moses Kansiime",
+    "universityId": 4,
+    "departmentId": 6,
+    "profile": {
+      "bio": "Senior lecturer mentoring entrepreneurship and finance innovation labs.",
+      "skills": ["Financial Modeling", "Entrepreneurship Coaching", "Excel"]
+    },
+    "createdAt": "2025-10-20T07:40:00.000Z",
+    "updatedAt": "2025-11-01T12:10:00.000Z",
+    "id": 39
+  },
+  {
+    "role": "student",
+    "email": "brian.mugisha@students.muni.ac.ug",
+    "name": "Brian Mugisha",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 3,
+    "courseId": 5,
+    "profile": {
+      "bio": "Final year computer science student researching smart transport dashboards for Kampala.",
+      "skills": ["TypeScript", "React", "Node.js"],
+      "phone": "+256701445210",
+      "location": "Kawempe, Kampala"
+    },
+    "createdAt": "2025-11-01T07:05:00.000Z",
+    "updatedAt": "2025-11-01T07:05:00.000Z",
+    "id": 40
+  },
+  {
+    "role": "student",
+    "email": "aisha.nankunda@students.mak.ac.ug",
+    "name": "Aisha Nankunda",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 3,
+    "courseId": 5,
+    "profile": {
+      "bio": "Data science enthusiast building machine learning models for crop disease detection.",
+      "skills": ["Python", "Data Analysis", "SQL"],
+      "phone": "+256701445211",
+      "location": "Ntinda, Kampala"
+    },
+    "createdAt": "2025-11-01T07:15:00.000Z",
+    "updatedAt": "2025-11-01T07:15:00.000Z",
+    "id": 41
+  },
+  {
+    "role": "student",
+    "email": "samuel.kato@students.mak.ac.ug",
+    "name": "Samuel Kato",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 3,
+    "courseId": 5,
+    "profile": {
+      "bio": "Frontend developer prototyping inclusive e-government dashboards.",
+      "skills": ["JavaScript", "Next.js", "Tailwind CSS"],
+      "phone": "+256701445212",
+      "location": "Nakawa, Kampala"
+    },
+    "createdAt": "2025-11-01T07:25:00.000Z",
+    "updatedAt": "2025-11-01T07:25:00.000Z",
+    "id": 42
+  },
+  {
+    "role": "student",
+    "email": "fiona.birungi@students.mak.ac.ug",
+    "name": "Fiona Birungi",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 3,
+    "courseId": 5,
+    "profile": {
+      "bio": "UX researcher exploring accessible fintech design for informal traders.",
+      "skills": ["React", "GraphQL", "UX Research"],
+      "phone": "+256701445213",
+      "location": "Makindye, Kampala"
+    },
+    "createdAt": "2025-11-01T07:35:00.000Z",
+    "updatedAt": "2025-11-01T07:35:00.000Z",
+    "id": 43
+  },
+  {
+    "role": "student",
+    "email": "ivan.ssewagudde@students.mak.ac.ug",
+    "name": "Ivan Ssewagudde",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 3,
+    "courseId": 6,
+    "profile": {
+      "bio": "Backend engineer designing secure payment APIs for campus cooperatives.",
+      "skills": ["TypeScript", "Node.js", "PostgreSQL"],
+      "phone": "+256701445214",
+      "location": "Rubaga, Kampala"
+    },
+    "createdAt": "2025-11-01T07:45:00.000Z",
+    "updatedAt": "2025-11-01T07:45:00.000Z",
+    "id": 44
+  },
+  {
+    "role": "student",
+    "email": "grace.nakabugo@students.mak.ac.ug",
+    "name": "Grace Nakabugo",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 3,
+    "courseId": 6,
+    "profile": {
+      "bio": "Machine learning student building rainfall prediction models for rural farmers.",
+      "skills": ["Python", "Machine Learning", "TensorFlow"],
+      "phone": "+256701445215",
+      "location": "Bukoto, Kampala"
+    },
+    "createdAt": "2025-11-01T07:55:00.000Z",
+    "updatedAt": "2025-11-01T07:55:00.000Z",
+    "id": 45
+  },
+  {
+    "role": "student",
+    "email": "emmanuel.okello@students.mak.ac.ug",
+    "name": "Emmanuel Okello",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 4,
+    "courseId": 7,
+    "profile": {
+      "bio": "Civil engineering student modelling Kampala stormwater drainage upgrades.",
+      "skills": ["AutoCAD", "Project Management", "MATLAB"],
+      "phone": "+256701445216",
+      "location": "Kireka, Wakiso"
+    },
+    "createdAt": "2025-11-01T08:05:00.000Z",
+    "updatedAt": "2025-11-01T08:05:00.000Z",
+    "id": 46
+  },
+  {
+    "role": "student",
+    "email": "patience.alupo@students.mak.ac.ug",
+    "name": "Patience Alupo",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 4,
+    "courseId": 7,
+    "profile": {
+      "bio": "Structural engineering student assessing climate-resilient bridge designs.",
+      "skills": ["Civil 3D", "Hydrology", "GIS"],
+      "phone": "+256701445217",
+      "location": "Luzira, Kampala"
+    },
+    "createdAt": "2025-11-01T08:15:00.000Z",
+    "updatedAt": "2025-11-01T08:15:00.000Z",
+    "id": 47
+  },
+  {
+    "role": "student",
+    "email": "daniel.sseremba@students.mak.ac.ug",
+    "name": "Daniel Sseremba",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 4,
+    "courseId": 8,
+    "profile": {
+      "bio": "Architecture student crafting modular classroom designs for rural schools.",
+      "skills": ["Design Thinking", "3D Modeling", "Adobe XD"],
+      "phone": "+256701445218",
+      "location": "Kyambogo, Kampala"
+    },
+    "createdAt": "2025-11-01T08:25:00.000Z",
+    "updatedAt": "2025-11-01T08:25:00.000Z",
+    "id": 48
+  },
+  {
+    "role": "student",
+    "email": "naomi.namagembe@students.mak.ac.ug",
+    "name": "Naomi Namagembe",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 4,
+    "courseId": 8,
+    "profile": {
+      "bio": "Architecture student focusing on heritage preservation within Kampala's urban renewal.",
+      "skills": ["Architecture", "SketchUp", "Project Coordination"],
+      "phone": "+256701445219",
+      "location": "Bweyogerere, Wakiso"
+    },
+    "createdAt": "2025-11-01T08:35:00.000Z",
+    "updatedAt": "2025-11-01T08:35:00.000Z",
+    "id": 49
+  },
+  {
+    "role": "student",
+    "email": "kenneth.ouma@students.mak.ac.ug",
+    "name": "Kenneth Ouma",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 5,
+    "courseId": 9,
+    "profile": {
+      "bio": "Finance student analysing SME lending data for inclusive growth.",
+      "skills": ["Financial Modeling", "Excel", "Power BI"],
+      "phone": "+256701445220",
+      "location": "Mukono, Uganda"
+    },
+    "createdAt": "2025-11-01T08:45:00.000Z",
+    "updatedAt": "2025-11-01T08:45:00.000Z",
+    "id": 50
+  },
+  {
+    "role": "student",
+    "email": "maureen.katushabe@students.mak.ac.ug",
+    "name": "Maureen Katushabe",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 5,
+    "courseId": 9,
+    "profile": {
+      "bio": "Accounting major automating cooperative financial reporting workflows.",
+      "skills": ["Accounting", "QuickBooks", "Data Analysis"],
+      "phone": "+256701445221",
+      "location": "Kampala Central"
+    },
+    "createdAt": "2025-11-01T08:55:00.000Z",
+    "updatedAt": "2025-11-01T08:55:00.000Z",
+    "id": 51
+  },
+  {
+    "role": "student",
+    "email": "ronald.nsubuga@students.mak.ac.ug",
+    "name": "Ronald Nsubuga",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 5,
+    "courseId": 10,
+    "profile": {
+      "bio": "Entrepreneurship student piloting logistics solutions for smallholder farmers.",
+      "skills": ["Entrepreneurship", "Pitching", "Market Research"],
+      "phone": "+256701445222",
+      "location": "Najjera, Wakiso"
+    },
+    "createdAt": "2025-11-01T09:05:00.000Z",
+    "updatedAt": "2025-11-01T09:05:00.000Z",
+    "id": 52
+  },
+  {
+    "role": "student",
+    "email": "sharon.kembabazi@students.mak.ac.ug",
+    "name": "Sharon Kembabazi",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 5,
+    "courseId": 10,
+    "profile": {
+      "bio": "Business innovation student leading campus female founder cohorts.",
+      "skills": ["Business Strategy", "Design Thinking", "UX Research"],
+      "phone": "+256701445223",
+      "location": "Bunga, Kampala"
+    },
+    "createdAt": "2025-11-01T09:15:00.000Z",
+    "updatedAt": "2025-11-01T09:15:00.000Z",
+    "id": 53
+  },
+  {
+    "role": "student",
+    "email": "george.lumu@students.mak.ac.ug",
+    "name": "George Lumu",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 3,
+    "courseId": 6,
+    "profile": {
+      "bio": "Software engineering student optimising supply chain platforms for agro produce.",
+      "skills": ["TypeScript", "Next.js", "Docker"],
+      "phone": "+256701445224",
+      "location": "Old Kampala, Kampala"
+    },
+    "createdAt": "2025-11-01T09:25:00.000Z",
+    "updatedAt": "2025-11-01T09:25:00.000Z",
+    "id": 54
+  },
+  {
+    "role": "student",
+    "email": "stella.aber@students.mak.ac.ug",
+    "name": "Stella Aber",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 3,
+    "courseId": 5,
+    "profile": {
+      "bio": "AI researcher using satellite imagery to detect flood-prone zones in Acholi.",
+      "skills": ["Python", "Pandas", "Machine Learning"],
+      "phone": "+256701445225",
+      "location": "Gulu Road Hostel, Kampala"
+    },
+    "createdAt": "2025-11-01T09:35:00.000Z",
+    "updatedAt": "2025-11-01T09:35:00.000Z",
+    "id": 55
+  },
+  {
+    "role": "student",
+    "email": "anthony.muwanguzi@students.mak.ac.ug",
+    "name": "Anthony Muwanguzi",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 4,
+    "courseId": 7,
+    "profile": {
+      "bio": "Structural engineering student analysing low-cost modular housing systems.",
+      "skills": ["Structural Analysis", "Revit", "Project Scheduling"],
+      "phone": "+256701445226",
+      "location": "Mulago, Kampala"
+    },
+    "createdAt": "2025-11-01T09:45:00.000Z",
+    "updatedAt": "2025-11-01T09:45:00.000Z",
+    "id": 56
+  },
+  {
+    "role": "student",
+    "email": "diana.ateenyi@students.mak.ac.ug",
+    "name": "Diana Ateenyi",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 3,
+    "courseId": 6,
+    "profile": {
+      "bio": "Backend developer creating secure telemedicine scheduling services.",
+      "skills": ["Node.js", "Express", "MongoDB"],
+      "phone": "+256701445227",
+      "location": "Kisaasi, Kampala"
+    },
+    "createdAt": "2025-11-01T09:55:00.000Z",
+    "updatedAt": "2025-11-01T09:55:00.000Z",
+    "id": 57
+  },
+  {
+    "role": "student",
+    "email": "allan.bwambale@students.mak.ac.ug",
+    "name": "Allan Bwambale",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 3,
+    "courseId": 5,
+    "profile": {
+      "bio": "Mobile developer piloting smart bus scheduling for Kampala commuters.",
+      "skills": ["React Native", "TypeScript", "Figma"],
+      "phone": "+256701445228",
+      "location": "Kansanga, Kampala"
+    },
+    "createdAt": "2025-11-01T10:05:00.000Z",
+    "updatedAt": "2025-11-01T10:05:00.000Z",
+    "id": 58
+  },
+  {
+    "role": "student",
+    "email": "ruth.kyomugisha@students.mak.ac.ug",
+    "name": "Ruth Kyomugisha",
+    "password": "Password@123",
+    "universityId": 3,
+    "departmentId": 5,
+    "courseId": 9,
+    "profile": {
+      "bio": "Business analytics student mapping credit scoring models for SACCOs.",
+      "skills": ["Business Analytics", "Power BI", "SQL"],
+      "phone": "+256701445229",
+      "location": "Najjera II, Wakiso"
+    },
+    "createdAt": "2025-11-01T10:15:00.000Z",
+    "updatedAt": "2025-11-01T10:15:00.000Z",
+    "id": 59
+  },
+  {
+    "role": "student",
+    "email": "sarah.nansamba@students.kyu.ac.ug",
+    "name": "Sarah Nansamba",
+    "password": "Password@123",
+    "universityId": 1,
+    "departmentId": 2,
+    "courseId": 3,
+    "profile": {
+      "bio": "Civil engineering student designing low-cost water harvesting systems for Mukono.",
+      "skills": ["AutoCAD", "Hydrology", "Project Management"],
+      "phone": "+256702550100",
+      "location": "Kyambogo, Kampala"
+    },
+    "createdAt": "2025-11-01T10:25:00.000Z",
+    "updatedAt": "2025-11-01T10:25:00.000Z",
+    "id": 60
+  },
+  {
+    "role": "student",
+    "email": "pauline.adoch@students.kyu.ac.ug",
+    "name": "Pauline Adoch",
+    "password": "Password@123",
+    "universityId": 1,
+    "departmentId": 2,
+    "courseId": 4,
+    "profile": {
+      "bio": "Mechanical engineering student prototyping energy-efficient grain milling equipment.",
+      "skills": ["SolidWorks", "Manufacturing", "Maintenance Planning"],
+      "phone": "+256702550101",
+      "location": "Kireka, Wakiso"
+    },
+    "createdAt": "2025-11-01T10:35:00.000Z",
+    "updatedAt": "2025-11-01T10:35:00.000Z",
+    "id": 61
+  },
+  {
+    "role": "student",
+    "email": "micheal.kisakye@students.kyu.ac.ug",
+    "name": "Micheal Kisakye",
+    "password": "Password@123",
+    "universityId": 1,
+    "departmentId": 1,
+    "courseId": 1,
+    "profile": {
+      "bio": "Information systems student digitising Kyambogo guild budgeting processes.",
+      "skills": ["TypeScript", "React", "Figma"],
+      "phone": "+256702550102",
+      "location": "Banda, Kampala"
+    },
+    "createdAt": "2025-11-01T10:45:00.000Z",
+    "updatedAt": "2025-11-01T10:45:00.000Z",
+    "id": 62
+  },
+  {
+    "role": "student",
+    "email": "vivian.atwine@students.kyu.ac.ug",
+    "name": "Vivian Atwine",
+    "password": "Password@123",
+    "universityId": 1,
+    "departmentId": 1,
+    "courseId": 2,
+    "profile": {
+      "bio": "Statistics student building dashboards to track student mental health services.",
+      "skills": ["Data Analysis", "Excel", "Power BI"],
+      "phone": "+256702550103",
+      "location": "Bugolobi, Kampala"
+    },
+    "createdAt": "2025-11-01T10:55:00.000Z",
+    "updatedAt": "2025-11-01T10:55:00.000Z",
+    "id": 63
+  },
+  {
+    "role": "student",
+    "email": "solomon.ocen@students.kyu.ac.ug",
+    "name": "Solomon Ocen",
+    "password": "Password@123",
+    "universityId": 1,
+    "departmentId": 2,
+    "courseId": 3,
+    "profile": {
+      "bio": "Civil engineering student mapping all-weather road improvements for Soroti.",
+      "skills": ["Civil 3D", "Surveying", "GIS"],
+      "phone": "+256702550104",
+      "location": "Nakawa, Kampala"
+    },
+    "createdAt": "2025-11-01T11:05:00.000Z",
+    "updatedAt": "2025-11-01T11:05:00.000Z",
+    "id": 64
+  },
+  {
+    "role": "student",
+    "email": "flavia.namusoke@students.kyu.ac.ug",
+    "name": "Flavia Namusoke",
+    "password": "Password@123",
+    "universityId": 1,
+    "departmentId": 1,
+    "courseId": 1,
+    "profile": {
+      "bio": "Creative design student supporting local crafts brands with digital identities.",
+      "skills": ["Graphic Design", "Adobe Illustrator", "Branding"],
+      "phone": "+256702550105",
+      "location": "Ntinda, Kampala"
+    },
+    "createdAt": "2025-11-01T11:15:00.000Z",
+    "updatedAt": "2025-11-01T11:15:00.000Z",
+    "id": 65
+  },
+  {
+    "role": "student",
+    "email": "christopher.kato@students.kyu.ac.ug",
+    "name": "Christopher Kato",
+    "password": "Password@123",
+    "universityId": 1,
+    "departmentId": 2,
+    "courseId": 4,
+    "profile": {
+      "bio": "Mechanical engineering student fabricating low-cost briquette presses.",
+      "skills": ["Mechanical Design", "MATLAB", "Automation"],
+      "phone": "+256702550106",
+      "location": "Bweyogerere, Wakiso"
+    },
+    "createdAt": "2025-11-01T11:25:00.000Z",
+    "updatedAt": "2025-11-01T11:25:00.000Z",
+    "id": 66
+  },
+  {
+    "role": "student",
+    "email": "rhoda.namatovu@students.kyu.ac.ug",
+    "name": "Rhoda Namatovu",
+    "password": "Password@123",
+    "universityId": 1,
+    "departmentId": 1,
+    "courseId": 2,
+    "profile": {
+      "bio": "Statistics student supporting Kyambogo disability inclusion analytics.",
+      "skills": ["Research Methods", "Technical Writing", "SPSS"],
+      "phone": "+256702550107",
+      "location": "Seeta, Mukono"
+    },
+    "createdAt": "2025-11-01T11:35:00.000Z",
+    "updatedAt": "2025-11-01T11:35:00.000Z",
+    "id": 67
+  },
+  {
+    "role": "student",
+    "email": "peter.wekesa@students.kyu.ac.ug",
+    "name": "Peter Wekesa",
+    "password": "Password@123",
+    "universityId": 1,
+    "departmentId": 2,
+    "courseId": 3,
+    "profile": {
+      "bio": "Civil engineering student optimising construction site safety monitoring.",
+      "skills": ["Site Supervision", "Concrete Testing", "Project Costing"],
+      "phone": "+256702550108",
+      "location": "Jinja Road, Kampala"
+    },
+    "createdAt": "2025-11-01T11:45:00.000Z",
+    "updatedAt": "2025-11-01T11:45:00.000Z",
+    "id": 68
+  },
+  {
+    "role": "student",
+    "email": "juliet.nakato@students.kyu.ac.ug",
+    "name": "Juliet Nakato",
+    "password": "Password@123",
+    "universityId": 1,
+    "departmentId": 1,
+    "courseId": 1,
+    "profile": {
+      "bio": "Frontend developer supporting Kyambogo alumni portal redesign.",
+      "skills": ["Frontend Development", "Tailwind CSS", "Next.js"],
+      "phone": "+256702550109",
+      "location": "Luzira, Kampala"
+    },
+    "createdAt": "2025-11-01T11:55:00.000Z",
+    "updatedAt": "2025-11-01T11:55:00.000Z",
+    "id": 69
+  },
+  {
+    "role": "student",
+    "email": "joel.sserugo@students.ucu.ac.ug",
+    "name": "Joel Sserugo",
+    "password": "Password@123",
+    "universityId": 4,
+    "departmentId": 6,
+    "courseId": 11,
+    "profile": {
+      "bio": "Business administration student developing financial literacy toolkits for SMEs in Mukono.",
+      "skills": ["Financial Modeling", "Excel", "Power BI"],
+      "phone": "+256703660200",
+      "location": "Mukono Central, Mukono"
+    },
+    "createdAt": "2025-11-01T12:05:00.000Z",
+    "updatedAt": "2025-11-01T12:05:00.000Z",
+    "id": 70
+  },
+  {
+    "role": "student",
+    "email": "lydia.nabirye@students.ucu.ac.ug",
+    "name": "Lydia Nabirye",
+    "password": "Password@123",
+    "universityId": 4,
+    "departmentId": 6,
+    "courseId": 12,
+    "profile": {
+      "bio": "Procurement student digitising supplier compliance tracking for diocesan schools.",
+      "skills": ["Procurement", "SAP", "Contract Management"],
+      "phone": "+256703660201",
+      "location": "Seeta, Mukono"
+    },
+    "createdAt": "2025-11-01T12:15:00.000Z",
+    "updatedAt": "2025-11-01T12:15:00.000Z",
+    "id": 71
+  },
+  {
+    "role": "student",
+    "email": "david.mugerwa@students.ucu.ac.ug",
+    "name": "David Mugerwa",
+    "password": "Password@123",
+    "universityId": 4,
+    "departmentId": 6,
+    "courseId": 11,
+    "profile": {
+      "bio": "Business student automating parish savings group reporting workflows.",
+      "skills": ["Accounting", "QuickBooks", "Data Analysis"],
+      "phone": "+256703660202",
+      "location": "Nabutta, Mukono"
+    },
+    "createdAt": "2025-11-01T12:25:00.000Z",
+    "updatedAt": "2025-11-01T12:25:00.000Z",
+    "id": 72
+  },
+  {
+    "role": "student",
+    "email": "esther.achan@students.ucu.ac.ug",
+    "name": "Esther Achan",
+    "password": "Password@123",
+    "universityId": 4,
+    "departmentId": 7,
+    "courseId": 13,
+    "profile": {
+      "bio": "Law student mapping legal aid access for refugees in Mukono and Kampala.",
+      "skills": ["Legal Research", "Advocacy", "Policy Analysis"],
+      "phone": "+256703660203",
+      "location": "Kyetume, Mukono"
+    },
+    "createdAt": "2025-11-01T12:35:00.000Z",
+    "updatedAt": "2025-11-01T12:35:00.000Z",
+    "id": 73
+  },
+  {
+    "role": "student",
+    "email": "francis.kaggwa@students.ucu.ac.ug",
+    "name": "Francis Kaggwa",
+    "password": "Password@123",
+    "universityId": 4,
+    "departmentId": 7,
+    "courseId": 13,
+    "profile": {
+      "bio": "Law student analysing policy frameworks for fintech consumer protection.",
+      "skills": ["Legal Drafting", "Research", "Stakeholder Engagement"],
+      "phone": "+256703660204",
+      "location": "Namirembe, Kampala"
+    },
+    "createdAt": "2025-11-01T12:45:00.000Z",
+    "updatedAt": "2025-11-01T12:45:00.000Z",
+    "id": 74
+  },
+  {
+    "role": "student",
+    "email": "mercy.atim@students.ucu.ac.ug",
+    "name": "Mercy Atim",
+    "password": "Password@123",
+    "universityId": 4,
+    "departmentId": 7,
+    "courseId": 14,
+    "profile": {
+      "bio": "Governance student co-designing gender-responsive parish development monitoring tools.",
+      "skills": [
+        "Monitoring and Evaluation",
+        "Data Collection",
+        "Community Engagement"
+      ],
+      "phone": "+256703660205",
+      "location": "Bunga, Kampala"
+    },
+    "createdAt": "2025-11-01T12:55:00.000Z",
+    "updatedAt": "2025-11-01T12:55:00.000Z",
+    "id": 75
+  },
+  {
+    "role": "student",
+    "email": "isaac.kintu@students.ucu.ac.ug",
+    "name": "Isaac Kintu",
+    "password": "Password@123",
+    "universityId": 4,
+    "departmentId": 6,
+    "courseId": 12,
+    "profile": {
+      "bio": "Logistics student optimising cathedral supply chain management dashboards.",
+      "skills": ["Supply Chain", "Excel", "Power Apps"],
+      "phone": "+256703660206",
+      "location": "Mukono, Uganda"
+    },
+    "createdAt": "2025-11-01T13:05:00.000Z",
+    "updatedAt": "2025-11-01T13:05:00.000Z",
+    "id": 76
+  },
+  {
+    "role": "student",
+    "email": "gloria.abalo@students.ucu.ac.ug",
+    "name": "Gloria Abalo",
+    "password": "Password@123",
+    "universityId": 4,
+    "departmentId": 7,
+    "courseId": 13,
+    "profile": {
+      "bio": "Law student facilitating legal design workshops for community justice centres.",
+      "skills": ["Legal Design", "Public Speaking", "Community Mobilisation"],
+      "phone": "+256703660207",
+      "location": "Bugolobi, Kampala"
+    },
+    "createdAt": "2025-11-01T13:15:00.000Z",
+    "updatedAt": "2025-11-01T13:15:00.000Z",
+    "id": 77
+  },
+  {
+    "role": "student",
+    "email": "nicholas.lutaaya@students.ucu.ac.ug",
+    "name": "Nicholas Lutaaya",
+    "password": "Password@123",
+    "universityId": 4,
+    "departmentId": 6,
+    "courseId": 11,
+    "profile": {
+      "bio": "Business student experimenting with mobile savings products for boda riders.",
+      "skills": ["Product Design", "UX Research", "Power BI"],
+      "phone": "+256703660208",
+      "location": "Kampala Road, Kampala"
+    },
+    "createdAt": "2025-11-01T13:25:00.000Z",
+    "updatedAt": "2025-11-01T13:25:00.000Z",
+    "id": 78
+  },
+  {
+    "role": "student",
+    "email": "agnes.akello@students.ucu.ac.ug",
+    "name": "Agnes Akello",
+    "password": "Password@123",
+    "universityId": 4,
+    "departmentId": 7,
+    "courseId": 14,
+    "profile": {
+      "bio": "Governance student assessing church-run health facility accountability systems.",
+      "skills": ["Policy Analysis", "Survey Design", "Stakeholder Management"],
+      "phone": "+256703660209",
+      "location": "Ntinda, Kampala"
+    },
+    "createdAt": "2025-11-01T13:35:00.000Z",
+    "updatedAt": "2025-11-01T13:35:00.000Z",
+    "id": 79
+  },
+  {
+    "role": "student",
+    "email": "brian.atuhaire@students.must.ac.ug",
+    "name": "Brian Atuhaire",
+    "password": "Password@123",
+    "universityId": 5,
+    "departmentId": 8,
+    "courseId": 15,
+    "profile": {
+      "bio": "Computer engineering student building IoT crop monitoring kits for Ankole farmers.",
+      "skills": ["C++", "Embedded Systems", "IoT"],
+      "phone": "+256704770300",
+      "location": "Mbarara City, Mbarara"
+    },
+    "createdAt": "2025-11-01T13:45:00.000Z",
+    "updatedAt": "2025-11-01T13:45:00.000Z",
+    "id": 80
+  },
+  {
+    "role": "student",
+    "email": "anita.twinomugisha@students.must.ac.ug",
+    "name": "Anita Twinomugisha",
+    "password": "Password@123",
+    "universityId": 5,
+    "departmentId": 8,
+    "courseId": 16,
+    "profile": {
+      "bio": "Information technology student prototyping telehealth triage workflows for Ankore hospitals.",
+      "skills": ["React", "Node.js", "Figma"],
+      "phone": "+256704770301",
+      "location": "Boma, Mbarara"
+    },
+    "createdAt": "2025-11-01T13:55:00.000Z",
+    "updatedAt": "2025-11-01T13:55:00.000Z",
+    "id": 81
+  },
+  {
+    "role": "student",
+    "email": "moses.turinawe@students.must.ac.ug",
+    "name": "Moses Turinawe",
+    "password": "Password@123",
+    "universityId": 5,
+    "departmentId": 8,
+    "courseId": 15,
+    "profile": {
+      "bio": "Computer engineering student designing solar-powered cold chain monitors.",
+      "skills": ["Python", "Arduino", "Solar Design"],
+      "phone": "+256704770302",
+      "location": "Kakoba, Mbarara"
+    },
+    "createdAt": "2025-11-01T14:05:00.000Z",
+    "updatedAt": "2025-11-01T14:05:00.000Z",
+    "id": 82
+  },
+  {
+    "role": "student",
+    "email": "janet.kemigisa@students.must.ac.ug",
+    "name": "Janet Kemigisa",
+    "password": "Password@123",
+    "universityId": 5,
+    "departmentId": 9,
+    "courseId": 17,
+    "profile": {
+      "bio": "Medical student evaluating maternal health teleconsultation pilots in Isingiro.",
+      "skills": ["Clinical Research", "Data Collection", "Public Health"],
+      "phone": "+256704770303",
+      "location": "Isingiro Town, Isingiro"
+    },
+    "createdAt": "2025-11-01T14:15:00.000Z",
+    "updatedAt": "2025-11-01T14:15:00.000Z",
+    "id": 83
+  },
+  {
+    "role": "student",
+    "email": "patrick.aine@students.must.ac.ug",
+    "name": "Patrick Aine",
+    "password": "Password@123",
+    "universityId": 5,
+    "departmentId": 9,
+    "courseId": 17,
+    "profile": {
+      "bio": "Medical student developing decision support tools for rural clinicians.",
+      "skills": ["Clinical Informatics", "Python", "Power BI"],
+      "phone": "+256704770304",
+      "location": "Mitooma, Uganda"
+    },
+    "createdAt": "2025-11-01T14:25:00.000Z",
+    "updatedAt": "2025-11-01T14:25:00.000Z",
+    "id": 84
+  },
+  {
+    "role": "student",
+    "email": "sylvia.nyakato@students.must.ac.ug",
+    "name": "Sylvia Nyakato",
+    "password": "Password@123",
+    "universityId": 5,
+    "departmentId": 9,
+    "courseId": 18,
+    "profile": {
+      "bio": "Nursing science student automating patient follow-up SMS for health centres.",
+      "skills": ["Nursing Informatics", "Patient Education", "Excel"],
+      "phone": "+256704770305",
+      "location": "Bushenyi Town, Bushenyi"
+    },
+    "createdAt": "2025-11-01T14:35:00.000Z",
+    "updatedAt": "2025-11-01T14:35:00.000Z",
+    "id": 85
+  },
+  {
+    "role": "student",
+    "email": "gilbert.byaruhanga@students.must.ac.ug",
+    "name": "Gilbert Byaruhanga",
+    "password": "Password@123",
+    "universityId": 5,
+    "departmentId": 8,
+    "courseId": 16,
+    "profile": {
+      "bio": "IT student developing e-learning analytics for science teacher training.",
+      "skills": ["PHP", "Laravel", "MySQL"],
+      "phone": "+256704770306",
+      "location": "Mbarara City, Mbarara"
+    },
+    "createdAt": "2025-11-01T14:45:00.000Z",
+    "updatedAt": "2025-11-01T14:45:00.000Z",
+    "id": 86
+  },
+  {
+    "role": "student",
+    "email": "rita.nakacwa@students.must.ac.ug",
+    "name": "Rita Nakacwa",
+    "password": "Password@123",
+    "universityId": 5,
+    "departmentId": 8,
+    "courseId": 15,
+    "profile": {
+      "bio": "Computer engineering student piloting smart attendance systems for rural schools.",
+      "skills": ["Python", "Django", "IoT"],
+      "phone": "+256704770307",
+      "location": "Sheema Municipality, Sheema"
+    },
+    "createdAt": "2025-11-01T14:55:00.000Z",
+    "updatedAt": "2025-11-01T14:55:00.000Z",
+    "id": 87
+  },
+  {
+    "role": "student",
+    "email": "simon.mugume@students.must.ac.ug",
+    "name": "Simon Mugume",
+    "password": "Password@123",
+    "universityId": 5,
+    "departmentId": 9,
+    "courseId": 18,
+    "profile": {
+      "bio": "Nursing student implementing patient safety checklists in Bwindi clinics.",
+      "skills": [
+        "Clinical Protocols",
+        "Quality Improvement",
+        "Data Collection"
+      ],
+      "phone": "+256704770308",
+      "location": "Rukungiri, Uganda"
+    },
+    "createdAt": "2025-11-01T15:05:00.000Z",
+    "updatedAt": "2025-11-01T15:05:00.000Z",
+    "id": 88
+  },
+  {
+    "role": "student",
+    "email": "joan.tusiime@students.must.ac.ug",
+    "name": "Joan Tusiime",
+    "password": "Password@123",
+    "universityId": 5,
+    "departmentId": 9,
+    "courseId": 17,
+    "profile": {
+      "bio": "Medical student running maternal health data storytelling for district leaders.",
+      "skills": ["Data Visualization", "Public Health", "Storytelling"],
+      "phone": "+256704770309",
+      "location": "Kabale Town, Kabale"
+    },
+    "createdAt": "2025-11-01T15:15:00.000Z",
+    "updatedAt": "2025-11-01T15:15:00.000Z",
+    "id": 89
+  },
+  {
+    "role": "student",
+    "email": "lillian.auma@students.gu.ac.ug",
+    "name": "Lillian Auma",
+    "password": "Password@123",
+    "universityId": 6,
+    "departmentId": 10,
+    "courseId": 19,
+    "profile": {
+      "bio": "Agriculture student piloting climate-smart irrigation planning for Amuru farmer groups.",
+      "skills": ["Agronomy", "GIS", "Data Analysis"],
+      "phone": "+256705880400",
+      "location": "Gulu City, Gulu"
+    },
+    "createdAt": "2025-11-01T15:25:00.000Z",
+    "updatedAt": "2025-11-01T15:25:00.000Z",
+    "id": 90
+  },
+  {
+    "role": "student",
+    "email": "denis.okot@students.gu.ac.ug",
+    "name": "Denis Okot",
+    "password": "Password@123",
+    "universityId": 6,
+    "departmentId": 10,
+    "courseId": 20,
+    "profile": {
+      "bio": "Agribusiness student designing farmer cooperative profit tracking tools.",
+      "skills": ["Agribusiness", "Excel", "Power BI"],
+      "phone": "+256705880401",
+      "location": "Pece, Gulu"
+    },
+    "createdAt": "2025-11-01T15:35:00.000Z",
+    "updatedAt": "2025-11-01T15:35:00.000Z",
+    "id": 91
+  },
+  {
+    "role": "student",
+    "email": "grace.ayoo@students.gu.ac.ug",
+    "name": "Grace Ayoo",
+    "password": "Password@123",
+    "universityId": 6,
+    "departmentId": 11,
+    "courseId": 21,
+    "profile": {
+      "bio": "Education student piloting digital literacy bootcamps for rural teachers in Lamwo.",
+      "skills": ["Curriculum Design", "Instructional Design", "Facilitation"],
+      "phone": "+256705880402",
+      "location": "Lamwo, Uganda"
+    },
+    "createdAt": "2025-11-01T15:45:00.000Z",
+    "updatedAt": "2025-11-01T15:45:00.000Z",
+    "id": 92
+  },
+  {
+    "role": "student",
+    "email": "peter.lakwena@students.gu.ac.ug",
+    "name": "Peter Lakwena",
+    "password": "Password@123",
+    "universityId": 6,
+    "departmentId": 11,
+    "courseId": 22,
+    "profile": {
+      "bio": "Education student creating trauma-informed counselling curriculum for secondary schools.",
+      "skills": ["Counselling", "Monitoring and Evaluation", "Program Design"],
+      "phone": "+256705880403",
+      "location": "Kitgum Municipality, Kitgum"
+    },
+    "createdAt": "2025-11-01T15:55:00.000Z",
+    "updatedAt": "2025-11-01T15:55:00.000Z",
+    "id": 93
+  },
+  {
+    "role": "student",
+    "email": "catherine.lamwaka@students.gu.ac.ug",
+    "name": "Catherine Lamwaka",
+    "password": "Password@123",
+    "universityId": 6,
+    "departmentId": 10,
+    "courseId": 19,
+    "profile": {
+      "bio": "Agriculture student mapping market access for sesame farmers in Pader.",
+      "skills": ["Value Chain Analysis", "Research", "GIS"],
+      "phone": "+256705880404",
+      "location": "Pader Town, Pader"
+    },
+    "createdAt": "2025-11-01T16:05:00.000Z",
+    "updatedAt": "2025-11-01T16:05:00.000Z",
+    "id": 94
+  },
+  {
+    "role": "student",
+    "email": "allan.komakech@students.gu.ac.ug",
+    "name": "Allan Komakech",
+    "password": "Password@123",
+    "universityId": 6,
+    "departmentId": 10,
+    "courseId": 20,
+    "profile": {
+      "bio": "Agribusiness student prototyping digital produce traceability for cooperatives.",
+      "skills": ["Power Apps", "Power BI", "Project Management"],
+      "phone": "+256705880405",
+      "location": "Gulu University Campus, Gulu"
+    },
+    "createdAt": "2025-11-01T16:15:00.000Z",
+    "updatedAt": "2025-11-01T16:15:00.000Z",
+    "id": 95
+  },
+  {
+    "role": "student",
+    "email": "norah.aber@students.gu.ac.ug",
+    "name": "Norah Aber",
+    "password": "Password@123",
+    "universityId": 6,
+    "departmentId": 11,
+    "courseId": 21,
+    "profile": {
+      "bio": "Education student designing inclusive learning materials for refugee classrooms.",
+      "skills": [
+        "Instructional Design",
+        "Inclusive Education",
+        "Adobe InDesign"
+      ],
+      "phone": "+256705880406",
+      "location": "Bweyale, Kiryandongo"
+    },
+    "createdAt": "2025-11-01T16:25:00.000Z",
+    "updatedAt": "2025-11-01T16:25:00.000Z",
+    "id": 96
+  },
+  {
+    "role": "student",
+    "email": "victor.bongomin@students.gu.ac.ug",
+    "name": "Victor Bongomin",
+    "password": "Password@123",
+    "universityId": 6,
+    "departmentId": 11,
+    "courseId": 22,
+    "profile": {
+      "bio": "Education student leading radio-based remedial learning programs in Acholi.",
+      "skills": [
+        "Curriculum Design",
+        "Broadcast Production",
+        "Community Engagement"
+      ],
+      "phone": "+256705880407",
+      "location": "Gulu City, Uganda"
+    },
+    "createdAt": "2025-11-01T16:35:00.000Z",
+    "updatedAt": "2025-11-01T16:35:00.000Z",
+    "id": 97
+  },
+  {
+    "role": "student",
+    "email": "kevin.nsubuga@students.kiu.ac.ug",
+    "name": "Kevin Nsubuga",
+    "password": "Password@123",
+    "universityId": 7,
+    "departmentId": 12,
+    "courseId": 23,
+    "profile": {
+      "bio": "IT student developing mobile-first health informatics dashboards for KIU hospital.",
+      "skills": ["TypeScript", "React Native", "GraphQL"],
+      "phone": "+256706990500",
+      "location": "Kansanga, Kampala"
+    },
+    "createdAt": "2025-11-01T16:45:00.000Z",
+    "updatedAt": "2025-11-01T16:45:00.000Z",
+    "id": 98
+  },
+  {
+    "role": "student",
+    "email": "maria.babirye@students.kiu.ac.ug",
+    "name": "Maria Babirye",
+    "password": "Password@123",
+    "universityId": 7,
+    "departmentId": 12,
+    "courseId": 24,
+    "profile": {
+      "bio": "Data science student building predictive maintenance models for campus utilities.",
+      "skills": ["Python", "Pandas", "Machine Learning"],
+      "phone": "+256706990501",
+      "location": "Ggaba Road, Kampala"
+    },
+    "createdAt": "2025-11-01T16:55:00.000Z",
+    "updatedAt": "2025-11-01T16:55:00.000Z",
+    "id": 99
+  },
+  {
+    "role": "student",
+    "email": "ahmed.ssenoga@students.kiu.ac.ug",
+    "name": "Ahmed Ssenoga",
+    "password": "Password@123",
+    "universityId": 7,
+    "departmentId": 12,
+    "courseId": 23,
+    "profile": {
+      "bio": "IT student automating attendance analytics for KIU blended learning programs.",
+      "skills": ["JavaScript", "Node.js", "Power BI"],
+      "phone": "+256706990502",
+      "location": "Buziga, Kampala"
+    },
+    "createdAt": "2025-11-01T17:05:00.000Z",
+    "updatedAt": "2025-11-01T17:05:00.000Z",
+    "id": 100
+  },
+  {
+    "role": "student",
+    "email": "joyce.nalubega@students.kiu.ac.ug",
+    "name": "Joyce Nalubega",
+    "password": "Password@123",
+    "universityId": 7,
+    "departmentId": 13,
+    "courseId": 25,
+    "profile": {
+      "bio": "Business student supporting cross-border e-commerce accelerator cohorts.",
+      "skills": ["Business Strategy", "Market Research", "Financial Modeling"],
+      "phone": "+256706990503",
+      "location": "Bukasa, Kampala"
+    },
+    "createdAt": "2025-11-01T17:15:00.000Z",
+    "updatedAt": "2025-11-01T17:15:00.000Z",
+    "id": 101
+  },
+  {
+    "role": "student",
+    "email": "thomas.odoi@students.kiu.ac.ug",
+    "name": "Thomas Odoi",
+    "password": "Password@123",
+    "universityId": 7,
+    "departmentId": 13,
+    "courseId": 26,
+    "profile": {
+      "bio": "Finance student designing Islamic banking literacy content for student entrepreneurs.",
+      "skills": ["Corporate Finance", "Excel", "PowerPoint"],
+      "phone": "+256706990504",
+      "location": "Makindye Division, Kampala"
+    },
+    "createdAt": "2025-11-01T17:25:00.000Z",
+    "updatedAt": "2025-11-01T17:25:00.000Z",
+    "id": 102
+  },
+  {
+    "role": "student",
+    "email": "prisca.nankya@students.kiu.ac.ug",
+    "name": "Prisca Nankya",
+    "password": "Password@123",
+    "universityId": 7,
+    "departmentId": 13,
+    "courseId": 25,
+    "profile": {
+      "bio": "Business student leading women in tech incubator marketing experiments.",
+      "skills": ["Digital Marketing", "Content Strategy", "Canva"],
+      "phone": "+256706990505",
+      "location": "Muyenga, Kampala"
+    },
+    "createdAt": "2025-11-01T17:35:00.000Z",
+    "updatedAt": "2025-11-01T17:35:00.000Z",
+    "id": 103
+  },
+  {
+    "role": "student",
+    "email": "felix.mugerwa@students.kiu.ac.ug",
+    "name": "Felix Mugerwa",
+    "password": "Password@123",
+    "universityId": 7,
+    "departmentId": 12,
+    "courseId": 24,
+    "profile": {
+      "bio": "Data science student optimising predictive analytics for KIU hospital admissions.",
+      "skills": ["R", "Python", "Tableau"],
+      "phone": "+256706990506",
+      "location": "Kabalagala, Kampala"
+    },
+    "createdAt": "2025-11-01T17:45:00.000Z",
+    "updatedAt": "2025-11-01T17:45:00.000Z",
+    "id": 104
+  },
+  {
+    "role": "student",
+    "email": "joanita.kaggwa@students.kiu.ac.ug",
+    "name": "Joanita Kaggwa",
+    "password": "Password@123",
+    "universityId": 7,
+    "departmentId": 13,
+    "courseId": 26,
+    "profile": {
+      "bio": "Finance student building dashboards for KIU entrepreneurship fund reporting.",
+      "skills": ["Power BI", "SQL", "Financial Modeling"],
+      "phone": "+256706990507",
+      "location": "Nsambya, Kampala"
+    },
+    "createdAt": "2025-11-01T17:55:00.000Z",
+    "updatedAt": "2025-11-01T17:55:00.000Z",
+    "id": 105
+  },
+  {
+    "role": "student",
+    "email": "benjamin.ssali@students.umu.ac.ug",
+    "name": "Benjamin Ssali",
+    "password": "Password@123",
+    "universityId": 8,
+    "departmentId": 14,
+    "courseId": 27,
+    "profile": {
+      "bio": "Business student developing parish savings digital reporting tools in Mpigi.",
+      "skills": ["Accounting", "QuickBooks", "Power BI"],
+      "phone": "+256707110600",
+      "location": "Nkozi, Mpigi"
+    },
+    "createdAt": "2025-11-01T18:05:00.000Z",
+    "updatedAt": "2025-11-01T18:05:00.000Z",
+    "id": 106
+  },
+  {
+    "role": "student",
+    "email": "lucy.nanteza@students.umu.ac.ug",
+    "name": "Lucy Nanteza",
+    "password": "Password@123",
+    "universityId": 8,
+    "departmentId": 14,
+    "courseId": 28,
+    "profile": {
+      "bio": "Microfinance student co-designing women-led savings analytics for Mpigi parishes.",
+      "skills": ["Microfinance", "Excel", "Community Engagement"],
+      "phone": "+256707110601",
+      "location": "Mpigi Town, Mpigi"
+    },
+    "createdAt": "2025-11-01T18:15:00.000Z",
+    "updatedAt": "2025-11-01T18:15:00.000Z",
+    "id": 107
+  },
+  {
+    "role": "student",
+    "email": "chris.mugerwa@students.umu.ac.ug",
+    "name": "Chris Mugerwa",
+    "password": "Password@123",
+    "universityId": 8,
+    "departmentId": 15,
+    "courseId": 29,
+    "profile": {
+      "bio": "Education student creating competency-based lesson planners for rural schools.",
+      "skills": [
+        "Curriculum Development",
+        "Instructional Design",
+        "PowerPoint"
+      ],
+      "phone": "+256707110602",
+      "location": "Kayabwe, Mpigi"
+    },
+    "createdAt": "2025-11-01T18:25:00.000Z",
+    "updatedAt": "2025-11-01T18:25:00.000Z",
+    "id": 108
+  },
+  {
+    "role": "student",
+    "email": "janice.nabbosa@students.umu.ac.ug",
+    "name": "Janice Nabbosa",
+    "password": "Password@123",
+    "universityId": 8,
+    "departmentId": 15,
+    "courseId": 30,
+    "profile": {
+      "bio": "Education student supporting catechist digital resource development.",
+      "skills": ["Curriculum Design", "Content Creation", "Canva"],
+      "phone": "+256707110603",
+      "location": "Mityana, Uganda"
+    },
+    "createdAt": "2025-11-01T18:35:00.000Z",
+    "updatedAt": "2025-11-01T18:35:00.000Z",
+    "id": 109
+  },
+  {
+    "role": "student",
+    "email": "martin.ssekajja@students.umu.ac.ug",
+    "name": "Martin Ssekajja",
+    "password": "Password@123",
+    "universityId": 8,
+    "departmentId": 14,
+    "courseId": 27,
+    "profile": {
+      "bio": "Business analytics student developing parish enterprise scorecards.",
+      "skills": ["Business Analytics", "Excel", "SQL"],
+      "phone": "+256707110604",
+      "location": "Masaka City, Masaka"
+    },
+    "createdAt": "2025-11-01T18:45:00.000Z",
+    "updatedAt": "2025-11-01T18:45:00.000Z",
+    "id": 110
+  },
+  {
+    "role": "student",
+    "email": "hannah.namagembe@students.umu.ac.ug",
+    "name": "Hannah Namagembe",
+    "password": "Password@123",
+    "universityId": 8,
+    "departmentId": 15,
+    "courseId": 29,
+    "profile": {
+      "bio": "Education student running digital storytelling clubs for girls in Mpigi.",
+      "skills": ["Facilitation", "Creative Writing", "Digital Literacy"],
+      "phone": "+256707110605",
+      "location": "Buwama, Mpigi"
+    },
+    "createdAt": "2025-11-01T18:55:00.000Z",
+    "updatedAt": "2025-11-01T18:55:00.000Z",
+    "id": 111
+  },
+  {
+    "role": "student",
+    "email": "gerald.musoke@students.umu.ac.ug",
+    "name": "Gerald Musoke",
+    "password": "Password@123",
+    "universityId": 8,
+    "departmentId": 14,
+    "courseId": 28,
+    "profile": {
+      "bio": "Microfinance student digitising parish project reporting for youth groups.",
+      "skills": ["PowerApps", "Power BI", "Stakeholder Engagement"],
+      "phone": "+256707110606",
+      "location": "Lugazi, Buikwe"
+    },
+    "createdAt": "2025-11-01T19:05:00.000Z",
+    "updatedAt": "2025-11-01T19:05:00.000Z",
+    "id": 112
+  },
+  {
+    "role": "student",
+    "email": "sarah.akello@students.umu.ac.ug",
+    "name": "Sarah Akello",
+    "password": "Password@123",
+    "universityId": 8,
+    "departmentId": 15,
+    "courseId": 30,
+    "profile": {
+      "bio": "Education student developing audio-first revision content for rural pupils.",
+      "skills": [
+        "Instructional Audio",
+        "Curriculum Design",
+        "Monitoring and Evaluation"
+      ],
+      "phone": "+256707110607",
+      "location": "Kampala, Uganda"
+    },
+    "createdAt": "2025-11-01T19:15:00.000Z",
+    "updatedAt": "2025-11-01T19:15:00.000Z",
+    "id": 113
+  },
+  {
+    "role": "student",
+    "email": "ronald.kisitu@students.nkumba.ac.ug",
+    "name": "Ronald Kisitu",
+    "password": "Password@123",
+    "universityId": 9,
+    "departmentId": 16,
+    "courseId": 31,
+    "profile": {
+      "bio": "Information systems student digitising tourism lodge booking operations in Entebbe.",
+      "skills": ["TypeScript", "Next.js", "PostgreSQL"],
+      "phone": "+256708220700",
+      "location": "Entebbe, Wakiso"
+    },
+    "createdAt": "2025-11-01T19:25:00.000Z",
+    "updatedAt": "2025-11-01T19:25:00.000Z",
+    "id": 114
+  },
+  {
+    "role": "student",
+    "email": "emily.namutebi@students.nkumba.ac.ug",
+    "name": "Emily Namutebi",
+    "password": "Password@123",
+    "universityId": 9,
+    "departmentId": 16,
+    "courseId": 32,
+    "profile": {
+      "bio": "Multimedia student producing immersive tourism storytelling experiences.",
+      "skills": ["Adobe Premiere", "After Effects", "Illustration"],
+      "phone": "+256708220701",
+      "location": "Katabi, Wakiso"
+    },
+    "createdAt": "2025-11-01T19:35:00.000Z",
+    "updatedAt": "2025-11-01T19:35:00.000Z",
+    "id": 115
+  },
+  {
+    "role": "student",
+    "email": "ivan.kiyemba@students.nkumba.ac.ug",
+    "name": "Ivan Kiyemba",
+    "password": "Password@123",
+    "universityId": 9,
+    "departmentId": 16,
+    "courseId": 31,
+    "profile": {
+      "bio": "Information systems student building visitor analytics for national parks.",
+      "skills": ["Python", "Power BI", "SQL"],
+      "phone": "+256708220702",
+      "location": "Abayita Ababiri, Wakiso"
+    },
+    "createdAt": "2025-11-01T19:45:00.000Z",
+    "updatedAt": "2025-11-01T19:45:00.000Z",
+    "id": 116
+  },
+  {
+    "role": "student",
+    "email": "betty.anyango@students.nkumba.ac.ug",
+    "name": "Betty Anyango",
+    "password": "Password@123",
+    "universityId": 9,
+    "departmentId": 17,
+    "courseId": 33,
+    "profile": {
+      "bio": "Tourism student curating eco-tourism packages for Lake Victoria islands.",
+      "skills": ["Tour Planning", "Customer Experience", "Digital Marketing"],
+      "phone": "+256708220703",
+      "location": "Kalangala Town, Kalangala"
+    },
+    "createdAt": "2025-11-01T19:55:00.000Z",
+    "updatedAt": "2025-11-01T19:55:00.000Z",
+    "id": 117
+  },
+  {
+    "role": "student",
+    "email": "samuel.lutaaya@students.nkumba.ac.ug",
+    "name": "Samuel Lutaaya",
+    "password": "Password@123",
+    "universityId": 9,
+    "departmentId": 17,
+    "courseId": 34,
+    "profile": {
+      "bio": "Hospitality student optimising hotel inventory forecasting with analytics.",
+      "skills": ["Revenue Management", "Excel", "Power BI"],
+      "phone": "+256708220704",
+      "location": "Entebbe Road, Wakiso"
+    },
+    "createdAt": "2025-11-01T20:05:00.000Z",
+    "updatedAt": "2025-11-01T20:05:00.000Z",
+    "id": 118
+  },
+  {
+    "role": "student",
+    "email": "phiona.nansubuga@students.nkumba.ac.ug",
+    "name": "Phiona Nansubuga",
+    "password": "Password@123",
+    "universityId": 9,
+    "departmentId": 17,
+    "courseId": 33,
+    "profile": {
+      "bio": "Tourism student designing inclusive travel experiences for persons with disabilities.",
+      "skills": ["Inclusive Design", "Customer Journey Mapping", "Photography"],
+      "phone": "+256708220705",
+      "location": "Kampala Road, Kampala"
+    },
+    "createdAt": "2025-11-01T20:15:00.000Z",
+    "updatedAt": "2025-11-01T20:15:00.000Z",
+    "id": 119
+  },
+  {
+    "role": "student",
+    "email": "george.okot@students.nkumba.ac.ug",
+    "name": "George Okot",
+    "password": "Password@123",
+    "universityId": 9,
+    "departmentId": 16,
+    "courseId": 32,
+    "profile": {
+      "bio": "Multimedia student producing AR experiences for cultural heritage attractions.",
+      "skills": ["Unity", "3D Modeling", "Storyboarding"],
+      "phone": "+256708220706",
+      "location": "Nansana, Wakiso"
+    },
+    "createdAt": "2025-11-01T20:25:00.000Z",
+    "updatedAt": "2025-11-01T20:25:00.000Z",
+    "id": 120
+  },
+  {
+    "role": "student",
+    "email": "shivan.nakintu@students.nkumba.ac.ug",
+    "name": "Shivan Nakintu",
+    "password": "Password@123",
+    "universityId": 9,
+    "departmentId": 17,
+    "courseId": 34,
+    "profile": {
+      "bio": "Hospitality student creating sustainability scorecards for lakeside resorts.",
+      "skills": ["Sustainability Reporting", "Excel", "PowerPoint"],
+      "phone": "+256708220707",
+      "location": "Entebbe, Uganda"
+    },
+    "createdAt": "2025-11-01T20:35:00.000Z",
+    "updatedAt": "2025-11-01T20:35:00.000Z",
+    "id": 121
+  },
+  {
+    "role": "student",
+    "email": "richard.wamalwa@students.busitema.ac.ug",
+    "name": "Richard Wamalwa",
+    "password": "Password@123",
+    "universityId": 10,
+    "departmentId": 18,
+    "courseId": 35,
+    "profile": {
+      "bio": "Industrial engineering student prototyping low-cost grain dryer controllers.",
+      "skills": ["Mechanical Design", "PLC Programming", "AutoCAD"],
+      "phone": "+256709330800",
+      "location": "Tororo Municipality, Tororo"
+    },
+    "createdAt": "2025-11-01T20:45:00.000Z",
+    "updatedAt": "2025-11-01T20:45:00.000Z",
+    "id": 122
+  },
+  {
+    "role": "student",
+    "email": "grace.nabwire@students.busitema.ac.ug",
+    "name": "Grace Nabwire",
+    "password": "Password@123",
+    "universityId": 10,
+    "departmentId": 18,
+    "courseId": 36,
+    "profile": {
+      "bio": "Mechanical student designing automation kits for agro-processing SMEs.",
+      "skills": ["Automation", "SolidWorks", "Project Management"],
+      "phone": "+256709330801",
+      "location": "Jinja City, Jinja"
+    },
+    "createdAt": "2025-11-01T20:55:00.000Z",
+    "updatedAt": "2025-11-01T20:55:00.000Z",
+    "id": 123
+  },
+  {
+    "role": "student",
+    "email": "jonas.musumba@students.busitema.ac.ug",
+    "name": "Jonas Musumba",
+    "password": "Password@123",
+    "universityId": 10,
+    "departmentId": 18,
+    "courseId": 35,
+    "profile": {
+      "bio": "Industrial engineering student implementing predictive maintenance analytics.",
+      "skills": ["Python", "Power BI", "Lean Manufacturing"],
+      "phone": "+256709330802",
+      "location": "Mbale City, Mbale"
+    },
+    "createdAt": "2025-11-01T21:05:00.000Z",
+    "updatedAt": "2025-11-01T21:05:00.000Z",
+    "id": 124
+  },
+  {
+    "role": "student",
+    "email": "millicent.apio@students.busitema.ac.ug",
+    "name": "Millicent Apio",
+    "password": "Password@123",
+    "universityId": 10,
+    "departmentId": 18,
+    "courseId": 36,
+    "profile": {
+      "bio": "Mechanical engineering student modelling solar-powered fish drying kilns.",
+      "skills": ["Thermodynamics", "CAD", "Project Planning"],
+      "phone": "+256709330803",
+      "location": "Soroti City, Soroti"
+    },
+    "createdAt": "2025-11-01T21:15:00.000Z",
+    "updatedAt": "2025-11-01T21:15:00.000Z",
+    "id": 125
+  },
+  {
+    "role": "student",
+    "email": "steven.wangalwa@students.busitema.ac.ug",
+    "name": "Steven Wangalwa",
+    "password": "Password@123",
+    "universityId": 10,
+    "departmentId": 18,
+    "courseId": 35,
+    "profile": {
+      "bio": "Industrial engineering student conducting productivity assessments for Busia workshops.",
+      "skills": ["Industrial Engineering", "Data Analysis", "Kaizen"],
+      "phone": "+256709330804",
+      "location": "Busia Town, Busia"
+    },
+    "createdAt": "2025-11-01T21:25:00.000Z",
+    "updatedAt": "2025-11-01T21:25:00.000Z",
+    "id": 126
+  },
+  {
+    "role": "student",
+    "email": "rita.namanda@students.busitema.ac.ug",
+    "name": "Rita Namanda",
+    "password": "Password@123",
+    "universityId": 10,
+    "departmentId": 18,
+    "courseId": 36,
+    "profile": {
+      "bio": "Mechanical student building safety compliance dashboards for regional factories.",
+      "skills": ["HSE Auditing", "Excel", "Power BI"],
+      "phone": "+256709330805",
+      "location": "Iganga Town, Iganga"
+    },
+    "createdAt": "2025-11-01T21:35:00.000Z",
+    "updatedAt": "2025-11-01T21:35:00.000Z",
+    "id": 127
+  },
+  {
+    "role": "student",
+    "email": "collins.obote@students.busitema.ac.ug",
+    "name": "Collins Obote",
+    "password": "Password@123",
+    "universityId": 10,
+    "departmentId": 18,
+    "courseId": 35,
+    "profile": {
+      "bio": "Industrial engineering student advancing energy efficiency retrofits for factories.",
+      "skills": ["Energy Audits", "AutoCAD", "Matlab"],
+      "phone": "+256709330806",
+      "location": "Tororo, Uganda"
+    },
+    "createdAt": "2025-11-01T21:45:00.000Z",
+    "updatedAt": "2025-11-01T21:45:00.000Z",
+    "id": 128
+  },
+  {
+    "role": "student",
+    "email": "lydia.nanziri@students.busitema.ac.ug",
+    "name": "Lydia Nanziri",
+    "password": "Password@123",
+    "universityId": 10,
+    "departmentId": 18,
+    "courseId": 36,
+    "profile": {
+      "bio": "Mechanical student leading inclusive STEM outreach for Busitema secondary schools.",
+      "skills": ["STEM Outreach", "Public Speaking", "Robotics"],
+      "phone": "+256709330807",
+      "location": "Pallisa Town, Pallisa"
+    },
+    "createdAt": "2025-11-01T21:55:00.000Z",
+    "updatedAt": "2025-11-01T21:55:00.000Z",
+    "id": 129
+  },
+  {
+    "role": "student",
+    "email": "paul.kakuru@students.kab.ac.ug",
+    "name": "Paul Kakuru",
+    "password": "Password@123",
+    "universityId": 11,
+    "departmentId": 19,
+    "courseId": 37,
+    "profile": {
+      "bio": "Environmental science student developing community-led wetland restoration dashboards.",
+      "skills": ["GIS", "Remote Sensing", "Data Analysis"],
+      "phone": "+256710440900",
+      "location": "Kabale Municipality, Kabale"
+    },
+    "createdAt": "2025-11-01T22:05:00.000Z",
+    "updatedAt": "2025-11-01T22:05:00.000Z",
+    "id": 130
+  },
+  {
+    "role": "student",
+    "email": "doreen.tumuhairwe@students.kab.ac.ug",
+    "name": "Doreen Tumuhairwe",
+    "password": "Password@123",
+    "universityId": 11,
+    "departmentId": 19,
+    "courseId": 38,
+    "profile": {
+      "bio": "Climate change student modelling landslide early warning indicators for Kigezi.",
+      "skills": ["Climate Modeling", "Python", "ArcGIS"],
+      "phone": "+256710440901",
+      "location": "Kisoro Town, Kisoro"
+    },
+    "createdAt": "2025-11-01T22:15:00.000Z",
+    "updatedAt": "2025-11-01T22:15:00.000Z",
+    "id": 131
+  },
+  {
+    "role": "student",
+    "email": "brian.twinamasiko@students.kab.ac.ug",
+    "name": "Brian Twinamasiko",
+    "password": "Password@123",
+    "universityId": 11,
+    "departmentId": 19,
+    "courseId": 37,
+    "profile": {
+      "bio": "Environmental science student digitising forest conservation monitoring for Bwindi.",
+      "skills": ["Conservation Science", "Drone Mapping", "SQL"],
+      "phone": "+256710440902",
+      "location": "Kanungu Town, Kanungu"
+    },
+    "createdAt": "2025-11-01T22:25:00.000Z",
+    "updatedAt": "2025-11-01T22:25:00.000Z",
+    "id": 132
+  },
+  {
+    "role": "student",
+    "email": "irene.arinaitwe@students.kab.ac.ug",
+    "name": "Irene Arinaitwe",
+    "password": "Password@123",
+    "universityId": 11,
+    "departmentId": 19,
+    "courseId": 38,
+    "profile": {
+      "bio": "Climate student building community disaster preparedness scorecards for Rubanda.",
+      "skills": [
+        "Disaster Risk Reduction",
+        "Community Facilitation",
+        "Power BI"
+      ],
+      "phone": "+256710440903",
+      "location": "Rubanda Town, Rubanda"
+    },
+    "createdAt": "2025-11-01T22:35:00.000Z",
+    "updatedAt": "2025-11-01T22:35:00.000Z",
+    "id": 133
+  },
+  {
+    "role": "student",
+    "email": "julian.ninsiima@students.kab.ac.ug",
+    "name": "Julian Ninsiima",
+    "password": "Password@123",
+    "universityId": 11,
+    "departmentId": 19,
+    "courseId": 37,
+    "profile": {
+      "bio": "Environmental science student supporting eco-tourism biodiversity scorecards.",
+      "skills": ["Biodiversity Assessment", "R", "Report Writing"],
+      "phone": "+256710440904",
+      "location": "Kabale, Uganda"
+    },
+    "createdAt": "2025-11-01T22:45:00.000Z",
+    "updatedAt": "2025-11-01T22:45:00.000Z",
+    "id": 134
+  },
+  {
+    "role": "student",
+    "email": "oscar.turyagenda@students.kab.ac.ug",
+    "name": "Oscar Turyagenda",
+    "password": "Password@123",
+    "universityId": 11,
+    "departmentId": 19,
+    "courseId": 38,
+    "profile": {
+      "bio": "Climate change student building carbon sequestration models for bamboo projects.",
+      "skills": ["Carbon Accounting", "Python", "GIS"],
+      "phone": "+256710440905",
+      "location": "Kabale Municipality, Kabale"
+    },
+    "createdAt": "2025-11-01T22:55:00.000Z",
+    "updatedAt": "2025-11-01T22:55:00.000Z",
+    "id": 135
+  },
+  {
+    "role": "student",
+    "email": "monica.asiimwe@students.kab.ac.ug",
+    "name": "Monica Asiimwe",
+    "password": "Password@123",
+    "universityId": 11,
+    "departmentId": 19,
+    "courseId": 37,
+    "profile": {
+      "bio": "Environmental student coordinating lake water quality citizen science in Kabale.",
+      "skills": ["Water Quality Analysis", "Community Mobilisation", "Excel"],
+      "phone": "+256710440906",
+      "location": "Lake Bunyonyi, Kabale"
+    },
+    "createdAt": "2025-11-01T23:05:00.000Z",
+    "updatedAt": "2025-11-01T23:05:00.000Z",
+    "id": 136
+  },
+  {
+    "role": "student",
+    "email": "martha.byaruhanga@students.kab.ac.ug",
+    "name": "Martha Byaruhanga",
+    "password": "Password@123",
+    "universityId": 11,
+    "departmentId": 19,
+    "courseId": 38,
+    "profile": {
+      "bio": "Climate change student creating youth-led adaptation storytelling platforms.",
+      "skills": ["Storytelling", "Climate Advocacy", "Social Media"],
+      "phone": "+256710440907",
+      "location": "Kabale Town, Kabale"
+    },
+    "createdAt": "2025-11-01T23:15:00.000Z",
+    "updatedAt": "2025-11-01T23:15:00.000Z",
+    "id": 137
+  },
+  {
+    "role": "university-admin",
+    "email": "kigongovincent625+muni@gmail.com",
+    "name": "Kigongo vincent",
+    "password": "1bCWCde#A5cC",
+    "orgId": 31,
+    "profile": {
+      "bio": "UNIVERSITY administrator for Muni University",
+      "skills": [],
+      "phone": "+256756644325",
+      "location": "123, Uganda"
+    },
+    "createdAt": "2025-11-07T09:23:03.821Z",
+    "updatedAt": "2025-11-07T09:23:03.821Z",
+    "id": 138
+  },
+  {
+    "role": "university-admin",
+    "email": "brian.ndyaguma@bvrdesign.africa",
+    "name": "brian ndyaguma",
+    "password": "*iUTzzw0ofrl",
+    "orgId": 31,
+    "profile": {
+      "bio": "UNIVERSITY administrator for Muni University",
+      "skills": [],
+      "phone": "+256782065238",
+      "location": "Arua Clsoe"
+    },
+    "createdAt": "2025-11-07T09:25:27.810Z",
+    "updatedAt": "2025-11-07T09:25:27.810Z",
+    "id": 139
   }
 ]

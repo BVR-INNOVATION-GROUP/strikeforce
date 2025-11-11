@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/src/store";
 import { OrganizationI } from "@/src/models/organization";
 import PendingApprovalScreen from "@/src/components/screen/auth/PendingApprovalScreen";
@@ -18,7 +17,6 @@ export interface Props {
  */
 export default function KYCRouteProtector({ children }: Props) {
   const { user } = useAuthStore();
-  const router = useRouter();
   const [organization, setOrganization] = useState<OrganizationI | null>(null);
   const [loading, setLoading] = useState(true);
 

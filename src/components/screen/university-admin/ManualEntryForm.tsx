@@ -9,6 +9,8 @@ import Button from "@/src/components/core/Button";
 import ManualEntryFormFields from "./ManualEntryFormFields";
 import { validateManualEntry, ValidationErrors, UploadType } from "@/src/utils/manualEntryValidation";
 
+import { CourseI, DepartmentI } from "@/src/models/project";
+
 export interface Props {
   open: boolean;
   uploadType: UploadType;
@@ -16,15 +18,18 @@ export interface Props {
   onSubmit: (data: {
     name: string;
     email?: string;
-    department?: string;
     course?: string;
+    department?: string;
   }) => void;
+  courses?: CourseI[]; // Courses for student selection (department is derived from course)
+  departments?: DepartmentI[]; // Departments for supervisor selection
+  isSubmitting?: boolean; // Loading state for submit button
 }
 
 /**
  * Form modal for manual entry
  */
-const ManualEntryForm = ({ open, uploadType, onClose, onSubmit }: Props) => {
+const ManualEntryForm = ({ open, uploadType, onClose, onSubmit, courses = [], departments = [], isSubmitting = false }: Props) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -53,8 +58,8 @@ const ManualEntryForm = ({ open, uploadType, onClose, onSubmit }: Props) => {
     onSubmit({
       name: formData.name,
       email: uploadType === "student" || uploadType === "supervisor" ? formData.email : undefined,
-      department: uploadType === "student" ? formData.department : undefined,
       course: uploadType === "student" ? formData.course : undefined,
+      department: uploadType === "supervisor" ? formData.department : undefined,
     });
 
     // Reset form
@@ -77,8 +82,8 @@ const ManualEntryForm = ({ open, uploadType, onClose, onSubmit }: Props) => {
         <Button key="cancel" onClick={handleClose} className="bg-pale text-primary">
           Cancel
         </Button>,
-        <Button key="submit" onClick={handleSubmit} className="bg-primary">
-          Create
+        <Button key="submit" onClick={handleSubmit} className="bg-primary" disabled={isSubmitting}>
+          {isSubmitting ? "Creating..." : "Create"}
         </Button>,
       ]}
     >
@@ -90,6 +95,8 @@ const ManualEntryForm = ({ open, uploadType, onClose, onSubmit }: Props) => {
           setFormData({ ...formData, [field]: value });
         }}
         onClearError={(field) => clearError(field as keyof ValidationErrors)}
+        courses={courses}
+        departments={departments}
       />
     </Modal>
   );

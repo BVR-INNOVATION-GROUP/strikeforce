@@ -34,7 +34,7 @@ function DataTable<T extends { id: string }>({
     data,
     columns,
     onRowClick,
-    emptyMessage = "No data available",
+    emptyMessage: _emptyMessage = "No data available",
     pageSize = 10,
     onBulkAction,
     showActions = false,

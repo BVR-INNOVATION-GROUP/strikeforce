@@ -2,7 +2,7 @@
  * Custom hook for application form logic
  */
 import { useState, useEffect } from "react";
-import { ApplicationType, ApplicationI } from "@/src/models/application";
+import { ApplicationType } from "@/src/models/application";
 import { GroupI } from "@/src/models/group";
 import { UserI } from "@/src/models/user";
 import { validateApplicationForm } from "@/src/utils/applicationFormValidation";
@@ -12,12 +12,14 @@ export interface UseApplicationFormResult {
   applicantType: ApplicationType;
   selectedGroupId: string;
   statement: string;
+  attachments: File[];
   errors: Record<string, string>;
   submitting: boolean;
   availableGroups: GroupI[];
   setApplicantType: (type: ApplicationType) => void;
   setSelectedGroupId: (groupId: string) => void;
   setStatement: (statement: string) => void;
+  setAttachments: (files: File[]) => void;
   clearError: (field: string) => void;
   validate: () => boolean;
   reset: () => void;
@@ -31,16 +33,18 @@ export function useApplicationForm(
   groups: GroupI[],
   user: UserI | null
 ): UseApplicationFormResult {
-  const [applicantType, setApplicantTypeState] = useState<ApplicationType>("INDIVIDUAL");
+  const [applicantType, setApplicantTypeState] =
+    useState<ApplicationType>("INDIVIDUAL");
   const [selectedGroupId, setSelectedGroupIdState] = useState<string>("");
   const [statement, setStatementState] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [attachments, setAttachmentsState] = useState<File[]>([]);
+  const [submitting /* setSubmitting */] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { showError } = useToast();
 
   useEffect(() => {
     if (!open) {
-      reset();
+      // reset();
     }
   }, [open]);
 
@@ -73,6 +77,7 @@ export function useApplicationForm(
     setApplicantTypeState("INDIVIDUAL");
     setSelectedGroupIdState("");
     setStatementState("");
+    setAttachmentsState([]);
     setErrors({});
   };
 
@@ -80,6 +85,7 @@ export function useApplicationForm(
     applicantType,
     selectedGroupId,
     statement,
+    attachments,
     errors,
     submitting,
     availableGroups: getAvailableGroups(),
@@ -98,14 +104,12 @@ export function useApplicationForm(
       setStatementState(statement);
       clearError("statement");
     },
+    setAttachments: (files) => {
+      setAttachmentsState(files);
+      clearError("attachments");
+    },
     clearError,
     validate,
     reset,
   };
 }
-
-
-
-
-
-

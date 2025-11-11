@@ -2,7 +2,7 @@
  * Repository for milestone data operations
  */
 import { api } from "@/src/api/client";
-import { MilestoneI, MilestoneProposalI } from "@/src/models/milestone";
+import { MilestoneI } from "@/src/models/milestone";
 import { getUseMockData } from "@/src/utils/config";
 import { readJsonFile, findById } from "@/src/utils/fileHelpers";
 

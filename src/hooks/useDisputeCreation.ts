@@ -3,7 +3,10 @@
  */
 import { useState, useEffect } from "react";
 import { DisputeSubjectType } from "@/src/models/dispute";
-import { validateDisputeForm, ValidationErrors } from "@/src/utils/disputeValidation";
+import {
+  validateDisputeForm,
+  ValidationErrors,
+} from "@/src/utils/disputeValidation";
 import { uploadEvidenceFiles } from "@/src/utils/disputeFileHandling";
 import { useAuthStore } from "@/src/store";
 import { useToast } from "@/src/hooks/useToast";
@@ -22,7 +25,7 @@ export interface UseDisputeCreationResult {
   submitDispute: (
     subjectType: DisputeSubjectType,
     subjectId: string,
-    onSubmit: (dispute: any) => Promise<void>,
+    onSubmit: (dispute: unknown) => Promise<void>,
     onSuccess: () => void
   ) => Promise<void>;
   reset: () => void;
@@ -72,7 +75,7 @@ export function useDisputeCreation(open: boolean): UseDisputeCreationResult {
   const submitDispute = async (
     subjectType: DisputeSubjectType,
     subjectId: string,
-    onSubmit: (dispute: any) => Promise<void>,
+    onSubmit: (dispute: unknown) => Promise<void>,
     onSuccess: () => void
   ) => {
     if (!user) {
@@ -142,9 +145,3 @@ export function useDisputeCreation(open: boolean): UseDisputeCreationResult {
     reset,
   };
 }
-
-
-
-
-
-

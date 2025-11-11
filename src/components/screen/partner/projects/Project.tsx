@@ -3,7 +3,7 @@ import { Clock } from 'lucide-react'
 import React, { useRef, useState } from 'react'
 import { motion } from "framer-motion"
 import { useRouter } from 'next/navigation'
-import { ProjectI as ModelProjectI, ProjectStatus } from '@/src/models/project'
+import { ProjectI as ModelProjectI } from '@/src/models/project'
 import { ApplicationI } from '@/src/models/application'
 import { currenciesArray } from '@/src/constants/currencies'
 import { formatDateShort } from '@/src/utils/dateFormatters'

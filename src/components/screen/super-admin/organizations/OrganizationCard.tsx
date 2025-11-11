@@ -4,7 +4,7 @@
  */
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import Button from "@/src/components/core/Button";
 import StatusIndicator from "@/src/components/core/StatusIndicator";

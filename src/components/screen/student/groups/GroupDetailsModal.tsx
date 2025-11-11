@@ -339,7 +339,7 @@ const GroupDetailsModal = ({
                 message={
                     <div className="space-y-2">
                         <p>
-                            Are you sure you want to delete "{group?.name}"? This action
+                            Are you sure you want to delete &quot;{group?.name}&quot;? This action
                             cannot be undone.
                         </p>
                         <p className="text-sm opacity-75">

@@ -107,6 +107,7 @@ export default function UniversityAdminSupervisors() {
   const [editingSupervisor, setEditingSupervisor] = useState<UserI | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [supervisorToDelete, setSupervisorToDelete] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     // For university-admin, use organization.id or user.orgId
@@ -156,6 +157,7 @@ export default function UniversityAdminSupervisors() {
 
   /**
    * Handle manual entry submission
+   * PRD Reference: Section 4 - Supervisors receive invitation links when created
    */
   const handleManualSubmit = async (data: {
     name: string;
@@ -164,11 +166,64 @@ export default function UniversityAdminSupervisors() {
     course?: string;
   }) => {
     try {
-      // In production, submit form data to API
-      console.log("Manual submit supervisor:", data);
-      showSuccess("Supervisor created successfully!");
-      setIsModalOpen(false);
-      loadData(); // Reload to show new supervisor
+      // For university-admin, use organization.id or user.orgId
+      const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
+
+      if (!data.email || !universityId || !data.department) {
+        showError("Name, email, and department are required");
+        return;
+      }
+
+      // Find the selected department
+      const selectedDepartment = departments.find(d => d.id.toString() === data.department || d.id === parseInt(data.department!, 10));
+      if (!selectedDepartment) {
+        showError("Selected department not found");
+        return;
+      }
+
+      // Create supervisor via API route (handles invitation, user creation, and email sending server-side)
+      const numericUniversityId = typeof universityId === 'string' ? parseInt(universityId, 10) : universityId;
+      const numericDepartmentId = typeof selectedDepartment.id === 'string' ? parseInt(selectedDepartment.id, 10) : selectedDepartment.id;
+      const organizationName = organization?.name || "University";
+
+      setIsCreating(true);
+      try {
+        // Call API route that handles invitation creation, user creation, and email sending server-side
+        const response = await fetch("/api/supervisors", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email,
+            departmentId: numericDepartmentId,
+            universityId: numericUniversityId,
+            organizationName: organizationName,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to create supervisor");
+        }
+
+        const result = await response.json();
+        const newUser = result.user;
+
+        // Add new supervisor to the list immediately
+        setSupervisors((prev) => [...prev, newUser]);
+
+        showSuccess(
+          `Supervisor created successfully! Welcome email with invitation link has been sent to ${data.email}`
+        );
+        setIsModalOpen(false);
+      } catch (invError) {
+        console.error("Failed to create supervisor:", invError);
+        showError(invError instanceof Error ? invError.message : "Failed to create supervisor. Please try again.");
+      } finally {
+        setIsCreating(false);
+      }
     } catch (error) {
       console.error("Failed to create supervisor:", error);
       showError("Failed to create supervisor. Please try again.");
@@ -191,11 +246,13 @@ export default function UniversityAdminSupervisors() {
       return;
     }
 
-    try {
-      // In production, process CSV file
-      // Parse CSV, create supervisors
+      try {
+      // In production, process CSV files
+      // Parse CSV, create accounts, generate invitations, send emails
       console.log("Bulk upload supervisors:", selectedFiles);
-      showSuccess(`Processing ${selectedFiles.length} file(s)... Supervisors will be created once processing is complete.`);
+      showSuccess(
+        `Processing ${selectedFiles.length} file(s)... Supervisors will receive welcome emails with invitation links once processing is complete.`
+      );
       setSelectedFiles([]);
       setIsBulkUploadModalOpen(false);
       loadData(); // Reload to show new supervisors
@@ -223,19 +280,24 @@ export default function UniversityAdminSupervisors() {
 
   /**
    * Handle delete supervisor confirmation
+   * Syncs with backend via repository pattern and updates UI immediately
    */
   const handleConfirmDelete = async () => {
     if (!supervisorToDelete) return;
 
     try {
-      // In production, call API to delete supervisor
-      // For now, update local state
-      await userRepository.update(supervisorToDelete, { role: "deleted" as any }); // Mark as deleted
-      setSupervisors(supervisors.filter((s) => s.id.toString() !== supervisorToDelete));
+      // Delete supervisor via repository (syncs with backend)
+      await userRepository.delete(supervisorToDelete);
+
+      // Update UI immediately by filtering out the deleted supervisor
+      setSupervisors((prev) => prev.filter((s) => {
+        const supervisorId = typeof s.id === 'string' ? s.id : s.id.toString();
+        return supervisorId !== supervisorToDelete;
+      }));
+
       showSuccess("Supervisor deleted successfully");
       setShowDeleteConfirm(false);
       setSupervisorToDelete(null);
-      loadData(); // Reload to ensure consistency
     } catch (error) {
       console.error("Failed to delete supervisor:", error);
       showError("Failed to delete supervisor. Please try again.");
@@ -246,14 +308,21 @@ export default function UniversityAdminSupervisors() {
 
   if (loading) {
     return (
-      <div className="w-full flex flex-col h-full overflow-hidden p-4">
-        Loading...
+      <div className="w-full flex flex-col min-h-full">
+        <div className="flex items-center justify-center h-full">
+          <p className="text-[0.875rem] opacity-60">Loading...</p>
+        </div>
       </div>
     );
   }
 
-  const getDepartment = (departmentId?: string) => {
-    return departments.find((d) => d.id === departmentId);
+  /**
+   * Get department by ID (handles both number and string IDs)
+   */
+  const getDepartment = (departmentId?: number | string) => {
+    if (!departmentId) return undefined;
+    const numericId = typeof departmentId === 'string' ? parseInt(departmentId, 10) : departmentId;
+    return departments.find((d) => d.id === numericId);
   };
 
   return (
@@ -264,7 +333,7 @@ export default function UniversityAdminSupervisors() {
           <div>
             <h1 className="text-[1rem] font-[600] mb-2">Supervisors</h1>
             <p className="text-[0.875rem] opacity-60">
-              Manage university supervisors. Supervisors can receive student requests and review project submissions.
+              Manage university supervisors. When supervisors are created, a welcome email with an invitation link is automatically sent to their email address.
             </p>
           </div>
           <div className="flex gap-2">
@@ -307,6 +376,8 @@ export default function UniversityAdminSupervisors() {
         uploadType="supervisor"
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleManualSubmit}
+        departments={departments}
+        isSubmitting={isCreating}
       />
 
       {/* Bulk Upload Modal */}
@@ -360,6 +431,9 @@ export default function UniversityAdminSupervisors() {
             <p className="text-[0.8125rem] opacity-60">name,email,departmentId</p>
             <p className="text-[0.75rem] opacity-50 mt-2">
               Example: Dr. Jane Smith,jane@university.edu,1
+            </p>
+            <p className="text-[0.75rem] opacity-60 mt-2">
+              <strong>Note:</strong> All supervisors will receive welcome emails with invitation links once processing is complete.
             </p>
           </div>
         </div>

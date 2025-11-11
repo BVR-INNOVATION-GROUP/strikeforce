@@ -24,10 +24,10 @@ export interface Props {
 const SideModal = ({ open, onClose, title, children, width = "500px" }: Props) => {
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
+  // useEffect(() => {
+  //   setMounted(true);
+  //   return () => setMounted(false);
+  // }, []);
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -65,7 +65,7 @@ const SideModal = ({ open, onClose, title, children, width = "500px" }: Props) =
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
             className="fixed right-0 top-0 bottom-0 bg-paper shadow-custom flex flex-col"
-            style={{ 
+            style={{
               width,
               zIndex: 99999,
               maxWidth: "90vw"

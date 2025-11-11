@@ -24,7 +24,7 @@ export default function StudentGroups() {
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
-  const { groups, users, loading } = useStudentGroupsData(user?.id || null);
+  const { groups, users, loading } = useStudentGroupsData(user?.id ? String(user.id) : null);
   const [localGroups, setLocalGroups] = useState(groups);
 
   const {
@@ -36,18 +36,23 @@ export default function StudentGroups() {
     updateMembers,
     clearError,
     handleCreateGroup,
-  } = useGroupCreation(isCreateModalOpen, user?.id);
+  } = useGroupCreation(isCreateModalOpen, user?.id ? String(user.id) : null);
 
   useEffect(() => {
     setLocalGroups(groups);
   }, [groups]);
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!user) return;
-    handleCreateGroup(user.id, user.courseId, (newGroup) => {
-      setLocalGroups([...localGroups, newGroup]);
-      setIsCreateModalOpen(false);
-    });
+    try {
+      await handleCreateGroup(String(user.id), user.courseId ? String(user.courseId) : undefined, (newGroup) => {
+        setLocalGroups([...localGroups, newGroup]);
+        setIsCreateModalOpen(false);
+      });
+    } catch (error) {
+      // Error already handled in hook
+      console.error("Failed to create group:", error);
+    }
   };
 
   /**
@@ -85,25 +90,31 @@ export default function StudentGroups() {
    */
   const handleInviteMembers = async (groupId: string, memberIds: string[]) => {
     try {
-      // Find group and update memberIds
+      const { groupService } = await import("@/src/services/groupService");
+      const numericGroupId = parseInt(groupId, 10);
+      const numericMemberIds = memberIds.map((id) => parseInt(id, 10));
+
+      // Use groupService to add members with business validation
+      const updatedGroup = await groupService.addMembers(numericGroupId, numericMemberIds);
+
+      // Update local state
       const groupIndex = localGroups.findIndex((g) => String(g.id) === groupId);
-      if (groupIndex === -1) {
-        throw new Error("Group not found");
+      if (groupIndex !== -1) {
+        const updatedGroups = [...localGroups];
+        updatedGroups[groupIndex] = updatedGroup;
+        setLocalGroups(updatedGroups);
       }
 
-      const updatedGroups = [...localGroups];
-      updatedGroups[groupIndex] = {
-        ...updatedGroups[groupIndex],
-        memberIds: [...updatedGroups[groupIndex].memberIds, ...memberIds],
-      };
-
-      setLocalGroups(updatedGroups);
       showSuccess(
         `Successfully invited ${memberIds.length} member${memberIds.length !== 1 ? "s" : ""}`
       );
     } catch (error) {
       console.error("Failed to invite members:", error);
-      showError("Failed to invite members. Please try again.");
+      showError(
+        error instanceof Error
+          ? error.message
+          : "Failed to invite members. Please try again."
+      );
       throw error;
     }
   };
@@ -113,24 +124,29 @@ export default function StudentGroups() {
    */
   const handleRemoveMember = async (groupId: string, memberId: string) => {
     try {
+      const { groupService } = await import("@/src/services/groupService");
+      const numericGroupId = parseInt(groupId, 10);
+      const numericMemberId = parseInt(memberId, 10);
+
+      // Use groupService to remove member with business validation
+      const updatedGroup = await groupService.removeMember(numericGroupId, numericMemberId);
+
+      // Update local state
       const groupIndex = localGroups.findIndex((g) => String(g.id) === groupId);
-      if (groupIndex === -1) {
-        throw new Error("Group not found");
+      if (groupIndex !== -1) {
+        const updatedGroups = [...localGroups];
+        updatedGroups[groupIndex] = updatedGroup;
+        setLocalGroups(updatedGroups);
       }
 
-      const updatedGroups = [...localGroups];
-      updatedGroups[groupIndex] = {
-        ...updatedGroups[groupIndex],
-        memberIds: updatedGroups[groupIndex].memberIds.filter(
-          (id) => id !== memberId
-        ),
-      };
-
-      setLocalGroups(updatedGroups);
       showSuccess("Member removed successfully");
     } catch (error) {
       console.error("Failed to remove member:", error);
-      showError("Failed to remove member. Please try again.");
+      showError(
+        error instanceof Error
+          ? error.message
+          : "Failed to remove member. Please try again."
+      );
       throw error;
     }
   };
@@ -140,12 +156,23 @@ export default function StudentGroups() {
    */
   const handleDeleteGroup = async (groupId: string) => {
     try {
+      const { groupService } = await import("@/src/services/groupService");
+      const numericGroupId = parseInt(groupId, 10);
+
+      // Use groupService to delete group with business validation
+      await groupService.deleteGroup(numericGroupId);
+
+      // Update local state
       setLocalGroups(localGroups.filter((g) => String(g.id) !== groupId));
       setSelectedGroupId(null);
       showSuccess("Group deleted successfully");
     } catch (error) {
       console.error("Failed to delete group:", error);
-      showError("Failed to delete group. Please try again.");
+      showError(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete group. Please try again."
+      );
       throw error;
     }
   };
@@ -187,7 +214,7 @@ export default function StudentGroups() {
               key={group.id}
               group={group}
               users={users}
-              currentUserId={user?.id || ""}
+              currentUserId={user?.id ? String(user.id) : ""}
               onInvite={handleInviteMember}
               onViewDetails={handleViewDetails}
             />
@@ -207,7 +234,7 @@ export default function StudentGroups() {
         errors={errors}
         availableMembers={availableMembers}
         usersMap={usersMap}
-        currentUserId={user?.id}
+        currentUserId={user?.id ? String(user.id) : undefined}
         onClose={() => setIsCreateModalOpen(false)}
         onChange={(field, value) => setFormData({ ...formData, [field]: value })}
         onMembersChange={updateMembers}
@@ -219,9 +246,9 @@ export default function StudentGroups() {
       <GroupDetailsModal
         open={selectedGroup !== null && !isInviteModalOpen}
         onClose={() => setSelectedGroupId(null)}
-        group={selectedGroup}
+        group={selectedGroup || null}
         users={users}
-        currentUserId={user?.id || ""}
+        currentUserId={user?.id ? String(user.id) : ""}
         onDeleteGroup={handleDeleteGroup}
         onRemoveMember={handleRemoveMember}
         onInviteMembers={handleInviteMember}
@@ -235,10 +262,10 @@ export default function StudentGroups() {
           // Keep selectedGroupId so we can reopen details modal if needed
           // Only clear if user explicitly closes from card
         }}
-        group={inviteGroup}
+        group={inviteGroup || null}
         availableMembers={availableMembers}
         usersMap={usersMap}
-        currentUserId={user?.id}
+        currentUserId={user?.id ? String(user.id) : undefined}
         onInvite={handleInviteMembers}
       />
     </div>

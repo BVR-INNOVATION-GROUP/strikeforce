@@ -22,7 +22,7 @@ export default function SupervisorRequest() {
   const { showSuccess, showError } = useToast();
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
 
-  const { projects, supervisors, requests, loading } = useSupervisorRequestData(user?.id);
+  const { projects, supervisors, requests, loading } = useSupervisorRequestData(user?.id?.toString());
   const [localRequests, setLocalRequests] = useState<SupervisorRequestI[]>([]);
 
   const {
@@ -46,18 +46,22 @@ export default function SupervisorRequest() {
 
   /**
    * Handle submit request
+   * Refetches requests after successful submission to sync UI
    */
   const handleSubmit = async () => {
     if (!user) return;
     try {
-      await handleSubmitRequest(user.id, (newRequest) => {
-        setLocalRequests([...localRequests, newRequest]);
+      await handleSubmitRequest(user.id.toString(), async (newRequest) => {
+        // Refetch requests to get updated data from backend
+        const { supervisorRepository } = await import("@/src/repositories/supervisorRepository");
+        const updatedRequests = await supervisorRepository.getRequests(undefined, undefined, user.id.toString());
+        setLocalRequests(updatedRequests);
         setIsRequestModalOpen(false);
         showSuccess("Supervisor request submitted successfully");
       });
     } catch (error) {
       console.error("Failed to submit request:", error);
-      showError("Failed to submit request. Please try again.");
+      // Error already shown in hook
     }
   };
 

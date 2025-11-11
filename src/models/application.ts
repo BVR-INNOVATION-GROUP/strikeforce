@@ -12,6 +12,7 @@ export interface ApplicationI {
   groupId?: number;
   statement: string;
   status: ApplicationStatus;
+  attachments?: string[]; // URLs to attached files (CVs, portfolios, etc.)
   score?: ScoreI;
   offerExpiresAt?: string;
   createdAt: string;

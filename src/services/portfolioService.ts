@@ -95,7 +95,7 @@ export const portfolioService = {
    * @param itemId - Portfolio item ID
    * @returns Portfolio item
    */
-  getPortfolioItem: async (itemId: string): Promise<PortfolioItemI | null> => {
+  getPortfolioItem: async (_itemId: string): Promise<PortfolioItemI | null> => {
     // In production, fetch from repository
     return null;
   },

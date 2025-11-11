@@ -10,12 +10,12 @@ import Button from '@/src/components/core/Button'
 import StatusIndicator from '@/src/components/core/StatusIndicator'
 import Avatar from '@/src/components/core/Avatar'
 import Card from '@/src/components/core/Card'
-import { ApplicationI, ScoreI } from '@/src/models/application'
+import { ApplicationI } from '@/src/models/application'
 import { UserI } from '@/src/models/user'
 import { PortfolioItemI } from '@/src/models/portfolio'
 import { userRepository } from '@/src/repositories/userRepository'
 import { portfolioService } from '@/src/services/portfolioService'
-import { Users, Calendar, Award, TrendingUp, Clock, CheckCircle, XCircle, FileText } from 'lucide-react'
+import { Calendar, Award, TrendingUp, CheckCircle, XCircle, FileText, Download, ExternalLink } from 'lucide-react'
 import { formatDateLong } from '@/src/utils/dateFormatters'
 
 export interface Props {
@@ -49,14 +49,14 @@ const ApplicationDetailModal = (props: Props) => {
             try {
                 // Load student user profiles
                 const allUsers = await userRepository.getAll()
-                const applicationStudents = allUsers.filter(user => 
+                const applicationStudents = allUsers.filter(user =>
                     application.studentIds.includes(user.id)
                 )
                 setStudents(applicationStudents)
 
                 // Load portfolio items for all students
                 const portfolioPromises = applicationStudents.map(student =>
-                    portfolioService.getUserPortfolio(student.id).catch(() => [])
+                    portfolioService.getUserPortfolio(student.id?.toString()).catch(() => [])
                 )
                 const portfolios = await Promise.all(portfolioPromises)
                 setPortfolioItems(portfolios.flat())
@@ -131,12 +131,64 @@ const ApplicationDetailModal = (props: Props) => {
 
                 {/* Application Statement */}
                 <Card title="Application Statement">
-                    <div className="prose max-w-none">
-                        <p className="text-[0.875rem] leading-relaxed opacity-80 whitespace-pre-line">
-                            {application.statement || 'No statement provided.'}
-                        </p>
-                    </div>
+                    <div
+                        className="prose max-w-none text-[0.875rem] leading-relaxed opacity-80"
+                        dangerouslySetInnerHTML={{
+                            __html: application.statement || '<p class="opacity-60">No statement provided.</p>'
+                        }}
+                    />
                 </Card>
+
+                {/* Attachments */}
+                {application.attachments && application.attachments.length > 0 && (
+                    <Card title="Attachments (CVs, Portfolios, etc.)">
+                        <div className="space-y-2">
+                            {application.attachments.map((attachment, index) => {
+                                const fileName = attachment.split('/').pop() || `Attachment ${index + 1}`;
+                                const isImage = /\.(jpg|jpeg|png|gif)$/i.test(attachment);
+                                const isPdf = /\.pdf$/i.test(attachment);
+
+                                return (
+                                    <div
+                                        key={index}
+                                        className="flex items-center justify-between p-3 bg-paper rounded-lg border border-pale hover:bg-very-pale transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                                            <FileText size={18} className="opacity-60 flex-shrink-0" />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[0.875rem] font-medium truncate">
+                                                    {fileName}
+                                                </p>
+                                                <p className="text-[0.75rem] opacity-60">
+                                                    {isImage ? 'Image' : isPdf ? 'PDF Document' : 'Document'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                            <a
+                                                href={attachment}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="p-2 rounded hover:bg-pale transition-colors"
+                                                title="Open in new tab"
+                                            >
+                                                <ExternalLink size={16} className="opacity-60" />
+                                            </a>
+                                            <a
+                                                href={attachment}
+                                                download
+                                                className="p-2 rounded hover:bg-pale transition-colors"
+                                                title="Download"
+                                            >
+                                                <Download size={16} className="opacity-60" />
+                                            </a>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </Card>
+                )}
 
                 {/* Score Breakdown */}
                 {score && (

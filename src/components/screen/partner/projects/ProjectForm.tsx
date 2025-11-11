@@ -35,6 +35,7 @@ export interface Props {
       "id" | "createdAt" | "updatedAt" | "partnerId"
     >
   ) => void | Promise<void>;
+  isSaving?: boolean;
 }
 
 /**
@@ -51,7 +52,11 @@ const ProjectForm = (props: Props) => {
     handleStep1Continue,
     handleStep2Continue,
     handleSubmit: handleFormSubmit,
+    isSubmitting: internalIsSubmitting,
   } = useProjectFormSubmission(isEditMode);
+  
+  // Use external isSaving prop if provided (for edit mode), otherwise use internal isSubmitting
+  const isSubmitting = props.isSaving !== undefined ? props.isSaving : internalIsSubmitting;
 
   const handleStep1ContinueWrapper = () => {
     if (handleStep1Continue(formState)) {
@@ -84,6 +89,7 @@ const ProjectForm = (props: Props) => {
               : handleStep2ContinueWrapper,
           onBack: () => setStep(step - 1),
           onSubmit: handleSubmit,
+          isSubmitting,
         })}
         title={isEditMode ? "Edit Project" : "Add project"}
         handleClose={() => {

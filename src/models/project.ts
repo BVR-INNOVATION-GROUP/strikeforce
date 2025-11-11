@@ -1,7 +1,6 @@
 /**
  * Project model - represents partner projects posted to universities
  */
-import { ProjectI as BaseProjectI } from "../components/screen/partner/projects/Project";
 
 export type ProjectStatus = "draft" | "published" | "in-progress" | "on-hold" | "completed" | "cancelled";
 

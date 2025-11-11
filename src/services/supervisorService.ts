@@ -3,7 +3,8 @@
  * Handles supervisor requests, capacity management, and approval workflows
  * PRD Reference: Section 5 - Supervisor Selection
  */
-import { SupervisorRequestI, SupervisorCapacityI, SupervisorRequestStatus } from "@/src/models/supervisor";
+import { SupervisorRequestI, SupervisorCapacityI } from "@/src/models/supervisor";
+import { supervisorRepository } from "@/src/repositories/supervisorRepository";
 import { projectService } from "@/src/services/projectService";
 import { ProjectI } from "@/src/models/project";
 
@@ -48,9 +49,13 @@ export const supervisorService = {
    * @throws Error if capacity exceeded or request not found
    */
   approveRequest: async (
-    requestId: string,
+    requestId: string | number,
     supervisorId: string
   ): Promise<SupervisorRequestI> => {
+    // Get existing request
+    const numericRequestId = typeof requestId === 'string' ? parseInt(requestId, 10) : requestId;
+    const existingRequest = await supervisorRepository.getRequestById(numericRequestId);
+
     // Check capacity before approval
     if (!hasCapacity(supervisorId)) {
       throw new Error(
@@ -58,24 +63,17 @@ export const supervisorService = {
       );
     }
 
-    // In production, this would:
-    // 1. Update request status via repository
-    // 2. Assign supervisor to project
-    // 3. Update supervisor capacity
-    // 4. Send notifications
-    
-    // For now, return mock updated request
-    const mockRequest: SupervisorRequestI = {
-      id: requestId,
-      projectId: "",
-      studentOrGroupId: "",
-      supervisorId,
+    // Update request status via repository
+    const updatedRequest = await supervisorRepository.updateRequest(numericRequestId, {
       status: "APPROVED",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    });
 
-    return mockRequest;
+    // In production, this would also:
+    // 1. Assign supervisor to project
+    // 2. Update supervisor capacity
+    // 3. Send notifications
+
+    return updatedRequest;
   },
 
   /**
@@ -85,21 +83,20 @@ export const supervisorService = {
    * @returns Updated request with DENIED status
    */
   denyRequest: async (
-    requestId: string,
+    requestId: string | number,
     supervisorId: string
   ): Promise<SupervisorRequestI> => {
-    // In production, this would update request status and send notifications
-    const mockRequest: SupervisorRequestI = {
-      id: requestId,
-      projectId: "",
-      studentOrGroupId: "",
-      supervisorId,
+    // Get existing request
+    const numericRequestId = typeof requestId === 'string' ? parseInt(requestId, 10) : requestId;
+    
+    // Update request status via repository
+    const updatedRequest = await supervisorRepository.updateRequest(numericRequestId, {
       status: "DENIED",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    });
 
-    return mockRequest;
+    // In production, this would also send notifications
+
+    return updatedRequest;
   },
 
   /**
@@ -156,25 +153,30 @@ export const supervisorService = {
       throw new Error("Student or Group ID is required");
     }
 
-    // In production, this would:
-    // 1. Validate project exists and student/group is assigned
-    // 2. Check supervisor exists and has capacity
-    // 3. Check for duplicate requests
-    // 4. Create request via repository
-    // 5. Send notifications
+    // Check for duplicate pending requests
+    const existingRequests = await supervisorRepository.getRequests(
+      undefined,
+      requestData.projectId,
+      requestData.studentOrGroupId
+    );
+    const duplicate = existingRequests.find(
+      (r) =>
+        r.supervisorId === requestData.supervisorId &&
+        r.status === "PENDING"
+    );
 
-    const newRequest: SupervisorRequestI = {
-      id: `req-${Date.now()}`,
+    if (duplicate) {
+      throw new Error("A pending request already exists for this project and supervisor");
+    }
+
+    // Create request via repository (handles API call)
+    return supervisorRepository.createRequest({
       projectId: requestData.projectId,
-      studentOrGroupId: requestData.studentOrGroupId,
       supervisorId: requestData.supervisorId,
-      status: "PENDING",
+      studentOrGroupId: requestData.studentOrGroupId,
       message: requestData.message || "",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    return newRequest;
+      status: "PENDING",
+    });
   },
 };
 

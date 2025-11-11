@@ -46,6 +46,7 @@ export default function StudentProjects() {
   // Application form state
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [submittingApplication, setSubmittingApplication] = useState(false);
 
   // Get all unique skills from projects
   const allSkills = useMemo(() => {
@@ -77,27 +78,15 @@ export default function StudentProjects() {
     return value.replace(/,/g, "");
   };
 
-  // Initialize budget inputs from projects
-  useEffect(() => {
-    if (budgetBounds.min !== budgetBounds.max && !minBudget && !maxBudget) {
-      const minStr = budgetBounds.min.toString();
-      const maxStr = budgetBounds.max.toString();
-      setMinBudget(minStr);
-      setMaxBudget(maxStr);
-      setMinBudgetDisplay(formatWithCommas(minStr));
-      setMaxBudgetDisplay(formatWithCommas(maxStr));
-    }
-  }, [budgetBounds]);
-
   // Load organizations
   useEffect(() => {
     const loadOrganizations = async () => {
       try {
         const orgsData = await import("@/src/data/mockOrganizations.json");
-        const orgs = orgsData.default as Array<{ id: string; name: string }>;
+        const orgs = orgsData.default as Array<{ id: number | string; name: string }>;
         const orgMap: Record<string, string> = {};
         orgs.forEach((org) => {
-          orgMap[org.id] = org.name;
+          orgMap[org.id.toString()] = org.name;
         });
         setOrganizations(orgMap);
       } catch (error) {
@@ -112,6 +101,12 @@ export default function StudentProjects() {
     return userApplications.find(
       (app) => app.projectId.toString() === projectId.toString()
     ) || null;
+  };
+
+  // Check if student can apply to a project (must be from their university)
+  const canApplyToProject = (project: ProjectI): boolean => {
+    if (!user?.universityId) return false;
+    return project.universityId === user.universityId;
   };
 
   // Get currency symbol from project
@@ -131,9 +126,10 @@ export default function StudentProjects() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch all projects (no status filter) - backend sync handled by repository
         const [projectsData, applicationsData, usersData, groupsData] = await Promise.all([
-          projectService.getAllProjects({ status: "published" }),
-          user?.id ? applicationService.getUserApplications(user.id) : Promise.resolve([]),
+          projectService.getAllProjects(),
+          user?.id ? applicationService.getUserApplications(user.id.toString()) : Promise.resolve([]),
           import("@/src/data/mockUsers.json"),
           import("@/src/data/mockGroups.json"),
         ]);
@@ -151,17 +147,17 @@ export default function StudentProjects() {
         }
 
         // Build organization map from users
-        const users = usersData.default as Array<{ id: string; orgId?: string; name: string }>;
+        const users = usersData.default as Array<{ id: number | string; orgId?: number | string; name: string }>;
         const orgsData = await import("@/src/data/mockOrganizations.json");
-        const orgs = orgsData.default as Array<{ id: string; name: string }>;
+        const orgs = orgsData.default as Array<{ id: number | string; name: string }>;
 
         const orgMap: Record<string, string> = {};
         projectsData.forEach((project) => {
-          const user = users.find((u) => u.id === project.partnerId);
+          const user = users.find((u) => u.id.toString() === project.partnerId.toString());
           if (user?.orgId) {
-            const org = orgs.find((o) => o.id === user.orgId);
+            const org = orgs.find((o) => o.id.toString() === user.orgId?.toString());
             if (org) {
-              orgMap[project.partnerId] = org.name;
+              orgMap[project.partnerId.toString()] = org.name;
             }
           }
         });
@@ -239,16 +235,14 @@ export default function StudentProjects() {
   const clearFilters = () => {
     setSelectedStatus("all");
     setSelectedSkills(new Set());
-    const minStr = budgetBounds.min.toString();
-    const maxStr = budgetBounds.max.toString();
-    setMinBudget(minStr);
-    setMaxBudget(maxStr);
-    setMinBudgetDisplay(formatWithCommas(minStr));
-    setMaxBudgetDisplay(formatWithCommas(maxStr));
+    setMinBudget("");
+    setMaxBudget("");
+    setMinBudgetDisplay("");
+    setMaxBudgetDisplay("");
   };
 
   const hasActiveFilters = selectedStatus !== "all" || selectedSkills.size > 0 ||
-    minBudget !== budgetBounds.min.toString() || maxBudget !== budgetBounds.max.toString();
+    (minBudget !== "" && minBudget !== undefined) || (maxBudget !== "" && maxBudget !== undefined);
 
   const handleSaveProject = (projectId: string | number) => {
     // TODO: Implement save/bookmark functionality
@@ -272,18 +266,55 @@ export default function StudentProjects() {
   };
 
   const handleOpenApplicationForm = (projectId: string | number) => {
+    // Verify student can apply to this project before opening form
+    const project = projects.find((p) => p.id.toString() === projectId.toString());
+    if (!project) {
+      showError("Project not found");
+      return;
+    }
+    if (!canApplyToProject(project)) {
+      showError("You can only apply to projects from your university");
+      return;
+    }
     setSelectedProjectId(projectId.toString());
     setShowApplicationForm(true);
   };
 
   const handleApplicationSubmit = async (applicationData: Partial<ApplicationI>) => {
-    // Submit application via service
-    const newApplication = await applicationService.submitApplication(applicationData);
+    setSubmittingApplication(true);
+    try {
+      // Double-check that student can apply to this project
+      const projectId = applicationData.projectId;
+      if (projectId) {
+        const project = projects.find((p) => p.id.toString() === projectId.toString());
+        if (!project) {
+          showError("Project not found");
+          setSubmittingApplication(false);
+          return;
+        }
+        if (!canApplyToProject(project)) {
+          showError("You can only apply to projects from your university");
+          setSubmittingApplication(false);
+          return;
+        }
+      }
 
-    // Update local state to reflect the new application
-    setUserApplications([...userApplications, newApplication]);
+      // Submit application via service
+      const newApplication = await applicationService.submitApplication(applicationData);
 
-    // ApplicationForm will handle success message and closing
+      // Update local state to reflect the new application
+      setUserApplications([...userApplications, newApplication]);
+      showSuccess("Application submitted successfully!");
+
+      // Close form after successful submission
+      setShowApplicationForm(false);
+      setSelectedProjectId("");
+    } catch (error) {
+      console.error("Failed to submit application:", error);
+      showError(error instanceof Error ? error.message : "Failed to submit application. Please try again.");
+    } finally {
+      setSubmittingApplication(false);
+    }
   };
 
   if (loading) {
@@ -326,8 +357,9 @@ export default function StudentProjects() {
             {filteredProjects.map((project) => {
               const application = getApplicationStatus(project.id);
               const hasApplied = !!application;
+              const canApply = canApplyToProject(project);
               const currencySymbol = getCurrencySymbol(project.currency);
-              const companyName = getOrganizationName(project.partnerId);
+                const companyName = getOrganizationName(project.partnerId.toString());
 
               return (
                 <Card key={project.id} className="hover:shadow-md transition-all cursor-pointer border-0 bg-paper">
@@ -339,12 +371,19 @@ export default function StudentProjects() {
                         </h3>
                       </Link>
                       <p className="text-sm text-secondary mb-2">{companyName}</p>
-                      {hasApplied && (
-                        <div className="flex items-center gap-1 px-2 py-1 bg-pale-primary rounded text-xs text-primary w-fit">
-                          <CheckCircle2 size={12} />
-                          <span>Applied</span>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {hasApplied && (
+                          <div className="flex items-center gap-1 px-2 py-1 bg-pale-primary rounded text-xs text-primary w-fit">
+                            <CheckCircle2 size={12} />
+                            <span>Applied</span>
+                          </div>
+                        )}
+                        {!canApply && !hasApplied && (
+                          <div className="flex items-center gap-1 px-2 py-1 bg-pale rounded text-xs text-secondary w-fit">
+                            <span>Not available for your university</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -386,13 +425,23 @@ export default function StudentProjects() {
 
                   {/* Action Buttons Row */}
                   <div className="flex items-center gap-2 mt-4 pt-4 border-t border-custom">
-                    {!hasApplied && (
+                    {!hasApplied && canApply && (
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleOpenApplicationForm(project.id);
                         }}
                         className="flex-1 bg-primary text-sm py-2"
+                      >
+                        <Send size={14} className="mr-2" />
+                        Apply
+                      </Button>
+                    )}
+                    {!hasApplied && !canApply && (
+                      <Button
+                        disabled
+                        className="flex-1 bg-pale text-secondary text-sm py-2 cursor-not-allowed opacity-50"
+                        title="This project is not available for your university"
                       >
                         <Send size={14} className="mr-2" />
                         Apply
@@ -553,10 +602,13 @@ export default function StudentProjects() {
         projectId={selectedProjectId}
         groups={groups}
         onClose={() => {
-          setShowApplicationForm(false);
-          setSelectedProjectId("");
+          if (!submittingApplication) {
+            setShowApplicationForm(false);
+            setSelectedProjectId("");
+          }
         }}
         onSubmit={handleApplicationSubmit}
+        submitting={submittingApplication}
       />
     </div>
   );

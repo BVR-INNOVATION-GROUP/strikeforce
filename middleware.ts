@@ -57,7 +57,7 @@ function getUserRole(request: NextRequest): string | null {
 function hasAccess(role: string | null, pathname: string): boolean {
   if (!role) return false;
 
-  // Check if pathname matches any of the role's allowed routes
+  // Check if pathname matches unknown of the role's allowed routes
   const allowedRoutes = roleRoutes[role] || [];
   return allowedRoutes.some((route) => pathname.startsWith(route));
 }
@@ -104,5 +104,7 @@ export const config = {
     "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
+
+
 
 

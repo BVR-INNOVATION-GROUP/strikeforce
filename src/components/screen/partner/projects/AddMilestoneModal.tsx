@@ -21,10 +21,10 @@ export interface Props {
 
 const AddMilestoneModal = (props: Props) => {
     const { open, onClose, onCreate, onUpdate, milestone, defaultCurrency } = props
-    
+
     // Determine if we're in edit mode
     const isEditMode = !!milestone && !!onUpdate
-    
+
     // Get default currency option from milestone currency, project currency, or default to UGX
     const getDefaultCurrency = (): OptionI | null => {
         // In edit mode, use milestone currency
@@ -57,7 +57,7 @@ const AddMilestoneModal = (props: Props) => {
             icon: ugx.icon
         } : null
     }
-    
+
     const [title, setTitle] = useState('')
     const [scope, setScope] = useState('')
     const [dueDate, setDueDate] = useState('')
@@ -110,7 +110,7 @@ const AddMilestoneModal = (props: Props) => {
     }
 
     const handleSubmit = async (e?: React.MouseEvent<HTMLButtonElement>) => {
-        // Prevent any form submission or page reload
+        // Prevent unknown form submission or page reload
         if (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -123,15 +123,15 @@ const AddMilestoneModal = (props: Props) => {
         setCreating(true)
         try {
             const currencyCode = currency?.value || defaultCurrency || 'UGX'
-            
+
             if (isEditMode && milestone && onUpdate) {
                 // Update existing milestone
-                await onUpdate(String(milestone.id), title, scope, dueDate, amount, currencyCode)
+                await onUpdate(String(milestone.id), title, scope, dueDate, amount, currencyCode?.toString())
             } else {
                 // Create new milestone
-                await onCreate(title, scope, dueDate, amount, currencyCode)
+                await onCreate(title, scope, dueDate, amount, currencyCode?.toString())
             }
-            
+
             // Close modal and reset form (will happen via useEffect)
             onClose()
         } catch (error) {
@@ -159,8 +159,8 @@ const AddMilestoneModal = (props: Props) => {
                         className="bg-primary"
                         disabled={creating}
                     >
-                        {creating 
-                            ? (isEditMode ? 'Updating...' : 'Creating...') 
+                        {creating
+                            ? (isEditMode ? 'Updating...' : 'Creating...')
                             : (isEditMode ? 'Update Milestone' : 'Create Milestone')}
                     </Button>
                 ]}

@@ -104,7 +104,7 @@ const MultiSelect = (props: Props) => {
         maxHeight: 0
     })
 
-    const selectedValues = props.value || []
+    const selectedValues = useMemo(() => props.value || [], [props.value])
     const selectedValueSet = useMemo(() => {
         return new Set(selectedValues.map(v => v.value))
     }, [selectedValues])
@@ -128,7 +128,7 @@ const MultiSelect = (props: Props) => {
         }
 
         const triggerRect = triggerRef.current.getBoundingClientRect()
-        const viewportWidth = window.innerWidth
+        // const viewportWidth = window.innerWidth
         const viewportHeight = window.innerHeight
 
         // Calculate available space above and below

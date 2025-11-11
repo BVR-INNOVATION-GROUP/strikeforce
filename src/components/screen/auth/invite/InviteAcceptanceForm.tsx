@@ -14,7 +14,6 @@ export interface Props {
   formData: {
     password: string;
     confirmPassword: string;
-    name: string;
   };
   errors: ValidationErrors;
   submitting: boolean;
@@ -27,7 +26,7 @@ export interface Props {
  * Form for accepting invitation and setting password
  */
 const InviteAcceptanceForm = ({
-  invitation,
+  invitation: _invitation,
   formData,
   errors,
   submitting,
@@ -37,16 +36,6 @@ const InviteAcceptanceForm = ({
 }: Props) => {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <Input
-        title="Full Name *"
-        value={formData.name}
-        onChange={(e) => {
-          onFieldChange("name", e.target.value);
-          onClearError("name");
-        }}
-        error={errors.name}
-      />
-
       <Input
         title="Password *"
         type="password"
@@ -69,12 +58,6 @@ const InviteAcceptanceForm = ({
         }}
         error={errors.confirmPassword}
       />
-
-      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-xs text-info-dark">
-          <strong>Email:</strong> {invitation.email}
-        </p>
-      </div>
 
       <Button type="submit" className="bg-primary w-full" disabled={submitting}>
         {submitting ? "Creating Account..." : "Create Account"}

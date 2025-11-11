@@ -34,9 +34,25 @@ export const userRepository = {
     return api.get<UserI[]>(`/api/users?role=${role}`);
   },
 
+  /**
+   * Create new user
+   */
+  create: async (user: Partial<UserI>): Promise<UserI> => {
+    // Always use API route (even in mock mode) - API routes handle file operations server-side
+    return api.post<UserI>("/api/users", user);
+  },
+
   update: async (id: string | number, user: Partial<UserI>): Promise<UserI> => {
     // Always use API route (even in mock mode) - API routes handle file operations server-side
     return api.put<UserI>(`/api/users/${id}`, user);
+  },
+
+  /**
+   * Delete user
+   */
+  delete: async (id: string | number): Promise<void> => {
+    // Always use API route (even in mock mode) - API routes handle file operations server-side
+    return api.delete(`/api/users/${id}`);
   },
 };
 

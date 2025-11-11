@@ -5,15 +5,15 @@
 export interface ManualEntryFormData {
   name: string;
   email: string;
-  department: string;
-  course: string;
+  department?: string; // Required for supervisors
+  course?: string; // Required for students
 }
 
 export interface ValidationErrors {
   name?: string;
   email?: string;
-  department?: string;
-  course?: string;
+  department?: string; // Required for supervisors
+  course?: string; // Required for students
 }
 
 export type UploadType = "student" | "supervisor" | "department" | "course";
@@ -37,11 +37,17 @@ export function validateManualEntry(
     }
 
     if (uploadType === "student") {
-      if (!data.department) {
-        errors.department = "Department is required for students";
-      }
+      // Department is no longer required - it's derived from course
+      // Course is required and will carry the department information
       if (!data.course) {
         errors.course = "Course is required for students";
+      }
+    }
+
+    if (uploadType === "supervisor") {
+      // Department is required for supervisors
+      if (!data.department) {
+        errors.department = "Department is required for supervisors";
       }
     }
   }

@@ -33,7 +33,7 @@ const MilestoneSubmissionForm = (props: Props) => {
     const { user } = useAuthStore();
     const { showSuccess, showError } = useToast();
     const [submitting, setSubmitting] = useState(false);
-    
+
     const {
         notes,
         files,
@@ -75,49 +75,49 @@ const MilestoneSubmissionForm = (props: Props) => {
 
     return (
         <>
-        <Modal
-            title={`Submit Work - ${milestone.title}`}
-            open={open}
-            handleClose={() => {
-                onClose();
-                setErrors({});
-            }}
-            actions={[
-                <Button key="cancel" onClick={onClose} className="bg-pale text-primary">
-                    Cancel
-                </Button>,
-                <Button 
-                    key="submit" 
-                    onClick={handleSubmit} 
-                    className="bg-primary" 
-                    disabled={submitting}
-                >
-                    {submitting ? 'Submitting...' : 'Submit Work'}
-                </Button>,
-            ]}
-        >
-            <div className="flex flex-col gap-6">
-                <MilestoneSubmissionDetails milestone={milestone} />
+            <Modal
+                title={`Submit Work - ${milestone.title}`}
+                open={open}
+                handleClose={() => {
+                    onClose();
+                    setErrors({});
+                }}
+                actions={[
+                    <Button key="cancel" onClick={onClose} className="bg-pale text-primary">
+                        Cancel
+                    </Button>,
+                    <Button
+                        key="submit"
+                        onClick={handleSubmit}
+                        className="bg-primary"
+                        disabled={submitting}
+                    >
+                        {submitting ? 'Submitting...' : 'Submit Work'}
+                    </Button>,
+                ]}
+            >
+                <div className="flex flex-col gap-6">
+                    <MilestoneSubmissionDetails milestone={milestone} />
 
-                <SubmissionFileList
-                    files={files}
-                    errors={errors}
-                    onFileSelect={setFiles}
-                    onClearError={() => clearError('files')}
-                />
+                    <SubmissionFileList
+                        files={files}
+                        errors={errors}
+                        onFileSelect={setFiles}
+                        onClearError={() => clearError('files')}
+                    />
 
-                <TextArea
-                    title="Submission Notes *"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Describe what you've delivered, any changes made, challenges encountered, or additional context..."
-                    rows={6}
-                    error={errors.notes}
-                />
+                    <TextArea
+                        title="Submission Notes *"
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Describe what you've delivered, unknown changes made, challenges encountered, or additional context..."
+                        rows={6}
+                        error={errors.notes}
+                    />
 
-                <SubmissionReviewInfo />
-            </div>
-        </Modal>
+                    <SubmissionReviewInfo />
+                </div>
+            </Modal>
         </>
     );
 };

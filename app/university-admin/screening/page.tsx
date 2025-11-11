@@ -19,7 +19,7 @@ export default function UniversityAdminScreening() {
   const [applications, setApplications] = useState<ApplicationI[]>([]);
   const [projects, setProjects] = useState<Record<string, ProjectI>>({});
   const [users, setUsers] = useState<Record<string, UserI>>({});
-  const [groups, setGroups] = useState<Record<number, GroupI>>({});
+  const [groups, setGroups] = useState<Record<string, GroupI>>({});
   const [selectedBucket, setSelectedBucket] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [scoringModalOpen, setScoringModalOpen] = useState(false);
@@ -70,9 +70,9 @@ export default function UniversityAdminScreening() {
       );
       
       // Filter applications for university projects
-      const universityProjectIds = new Set(universityProjects.map(p => p.id));
+      const universityProjectIds = new Set(universityProjects.map((p) => p.id.toString()));
       const universityApplications = allApplications.filter(
-        (a) => universityProjectIds.has(a.projectId)
+        (a) => universityProjectIds.has(a.projectId.toString())
       );
       setApplications(universityApplications);
       
@@ -90,9 +90,9 @@ export default function UniversityAdminScreening() {
       setUsers(usersMap);
 
       // Load groups for group applications
-      const groupsMap: Record<number, GroupI> = {};
+      const groupsMap: Record<string, GroupI> = {};
       allGroups.forEach((group) => {
-        groupsMap[group.id] = group;
+        groupsMap[group.id.toString()] = group;
       });
       setGroups(groupsMap);
     } catch (error) {
@@ -125,13 +125,13 @@ export default function UniversityAdminScreening() {
    */
   const getStudentsForApplication = (application: ApplicationI): UserI[] => {
     if (application.applicantType === "GROUP" && application.groupId) {
-      const group = groups[application.groupId];
+      const group = groups[application.groupId.toString()];
       if (group) {
         const memberIds = [...(group.memberIds || []), group.leaderId].filter(Boolean);
-        return memberIds.map((id) => users[id]).filter(Boolean);
+        return memberIds.map((id) => users[id.toString()]).filter(Boolean);
       }
     } else {
-      return application.studentIds.map((id) => users[id]).filter(Boolean);
+      return application.studentIds.map((id) => users[id.toString()]).filter(Boolean);
     }
     return [];
   };
@@ -141,7 +141,7 @@ export default function UniversityAdminScreening() {
    */
   const getGroupForApplication = (application: ApplicationI): GroupI | undefined => {
     if (application.applicantType === "GROUP" && application.groupId) {
-      return groups[application.groupId];
+      return groups[application.groupId.toString()];
     }
     return undefined;
   };
@@ -308,7 +308,7 @@ export default function UniversityAdminScreening() {
               <ScreeningApplicationCard
                 key={application.id}
                 application={application}
-                project={projects[application.projectId]}
+                project={projects[application.projectId.toString()]}
                 onScore={handleScoreClick}
                 onViewDetails={handleViewDetails}
                 onShortlist={(app) => handleShortlist(app.id.toString())}
@@ -324,7 +324,7 @@ export default function UniversityAdminScreening() {
       <ScoreApplicationModal
         open={scoringModalOpen}
         application={selectedApplication}
-        project={selectedApplication ? projects[selectedApplication.projectId] : undefined}
+        project={selectedApplication ? projects[selectedApplication.projectId.toString()] : undefined}
         onClose={() => {
           setScoringModalOpen(false);
           setSelectedApplication(null);
@@ -340,7 +340,7 @@ export default function UniversityAdminScreening() {
           setSelectedApplicationForDetails(null);
         }}
         application={selectedApplicationForDetails}
-        project={selectedApplicationForDetails ? projects[selectedApplicationForDetails.projectId] : undefined}
+        project={selectedApplicationForDetails ? projects[selectedApplicationForDetails.projectId.toString()] : undefined}
         students={selectedApplicationForDetails ? getStudentsForApplication(selectedApplicationForDetails) : []}
         group={selectedApplicationForDetails ? getGroupForApplication(selectedApplicationForDetails) : undefined}
         onScore={handleScoreClick}

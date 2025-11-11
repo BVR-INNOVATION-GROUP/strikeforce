@@ -100,7 +100,7 @@ const ProjectFormStep2 = ({
         </div>
         <div className="flex-1">
           <Input
-            title="Capacity (Max number of students/groups) *"
+            title="Capacity*"
             type="number"
             value={capacity}
             onChange={(e) => {

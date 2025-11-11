@@ -16,7 +16,13 @@ export const applicationRepository = {
     if (getUseMockData()) {
       const applications = await readJsonFile<ApplicationI>("mockApplications.json");
       if (projectId) {
-        return applications.filter((a) => a.projectId === projectId);
+        // Handle both string and number projectId in mock data
+        return applications.filter((a) => {
+          const appProjectId = typeof a.projectId === 'string' 
+            ? parseInt(a.projectId, 10) 
+            : a.projectId;
+          return appProjectId === projectId;
+        });
       }
       return applications;
     }

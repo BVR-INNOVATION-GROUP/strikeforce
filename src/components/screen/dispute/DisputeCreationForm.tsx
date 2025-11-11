@@ -47,14 +47,7 @@ const DisputeCreationForm = (props: Props) => {
         });
     };
 
-    const reasonOptions = [
-        { value: "Quality concerns", label: "Quality concerns" },
-        { value: "Payment issues", label: "Payment issues" },
-        { value: "Timeline disputes", label: "Timeline disputes" },
-        { value: "Scope changes", label: "Scope changes" },
-        { value: "Communication issues", label: "Communication issues" },
-        { value: "Other", label: "Other" },
-    ];
+    // Options are defined and used within DisputeFormFields
 
     return (
         <>

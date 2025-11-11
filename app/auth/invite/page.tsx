@@ -1,20 +1,16 @@
 /**
  * Invitation Acceptance Page - Students/Supervisors set password and complete profile
- * PRD Reference: Section 4 - Students receive invitation links and set password
  */
 "use client";
 
-import React from "react";
-import { useSearchParams } from "next/navigation";
+import React, { Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Card from "@/src/components/core/Card";
 import Button from "@/src/components/core/Button";
-import { useRouter } from "next/navigation";
-import { useToast } from "@/src/hooks/useToast";
-
 import InviteAcceptanceForm from "@/src/components/screen/auth/invite/InviteAcceptanceForm";
 import { useInviteAcceptance } from "@/src/hooks/useInviteAcceptance";
 
-export default function InviteAcceptancePage() {
+function InviteAcceptanceInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -33,9 +29,7 @@ export default function InviteAcceptancePage() {
   if (validating) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-lg">Validating invitation...</p>
-        </div>
+        <p className="text-lg">Validating invitation...</p>
       </div>
     );
   }
@@ -82,9 +76,14 @@ export default function InviteAcceptancePage() {
           }}
         />
       </Card>
-
-      
     </div>
   );
 }
 
+export default function InviteAcceptancePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <InviteAcceptanceInner />
+    </Suspense>
+  );
+}

@@ -29,16 +29,16 @@ export default function StudentPortfolio() {
         try {
           const portfolioData = await import("@/src/data/mockPortfolio.json");
           userPortfolio = (portfolioData.default as PortfolioItemI[]).filter(
-            (item) => item.userId === user.id
+            (item) => item.userId.toString() === user.id.toString()
           );
         } catch {
           // If mock file doesn't exist, fetch from service
-          userPortfolio = await portfolioService.getUserPortfolio(user.id);
+          userPortfolio = await portfolioService.getUserPortfolio(user.id.toString());
         }
         setPortfolioItems(userPortfolio);
 
         // Calculate reputation score
-        const reputationScore = await reputationService.calculateReputation(user.id, userPortfolio);
+        const reputationScore = await reputationService.calculateReputation(user.id.toString(), userPortfolio);
         setReputation(reputationScore);
       } catch (error) {
         console.error("Failed to load portfolio:", error);

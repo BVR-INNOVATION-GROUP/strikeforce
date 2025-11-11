@@ -3,7 +3,7 @@
  */
 import React from 'react'
 import Card from '@/src/components/core/Card'
-import { File, Download, ExternalLink } from 'lucide-react'
+import { File, ExternalLink } from 'lucide-react'
 
 export interface Props {
   attachments: string[]
@@ -46,7 +46,7 @@ const AttachmentsCard = (props: Props) => {
         {attachments.map((attachment, index) => {
           const fileName = getFileName(attachment)
           const extension = getFileExtension(fileName)
-          
+
           return (
             <a
               key={index}

@@ -6,7 +6,7 @@
 import React from "react";
 import Card from "@/src/components/core/Card";
 import { Clock, CheckCircle, X } from "lucide-react";
-import { InvitationI, InvitationStatus } from "@/src/models/invitation";
+import { InvitationI } from "@/src/models/invitation";
 
 export interface Props {
   invitations: InvitationI[];

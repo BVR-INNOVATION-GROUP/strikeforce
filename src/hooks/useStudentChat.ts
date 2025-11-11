@@ -30,21 +30,29 @@ export interface UseStudentChatResult {
 /**
  * Hook for managing student chat state and logic
  */
-export function useStudentChat(userId: string | undefined): UseStudentChatResult {
+export function useStudentChat(
+  userId: string | undefined
+): UseStudentChatResult {
   const [threads, setThreads] = useState<ChatThreadI[]>([]);
-  const [selectedThread, setSelectedThread] = useState<ChatThreadI | null>(null);
+  const [selectedThread, setSelectedThread] = useState<ChatThreadI | null>(
+    null
+  );
   const [messages, setMessages] = useState<ChatMessageI[]>([]);
   const [users, setUsers] = useState<Record<string, UserI>>({});
   const [messageText, setMessageText] = useState("");
   const [loading, setLoading] = useState(true);
-  const [proposals, setProposals] = useState<Record<string, MilestoneProposalI>>({});
-  const [acceptingProposalId, setAcceptingProposalId] = useState<string | null>(null);
+  const [proposals, setProposals] = useState<
+    Record<string, MilestoneProposalI>
+  >({});
+  const [acceptingProposalId, setAcceptingProposalId] = useState<string | null>(
+    null
+  );
   const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     const loadData = async () => {
       if (!userId) return;
-      
+
       try {
         const [threadsData, usersData] = await Promise.all([
           chatService.getUserThreads(userId),
@@ -86,7 +94,7 @@ export function useStudentChat(userId: string | undefined): UseStudentChatResult
   useEffect(() => {
     const loadMessages = async () => {
       if (!selectedThread) return;
-      
+
       try {
         const [threadMessages, proposalsData] = await Promise.all([
           chatService.getThreadMessages(selectedThread.id),
@@ -110,7 +118,11 @@ export function useStudentChat(userId: string | undefined): UseStudentChatResult
     if (!messageText.trim() || !selectedThread || !userId) return;
 
     try {
-      const newMessage = await chatService.sendMessage(selectedThread.id, userId, messageText);
+      const newMessage = await chatService.sendMessage(
+        selectedThread.id,
+        userId,
+        messageText
+      );
       setMessages([...messages, newMessage]);
       setMessageText("");
     } catch (error) {
@@ -122,19 +134,25 @@ export function useStudentChat(userId: string | undefined): UseStudentChatResult
   const handleAcceptProposal = async (proposalId: string) => {
     setAcceptingProposalId(proposalId);
     try {
-      const updatedProposal = await milestoneProposalService.acceptProposal(proposalId);
+      const updatedProposal = await milestoneProposalService.acceptProposal(
+        proposalId
+      );
 
       setProposals((prev) => ({ ...prev, [proposalId]: updatedProposal }));
 
       showSuccess("Proposal accepted! Waiting for partner to finalize.");
 
       if (selectedThread) {
-        const threadMessages = await chatService.getThreadMessages(selectedThread.id);
+        const threadMessages = await chatService.getThreadMessages(
+          selectedThread.id
+        );
         setMessages(threadMessages);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to accept proposal:", error);
-      showError(error.message || "Failed to accept proposal. Please try again.");
+      showError(
+        error.message || "Failed to accept proposal. Please try again."
+      );
     } finally {
       setAcceptingProposalId(null);
     }
@@ -155,9 +173,3 @@ export function useStudentChat(userId: string | undefined): UseStudentChatResult
     handleAcceptProposal,
   };
 }
-
-
-
-
-
-

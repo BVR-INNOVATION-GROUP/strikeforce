@@ -20,6 +20,7 @@ export interface Props {
     onClose: () => void;
     onSubmit: (application: Partial<ApplicationI>) => Promise<void>;
     groups?: GroupI[];
+    submitting?: boolean;
 }
 
 /**
@@ -27,20 +28,21 @@ export interface Props {
  * Supports Individual and Group applications with validation
  */
 const ApplicationForm = (props: Props) => {
-    const { open, projectId, onClose, onSubmit, groups = [] } = props;
+    const { open, projectId, onClose, onSubmit, groups = [], submitting = false } = props;
     const { user } = useAuthStore();
-    const { showSuccess, showError } = useToast();
+    const { showError } = useToast();
     
     const {
         applicantType,
         selectedGroupId,
         statement,
+        attachments,
         errors,
-        submitting,
         availableGroups,
         setApplicantType,
         setSelectedGroupId,
         setStatement,
+        setAttachments,
         clearError,
         validate,
     } = useApplicationForm(open, groups, user);
@@ -49,6 +51,8 @@ const ApplicationForm = (props: Props) => {
      * Handle form submission
      */
     const handleSubmit = async () => {
+        if (submitting) return; // Prevent double submission
+        
         if (!user) {
             showError('You must be logged in to apply');
             return;
@@ -59,8 +63,23 @@ const ApplicationForm = (props: Props) => {
             return;
         }
 
-        // Set submitting state (would need to add to hook or handle here)
         try {
+            // Upload files first if there are unknown attachments
+            let attachmentPaths: string[] = [];
+            if (attachments.length > 0) {
+                try {
+                    const { uploadApplicationFiles } = await import("@/src/utils/applicationFileUpload");
+                    attachmentPaths = await uploadApplicationFiles(attachments);
+                } catch (uploadError) {
+                    showError(
+                        uploadError instanceof Error
+                            ? uploadError.message
+                            : "Failed to upload files. Please try again."
+                    );
+                    return;
+                }
+            }
+
             const studentIds = applicantType === "INDIVIDUAL" 
                 ? [user.id] 
                 : availableGroups.find(g => g.id === selectedGroupId)?.memberIds || [user.id];
@@ -70,13 +89,13 @@ const ApplicationForm = (props: Props) => {
                 applicantType,
                 studentIds,
                 groupId: applicantType === "GROUP" ? selectedGroupId : undefined,
-                statement: statement.trim(),
+                statement: statement, // HTML content from rich text editor
+                attachments: attachmentPaths.length > 0 ? attachmentPaths : undefined,
                 status: "SUBMITTED",
             };
 
             await onSubmit(applicationData);
-            showSuccess('Application submitted successfully!');
-            onClose();
+            // Success message and closing handled by parent component
         } catch (error) {
             console.error("Failed to submit application:", error);
             showError(error instanceof Error ? error.message : 'Failed to submit application. Please try again.');
@@ -90,15 +109,21 @@ const ApplicationForm = (props: Props) => {
             open={open}
             handleClose={onClose}
             actions={[
-                <Button key="cancel" onClick={onClose} className="bg-pale text-primary">
+                <Button 
+                    key="cancel" 
+                    onClick={onClose} 
+                    className="bg-pale text-primary"
+                    disabled={submitting}
+                >
                     Cancel
                 </Button>,
                 <Button 
                     key="submit" 
                     onClick={handleSubmit} 
                     className="bg-primary"
+                    disabled={submitting}
                 >
-                    Submit Application
+                    {submitting ? "Submitting..." : "Submit Application"}
                 </Button>,
             ]}
         >
@@ -106,11 +131,13 @@ const ApplicationForm = (props: Props) => {
                 applicantType={applicantType}
                 selectedGroupId={selectedGroupId}
                 statement={statement}
+                attachments={attachments}
                 availableGroups={availableGroups}
                 errors={errors}
                 onApplicantTypeChange={setApplicantType}
                 onGroupChange={setSelectedGroupId}
                 onStatementChange={setStatement}
+                onAttachmentsChange={setAttachments}
                 onClearError={clearError}
             />
         </Modal>

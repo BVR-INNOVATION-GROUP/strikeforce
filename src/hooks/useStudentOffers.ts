@@ -30,7 +30,9 @@ export interface UseStudentOffersResult {
 /**
  * Hook for managing student offers state and logic
  */
-export function useStudentOffers(userId: string | undefined): UseStudentOffersResult {
+export function useStudentOffers(
+  userId: string | undefined
+): UseStudentOffersResult {
   const [applications, setApplications] = useState<ApplicationI[]>([]);
   const [projects, setProjects] = useState<Record<string, ProjectI>>({});
   const [loading, setLoading] = useState(true);
@@ -38,7 +40,8 @@ export function useStudentOffers(userId: string | undefined): UseStudentOffersRe
   const [decliningId, setDecliningId] = useState<string | null>(null);
   const [showAcceptConfirm, setShowAcceptConfirm] = useState(false);
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
-  const [selectedApplication, setSelectedApplication] = useState<ApplicationI | null>(null);
+  const [selectedApplication, setSelectedApplication] =
+    useState<ApplicationI | null>(null);
   const { showSuccess, showError } = useToast();
 
   useEffect(() => {
@@ -49,8 +52,13 @@ export function useStudentOffers(userId: string | undefined): UseStudentOffersRe
           projectService.getAllProjects(),
         ]);
 
-        const userApplications = (applicationsData.default as ApplicationI[]).filter(
-          (app) => userId && app.studentIds.includes(userId) && app.status === "OFFERED"
+        const userApplications = (
+          applicationsData.default as ApplicationI[]
+        ).filter(
+          (app) =>
+            userId &&
+            app.studentIds.includes(userId) &&
+            app.status === "OFFERED"
         );
 
         setApplications(userApplications);
@@ -95,7 +103,7 @@ export function useStudentOffers(userId: string | undefined): UseStudentOffersRe
       showSuccess("Offer accepted! You have been assigned to this project.");
       setShowAcceptConfirm(false);
       setSelectedApplication(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to accept offer:", error);
       showError(error.message || "Failed to accept offer. Please try again.");
     } finally {
@@ -119,7 +127,7 @@ export function useStudentOffers(userId: string | undefined): UseStudentOffersRe
       showSuccess("Offer declined.");
       setShowDeclineConfirm(false);
       setSelectedApplication(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to decline offer:", error);
       showError(error.message || "Failed to decline offer. Please try again.");
     } finally {
@@ -128,7 +136,9 @@ export function useStudentOffers(userId: string | undefined): UseStudentOffersRe
   };
 
   const activeOffers = applications.filter(
-    (a) => a.status === "OFFERED" && (!a.offerExpiresAt || new Date(a.offerExpiresAt) >= new Date())
+    (a) =>
+      a.status === "OFFERED" &&
+      (!a.offerExpiresAt || new Date(a.offerExpiresAt) >= new Date())
   );
   const expiredOffers = applications.filter(
     (a) => a.offerExpiresAt && new Date(a.offerExpiresAt) < new Date()
@@ -154,9 +164,3 @@ export function useStudentOffers(userId: string | undefined): UseStudentOffersRe
     confirmDeclineOffer,
   };
 }
-
-
-
-
-
-

@@ -42,13 +42,7 @@ const KYCDocumentUpload = (props: Props) => {
         await uploadAndSubmit(orgId, onSubmit, onClose);
     };
 
-    const documentTypeOptions = [
-        { value: "CERTIFICATE", label: "Certificate of Incorporation" },
-        { value: "LICENSE", label: "Business License" },
-        { value: "REGISTRATION", label: "Registration Document" },
-        { value: "IDENTITY", label: "Identity Document" },
-        { value: "TAX_DOCUMENT", label: "Tax Document" },
-    ];
+    // Document type options are handled within KYCFormFields
 
     return (
         <>

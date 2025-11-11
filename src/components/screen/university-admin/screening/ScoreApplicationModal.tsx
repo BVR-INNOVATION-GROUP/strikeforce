@@ -34,12 +34,12 @@ const ScoreApplicationModal = ({
   // Initialize score when application changes
   useEffect(() => {
     if (application && open) {
-      setScore(
-        application.score?.manualSupervisorScore?.toString() ||
-          application.score?.finalScore?.toString() ||
-          ""
-      );
-      setErrors({});
+      // setScore(
+      //   application.score?.manualSupervisorScore?.toString() ||
+      //     application.score?.finalScore?.toString() ||
+      //     ""
+      // );
+      // setErrors({});
     }
   }, [application, open]);
 

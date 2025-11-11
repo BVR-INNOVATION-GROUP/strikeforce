@@ -41,7 +41,7 @@ const Modal = (props: Props) => {
         console.log('[DEBUG Modal] Not rendering - not open');
         return null;
     }
-    
+
     console.log('[DEBUG Modal] Rendering modal content');
 
     const modalContent = (

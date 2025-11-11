@@ -15,10 +15,12 @@ export interface ProjectFormData {
   deadline: string;
   capacity: string;
   selectedSkills: string[];
+  attachments?: string[]; // File paths from uploaded files
 }
 
 /**
  * Build project object from form data
+ * @param data - Form data including uploaded attachment paths
  */
 export function buildProjectFromForm(data: ProjectFormData): Omit<
   ProjectI,
@@ -40,9 +42,9 @@ export function buildProjectFromForm(data: ProjectFormData): Omit<
   }
 
   return {
-    universityId: String(data.university.value),
-    departmentId: String(data.department.value),
-    courseId: String(data.course.value),
+    universityId: Number(data.university.value),
+    departmentId: Number(data.department.value),
+    courseId: Number(data.course.value),
     title: data.title.trim(),
     description: data.desc.trim(),
     status: "draft",
@@ -51,6 +53,7 @@ export function buildProjectFromForm(data: ProjectFormData): Omit<
     currency: data.currency.value as string,
     deadline: new Date(data.deadline).toISOString(),
     capacity: parseInt(data.capacity) || 1,
+    attachments: data.attachments || [], // Include uploaded file paths
   };
 }
 

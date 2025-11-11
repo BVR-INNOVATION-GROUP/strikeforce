@@ -25,8 +25,8 @@ export interface ProjectDetailHandlers {
  */
 export function useProjectDetailHandlers({
   projectId,
-  orgId,
-  milestones,
+  orgId: _orgId,
+  milestones: _milestones,
   setMilestones,
 }: UseProjectDetailHandlersParams): ProjectDetailHandlers {
   const [selectedMilestone, setSelectedMilestone] =

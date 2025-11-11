@@ -45,7 +45,7 @@ export function useDataTable<T extends { id: string }>(
     const endIndex = startIndex + pageSize
 
     const paginatedData = useMemo(() => {
-        let sorted = [...data]
+        const sorted = [...data]
 
         if (sortColumn) {
             sorted.sort((a, b) => {

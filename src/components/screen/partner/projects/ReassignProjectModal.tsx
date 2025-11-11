@@ -7,11 +7,7 @@
 import React, { useState } from 'react'
 import Modal from '@/src/components/base/Modal'
 import Button from '@/src/components/core/Button'
-import Avatar from '@/src/components/core/Avatar'
-import StatusIndicator from '@/src/components/core/StatusIndicator'
 import Select, { OptionI } from '@/src/components/core/Select'
-import { Users, CheckCircle } from 'lucide-react'
-import { ApplicationI } from '@/src/models/application'
 
 export interface ApplicationDisplayI {
     id: number

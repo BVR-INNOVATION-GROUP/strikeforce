@@ -11,6 +11,7 @@ export interface GetActionsParams {
   onContinue: () => void;
   onBack: () => void;
   onSubmit: () => void;
+  isSubmitting?: boolean;
 }
 
 /**
@@ -22,6 +23,7 @@ export function getProjectFormActions({
   onContinue,
   onBack,
   onSubmit,
+  isSubmitting = false,
 }: GetActionsParams): ReactNode[] {
   switch (step) {
     case 1:
@@ -48,12 +50,12 @@ export function getProjectFormActions({
 
     case 3:
       return [
-        <Button key="back" onClick={onBack} className="bg-pale">
+        <Button key="back" onClick={onBack} className="bg-pale" disabled={isSubmitting}>
           Back
         </Button>,
-        <Button key="submit" onClick={onSubmit} className="bg-primary">
-          Submit new project
-          <CheckCircle size={16} />
+        <Button key="submit" onClick={onSubmit} className="bg-primary" disabled={isSubmitting}>
+          {isSubmitting ? "Submitting..." : "Submit new project"}
+          {!isSubmitting && <CheckCircle size={16} />}
         </Button>,
       ];
 

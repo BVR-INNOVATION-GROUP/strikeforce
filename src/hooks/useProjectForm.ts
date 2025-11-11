@@ -62,10 +62,14 @@ export function useProjectForm(
   };
 
   // Initialize with empty values - will be populated by useEffect when modal opens
-  const [university, setUniversityState] = useState<OptionI | undefined>(undefined);
+  const [university, setUniversityState] = useState<OptionI | undefined>(
+    undefined
+  );
   const [department, setDepartmentState] = useState<OptionI | null>(null);
   const [course, setCourseState] = useState<OptionI | null>(null);
-  const [currency, setCurrencyState] = useState<OptionI | null>(defaultCurrency);
+  const [currency, setCurrencyState] = useState<OptionI | null>(
+    defaultCurrency
+  );
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [budget, setBudget] = useState("");
@@ -90,7 +94,7 @@ export function useProjectForm(
 
   useEffect(() => {
     if (!open) {
-      resetForm();
+      // resetForm();
     }
   }, [open]);
 
@@ -103,38 +107,35 @@ export function useProjectForm(
       isInitializingRef.current = true;
       // When modal opens with initial data, populate all form fields immediately
       // Set all values at once to prevent cascading resets
-      setUniversityState(initialData.university ?? undefined);
-      setDepartmentState(initialData.department ?? null);
-      setCourseState(initialData.course ?? null);
-      setCurrencyState(initialData.currency ?? defaultCurrency);
-      setTitle(initialData.title ?? "");
-      setDesc(initialData.desc ?? "");
-      setBudget(initialData.budget ?? "");
-      setDeadline(initialData.deadline ?? "");
-      setCapacity(initialData.capacity ?? "");
-      setSelectedSkills(initialData.selectedSkills ?? []);
-      
+      // setUniversityState(initialData.university ?? undefined);
+      // setDepartmentState(initialData.department ?? null);
+      // setCourseState(initialData.course ?? null);
+      // setCurrencyState(initialData.currency ?? defaultCurrency);
+      // setTitle(initialData.title ?? "");
+      // setDesc(initialData.desc ?? "");
+      // setBudget(initialData.budget ?? "");
+      // setDeadline(initialData.deadline ?? "");
+      // setCapacity(initialData.capacity ?? "");
+      // setSelectedSkills(initialData.selectedSkills ?? []);
+
       // Reset flag after effects have run (use setTimeout to ensure it happens after state updates)
       setTimeout(() => {
         isInitializingRef.current = false;
       }, 0);
     }
-  }, [open, initialData]);
+  }, [open, initialData, defaultCurrency]);
 
   // Reset department and course when university changes (only if not initializing)
-  useEffect(() => {
-    if (!isInitializingRef.current && university !== undefined) {
-      setDepartmentState(null);
-      setCourseState(null);
-    }
-  }, [university]);
+  // useEffect(() => {
+  //   if (!isInitializingRef.current && university !== undefined) {
+  //     setDepartmentState(null);
+  //     setCourseState(null);
+  //   }
+  // }, [university]);
 
   // Reset course when department changes (only if not initializing)
-  useEffect(() => {
-    if (!isInitializingRef.current && department !== null) {
-      setCourseState(null);
-    }
-  }, [department]);
+
+  useEffect(() => {}, [department]);
 
   const setUniversity = (o: OptionI | string) => {
     setUniversityState(
@@ -198,5 +199,3 @@ export function useProjectForm(
 
   return [state, actions];
 }
-
-

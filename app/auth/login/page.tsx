@@ -257,7 +257,7 @@ const LoginPage = () => {
             </>
           )}
           <p className="text-sm text-muted">
-            If you have any questions, please contact our support team.
+            If you have unknown questions, please contact our support team.
           </p>
         </div>
       </Modal>

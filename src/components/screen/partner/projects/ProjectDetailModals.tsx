@@ -37,8 +37,10 @@ export interface Props {
   onCreateMilestone: (title: string, scope: string, dueDate: string, amount: string, currency?: string) => Promise<void>;
   onUpdateMilestone?: (milestoneId: string, title: string, scope: string, dueDate: string, amount: string, currency?: string) => Promise<void>;
   onSaveProject: (data: Partial<ProjectI>) => Promise<void>;
+  isSaving?: boolean;
   onConfirmReassign: () => Promise<void>;
   onConfirmDelete: () => Promise<void>;
+  isDeleting?: boolean;
   onReassignProject: (applicationId: number) => Promise<void>;
   applicationDisplay: Array<{
     id: number;
@@ -65,7 +67,6 @@ const ProjectDetailModals = ({
   showReassignConfirm,
   showDeleteConfirm,
   showReassignProjectModal,
-  selectedApplicationId,
   isApplicationDetailModalOpen,
   selectedApplicationDetailId,
   projectData,
@@ -80,8 +81,10 @@ const ProjectDetailModals = ({
   onCreateMilestone,
   onUpdateMilestone,
   onSaveProject,
+  isSaving = false,
   onConfirmReassign,
   onConfirmDelete,
+  isDeleting = false,
   onReassignProject,
   applicationDisplay,
   currentAssignedApplicationId,
@@ -125,6 +128,7 @@ const ProjectDetailModals = ({
           project={projectData}
           onClose={onCloseEditModal}
           onSave={onSaveProject}
+          isSaving={isSaving}
         />
       )}
       {showReassignProjectModal && (
@@ -165,6 +169,7 @@ const ProjectDetailModals = ({
         type="danger"
         confirmText="Delete"
         cancelText="Cancel"
+        loading={isDeleting}
       />
     </>
   );

@@ -14,6 +14,7 @@ export interface Props {
     project: ProjectI | null
     onClose: () => void
     onSave: (data: Partial<ProjectI>) => Promise<void>
+    isSaving?: boolean
 }
 
 /**
@@ -122,6 +123,7 @@ const EditProjectModal = (props: Props) => {
             setOpen={onClose}
             initialData={initialData}
             onSubmit={handleSubmit}
+            isSaving={props.isSaving}
         />
     )
 }

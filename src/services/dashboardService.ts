@@ -10,7 +10,6 @@ import { disputeRepository } from "@/src/repositories/disputeRepository";
 import { kycRepository } from "@/src/repositories/kycRepository";
 import { organizationRepository } from "@/src/repositories/organizationRepository";
 import { portfolioRepository } from "@/src/repositories/portfolioRepository";
-import { ProjectI } from "@/src/models/project";
 
 /**
  * University admin dashboard statistics interface
@@ -42,8 +41,6 @@ export interface DashboardStats {
   totalBudgetChange?: number; // Percentage change from previous period
   activeProjectsChange?: number;
 }
-
-export interface PartnerDashboardStats extends DashboardStats {}
 
 /**
  * Student dashboard statistics interface
@@ -90,10 +87,7 @@ export const dashboardService = {
    * Get partner dashboard statistics
    * Calculated from actual project data
    */
-  getPartnerDashboardStats: async (
-    partnerId: string,
-    orgId?: string
-  ): Promise<PartnerDashboardStats> => {
+  getDashboardStats: async (partnerId: string): Promise<DashboardStats> => {
     const projects = await projectRepository.getAll();
     const partnerProjects = projects.filter((p) => p.partnerId === partnerId);
 
@@ -109,7 +103,7 @@ export const dashboardService = {
     const previousActiveProjects = Math.max(0, activeProjects - 1);
     const previousBudget = totalBudget * 0.9; // Simulate 10% less previous period
 
-    const stats: PartnerDashboardStats = {
+    const stats: DashboardStats = {
       totalProjects: partnerProjects.length,
       activeProjects,
       totalBudget,
@@ -122,6 +116,18 @@ export const dashboardService = {
     };
 
     return stats;
+  },
+
+  /**
+   * Alias for getDashboardStats for backwards compatibility
+   * Get partner dashboard statistics
+   */
+  getPartnerDashboardStats: async (
+    partnerId: string,
+    orgId?: string
+  ): Promise<DashboardStats> => {
+    // Currently ignoring orgId, but keeping it for future use
+    return dashboardService.getDashboardStats(partnerId);
   },
 
   /**
@@ -251,7 +257,10 @@ export const dashboardService = {
     const completedProjects = supervisedProjects.filter(
       (p) => p.status === "completed"
     ).length;
-    const totalBudget = supervisedProjects.reduce((sum, p) => sum + p.budget, 0);
+    const totalBudget = supervisedProjects.reduce(
+      (sum, p) => sum + p.budget,
+      0
+    );
 
     // Calculate changes
     const previousActiveProjects = Math.max(0, activeProjects - 1);
@@ -295,8 +304,7 @@ export const dashboardService = {
     // Get pending milestone reviews (milestones in SUPERVISOR_REVIEW or PARTNER_REVIEW)
     const milestones = await milestoneRepository.getAll();
     const pendingReviews = milestones.filter(
-      (m) =>
-        m.status === "SUPERVISOR_REVIEW" || m.status === "PARTNER_REVIEW"
+      (m) => m.status === "SUPERVISOR_REVIEW" || m.status === "PARTNER_REVIEW"
     ).length;
 
     // Calculate changes

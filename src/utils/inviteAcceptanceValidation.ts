@@ -5,13 +5,11 @@
 export interface InviteAcceptanceFormData {
   password: string;
   confirmPassword: string;
-  name: string;
 }
 
 export interface ValidationErrors {
   password?: string;
   confirmPassword?: string;
-  name?: string;
 }
 
 /**
@@ -28,10 +26,6 @@ export function validateInviteAcceptance(
 
   if (data.password !== data.confirmPassword) {
     errors.confirmPassword = "Passwords do not match";
-  }
-
-  if (!data.name || data.name.trim().length < 2) {
-    errors.name = "Name is required (minimum 2 characters)";
   }
 
   return errors;

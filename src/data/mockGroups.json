@@ -1,1 +1,65 @@
-[]
+[
+  {
+    "courseId": 1,
+    "leaderId": 4,
+    "memberIds": [
+      4,
+      6
+    ],
+    "name": "alpha",
+    "capacity": 5,
+    "createdAt": "2025-11-07T08:54:06.803Z",
+    "updatedAt": "2025-11-07T08:54:06.803Z",
+    "id": 1
+  },
+  {
+    "courseId": 5,
+    "leaderId": 40,
+    "memberIds": [41, 42, 54],
+    "name": "Mak Smart Mobility Lab",
+    "capacity": 5,
+    "createdAt": "2025-11-05T08:00:00.000Z",
+    "updatedAt": "2025-11-05T08:00:00.000Z",
+    "id": 2
+  },
+  {
+    "courseId": 3,
+    "leaderId": 60,
+    "memberIds": [61, 64, 68],
+    "name": "Kyambogo Infrastructure Studio",
+    "capacity": 5,
+    "createdAt": "2025-11-06T09:10:00.000Z",
+    "updatedAt": "2025-11-06T09:10:00.000Z",
+    "id": 3
+  },
+  {
+    "courseId": 11,
+    "leaderId": 70,
+    "memberIds": [71, 72, 75],
+    "name": "UCU Business Impact Collective",
+    "capacity": 4,
+    "createdAt": "2025-11-07T10:25:00.000Z",
+    "updatedAt": "2025-11-07T10:25:00.000Z",
+    "id": 4
+  },
+  {
+    "courseId": 16,
+    "leaderId": 81,
+    "memberIds": [82, 86, 87],
+    "name": "MUST Telehealth Builders",
+    "capacity": 5,
+    "createdAt": "2025-11-08T11:40:00.000Z",
+    "updatedAt": "2025-11-08T11:40:00.000Z",
+    "id": 5
+  },
+  {
+    "courseId": 19,
+    "leaderId": 90,
+    "memberIds": [91, 94, 95],
+    "name": "Gulu Agro Data Guild",
+    "capacity": 5,
+    "createdAt": "2025-11-09T12:55:00.000Z",
+    "updatedAt": "2025-11-09T12:55:00.000Z",
+    "id": 6
+  }
+]

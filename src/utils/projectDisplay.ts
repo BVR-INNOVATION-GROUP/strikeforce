@@ -4,7 +4,6 @@
 import { ProjectI } from '@/src/models/project'
 import { ApplicationI } from '@/src/models/application'
 import { MilestoneI } from '@/src/models/milestone'
-import { currenciesArray } from '@/src/constants/currencies'
 import { transformApplications, transformMilestones, transformTeamMembers } from './projectTransformers'
 import { formatDateShort } from './dateFormatters'
 import { getMockProjectDisplayData } from './mockProjectData'
@@ -72,13 +71,12 @@ export const transformProjectForDisplay = async (
     applications: ApplicationI[],
     milestones: MilestoneI[],
     projectId: string,
-    groups?: any[],
-    users?: any[],
+    groups?: unknown[],
+    users?: unknown[],
     supervisorId?: string,
     currentUserId?: string
 ): Promise<ProjectDisplayI> => {
     if (sourceProject) {
-        const deadlineDate = new Date(sourceProject.deadline)
         const formattedDeadline = formatDateShort(sourceProject.deadline)
 
         // Load groups and users if not provided

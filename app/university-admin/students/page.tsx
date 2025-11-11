@@ -88,7 +88,7 @@ const StudentCard = ({ student, department, course, onEdit, onDelete, onViewDeta
             </Button>
           )}
           {onDelete && (
-            <Button onClick={(e) => { e.stopPropagation(); onDelete?.(student.id); }} className="bg-primary flex-1 text-[0.875rem] py-2.5">
+            <Button onClick={(e) => { e.stopPropagation(); onDelete?.(student.id.toString()); }} className="bg-pale text-primary flex-1 text-[0.875rem] py-2.5">
               Delete
             </Button>
           )}
@@ -117,6 +117,7 @@ export default function UniversityAdminStudents() {
   const [editingStudent, setEditingStudent] = useState<UserI | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     // For university-admin, use organization.id or user.orgId
@@ -130,13 +131,16 @@ export default function UniversityAdminStudents() {
 
   /**
    * Load students, departments, and programmes from backend
+   * Filters students by university ID from session (organization.id or user.orgId)
    */
   const loadData = async () => {
     try {
       setLoading(true);
-      // For university-admin, use organization.id or user.orgId
+      // Get university ID from session - for university-admin, use organization.id or user.orgId
+      // This ensures we only show students belonging to the logged-in university admin's university
       const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
       if (!universityId) {
+        console.warn("No university ID found in session");
         setLoading(false);
         return;
       }
@@ -150,15 +154,16 @@ export default function UniversityAdminStudents() {
       // Load all courses (will filter by department when needed)
       const coursesData = await courseService.getAllCourses();
       // Filter courses that belong to departments in this university
-      const universityCourses = coursesData.filter(c => 
+      const universityCourses = coursesData.filter(c =>
         departmentsData.some(d => d.id === c.departmentId)
       );
       setCourses(universityCourses);
 
-      // Load all students, then filter by role and university
+      // Load all students from mockUsers.json, then filter by role and university ID from session
       const allStudents = await userRepository.getByRole("student");
       const universityStudents = allStudents.filter(
         (s) => {
+          // Match students that belong to this university
           const studentUniId = typeof s.universityId === 'string' ? parseInt(s.universityId, 10) : s.universityId;
           return studentUniId === numericUniversityId;
         }
@@ -175,50 +180,75 @@ export default function UniversityAdminStudents() {
   /**
    * Handle manual entry submission
    * PRD Reference: Section 4 - Students receive invitation links when created
+   * Derives departmentId from course since course carries department information
    */
   const handleManualSubmit = async (data: {
     name: string;
     email?: string;
-    department?: string;
     course?: string;
   }) => {
     try {
-      // In production, submit form data to API
-      console.log("Manual submit student:", data);
-
-      // If creating a student, send invitation email
       // For university-admin, use organization.id or user.orgId
       const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
-      if (data.email && universityId) {
-        const { invitationService } = await import("@/src/services/invitationService");
 
-        const universityIdStr = typeof universityId === 'string' ? universityId : universityId.toString();
-
-        try {
-          const invitation = await invitationService.generateInvitation(
-            data.email,
-            "student",
-            universityIdStr,
-            7 // 7 days expiry
-          );
-
-          const invitationLink = invitationService.generateInvitationLink(invitation.token);
-
-          // In production, send email with invitation link
-          showSuccess(
-            `Student created successfully! Welcome email with invitation link has been sent to ${data.email}`
-          );
-        } catch (invError) {
-          console.error("Failed to send invitation:", invError);
-          showError("Student created but failed to send invitation email. Please try again.");
-          return;
-        }
-      } else {
-        showSuccess("Student created successfully!");
+      if (!data.email || !universityId || !data.course) {
+        showError("Name, email, and course are required");
+        return;
       }
 
-      setIsModalOpen(false);
-      loadData(); // Reload to show new student
+      // Find the selected course to get its departmentId
+      // data.course is already validated above, so it's guaranteed to be defined here
+      const selectedCourse = courses.find(c => c.id.toString() === data.course || c.id === parseInt(data.course!, 10));
+      if (!selectedCourse) {
+        showError("Selected course not found");
+        return;
+      }
+
+      // Create student via API route (handles invitation, user creation, and email sending server-side)
+      const numericUniversityId = typeof universityId === 'string' ? parseInt(universityId, 10) : universityId;
+      const numericCourseId = typeof selectedCourse.id === 'string' ? parseInt(selectedCourse.id, 10) : selectedCourse.id;
+      const numericDepartmentId = typeof selectedCourse.departmentId === 'string' ? parseInt(selectedCourse.departmentId, 10) : selectedCourse.departmentId;
+      const organizationName = organization?.name || "University";
+
+      setIsCreating(true);
+      try {
+        // Call API route that handles invitation creation, user creation, and email sending server-side
+        const response = await fetch("/api/students", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email,
+            courseId: numericCourseId,
+            departmentId: numericDepartmentId,
+            universityId: numericUniversityId,
+            organizationName: organizationName,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to create student");
+        }
+
+        const result = await response.json();
+        const newUser = result.user;
+
+        // Add new student to the list immediately
+        setStudents((prev) => [...prev, newUser]);
+
+        showSuccess(
+          `Student created successfully! Welcome email with invitation link has been sent to ${data.email}`
+        );
+        setIsModalOpen(false);
+      } catch (invError) {
+        console.error("Failed to create student:", invError);
+        showError(invError instanceof Error ? invError.message : "Failed to create student. Please try again.");
+      } finally {
+        setIsCreating(false);
+      }
     } catch (error) {
       console.error("Failed to create student:", error);
       showError("Failed to create student. Please try again.");
@@ -276,19 +306,24 @@ export default function UniversityAdminStudents() {
 
   /**
    * Handle delete student confirmation
+   * Syncs with backend via repository pattern and updates UI immediately
    */
   const handleConfirmDelete = async () => {
     if (!studentToDelete) return;
 
     try {
-      // In production, call API to delete student
-      // For now, update local state
-      await userRepository.update(studentToDelete, { role: "deleted" as any }); // Mark as deleted
-      setStudents(students.filter((s) => s.id.toString() !== studentToDelete));
+      // Delete student via repository (syncs with backend)
+      await userRepository.delete(studentToDelete);
+
+      // Update UI immediately by filtering out the deleted student
+      setStudents((prev) => prev.filter((s) => {
+        const studentId = typeof s.id === 'string' ? s.id : s.id.toString();
+        return studentId !== studentToDelete;
+      }));
+
       showSuccess("Student deleted successfully");
       setShowDeleteConfirm(false);
       setStudentToDelete(null);
-      loadData(); // Reload to ensure consistency
     } catch (error) {
       console.error("Failed to delete student:", error);
       showError("Failed to delete student. Please try again.");
@@ -299,18 +334,30 @@ export default function UniversityAdminStudents() {
 
   if (loading) {
     return (
-      <div className="w-full flex flex-col h-full overflow-hidden p-4">
-        Loading...
+      <div className="w-full flex flex-col min-h-full">
+        <div className="flex items-center justify-center h-full">
+          <p className="text-[0.875rem] opacity-60">Loading...</p>
+        </div>
       </div>
     );
   }
 
-  const getDepartment = (departmentId?: string) => {
-    return departments.find((d) => d.id === departmentId);
+  /**
+   * Get department by ID (handles both number and string IDs)
+   */
+  const getDepartment = (departmentId?: number | string) => {
+    if (!departmentId) return undefined;
+    const numericId = typeof departmentId === 'string' ? parseInt(departmentId, 10) : departmentId;
+    return departments.find((d) => d.id === numericId);
   };
 
-  const getCourse = (courseId?: string) => {
-    return courses.find((c) => c.id === courseId);
+  /**
+   * Get course by ID (handles both number and string IDs)
+   */
+  const getCourse = (courseId?: number | string) => {
+    if (!courseId) return undefined;
+    const numericId = typeof courseId === 'string' ? parseInt(courseId, 10) : courseId;
+    return courses.find((c) => c.id === numericId);
   };
 
   return (
@@ -365,6 +412,8 @@ export default function UniversityAdminStudents() {
         uploadType="student"
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleManualSubmit}
+        courses={courses}
+        isSubmitting={isCreating}
       />
 
       {/* Bulk Upload Modal */}
@@ -415,12 +464,12 @@ export default function UniversityAdminStudents() {
                 Download Template
               </Button>
             </div>
-            <p className="text-[0.8125rem] opacity-60">name,email,departmentId,programmeId</p>
+            <p className="text-[0.8125rem] opacity-60">name,email,courseId</p>
             <p className="text-[0.75rem] opacity-50 mt-2">
-              Example: John Doe,john@university.edu,1,1
+              Example: John Doe,john@university.edu,1
             </p>
             <p className="text-[0.75rem] opacity-60 mt-2">
-              <strong>Note:</strong> All students will receive welcome emails with invitation links once processing is complete.
+              <strong>Note:</strong> Department is automatically derived from the selected course. All students will receive welcome emails with invitation links once processing is complete.
             </p>
           </div>
         </div>

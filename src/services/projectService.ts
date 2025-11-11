@@ -10,28 +10,32 @@ export interface ProjectFilters {
   search?: string;
   universityId?: string;
   departmentId?: string;
+  partnerId?: string | number;
 }
 
 export const projectService = {
   /**
    * Get all projects with optional filtering
+   * Passes filters to repository for efficient database querying
    */
   getAllProjects: async (filters?: ProjectFilters): Promise<ProjectI[]> => {
-    const projects = await projectRepository.getAll();
+    // Pass status, partnerId, and universityId to repository for database-level filtering
+    const projects = await projectRepository.getAll({
+      status: filters?.status,
+      partnerId: filters?.partnerId,
+      universityId: filters?.universityId,
+    });
 
-    // Apply business logic filters
+    // Apply client-side filters (search, departmentId) that require text matching
     let filtered = projects;
 
-    if (filters?.status) {
-      filtered = filtered.filter((p) => p.status === filters.status);
-    }
-
-    if (filters?.universityId) {
-      filtered = filtered.filter((p) => p.universityId === filters.universityId);
-    }
-
     if (filters?.departmentId) {
-      filtered = filtered.filter((p) => p.departmentId === filters.departmentId);
+      const departmentIdNum = typeof filters.departmentId === 'string'
+        ? Number(filters.departmentId)
+        : filters.departmentId;
+      filtered = filtered.filter(
+        (p) => p.departmentId === departmentIdNum || p.departmentId === Number(departmentIdNum)
+      );
     }
 
     if (filters?.search) {

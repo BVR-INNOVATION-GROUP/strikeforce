@@ -1,10 +1,7 @@
 /**
  * ChatSection - displays project chat messages with link to full chat
  */
-import React from 'react'
-import Button from '@/src/components/core/Button'
 import Avatar from '@/src/components/core/Avatar'
-import { MessageSquare } from 'lucide-react'
 
 export interface MessageI {
     id: string
@@ -20,7 +17,7 @@ export interface Props {
 }
 
 const ChatSection = (props: Props) => {
-    const { messages, onOpenFullChat } = props
+    const { messages } = props
 
     // Show only last 2 messages
     const displayMessages = messages.slice(-2)

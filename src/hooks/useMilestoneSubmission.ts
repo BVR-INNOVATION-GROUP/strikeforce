@@ -4,8 +4,10 @@
 import { useState, useEffect } from "react";
 import { SubmissionI } from "@/src/models/submission";
 import { MilestoneI } from "@/src/models/milestone";
-import { UserI } from "@/src/models/user";
-import { validateMilestoneSubmission, ValidationErrors } from "@/src/utils/milestoneSubmissionValidation";
+import {
+  validateMilestoneSubmission,
+  ValidationErrors,
+} from "@/src/utils/milestoneSubmissionValidation";
 import { uploadSubmissionFiles } from "@/src/utils/milestoneSubmissionFileHandling";
 import { useToast } from "@/src/hooks/useToast";
 
@@ -18,23 +20,28 @@ export interface UseMilestoneSubmissionResult {
   setFiles: (files: File[]) => void;
   clearError: (field: string) => void;
   validate: () => boolean;
-  prepareSubmission: (milestone: MilestoneI, userId: string) => Promise<Partial<SubmissionI>>;
+  prepareSubmission: (
+    milestone: MilestoneI,
+    userId: string
+  ) => Promise<Partial<SubmissionI>>;
   reset: () => void;
 }
 
 /**
  * Hook for managing milestone submission form state and logic
  */
-export function useMilestoneSubmission(open: boolean): UseMilestoneSubmissionResult {
+export function useMilestoneSubmission(
+  open: boolean
+): UseMilestoneSubmissionResult {
   const [notes, setNotesState] = useState("");
   const [files, setFilesState] = useState<File[]>([]);
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting /* setSubmitting */] = useState(false);
   const { showError } = useToast();
 
   useEffect(() => {
     if (!open) {
-      reset();
+      // reset();
     }
   }, [open]);
 
@@ -90,9 +97,3 @@ export function useMilestoneSubmission(open: boolean): UseMilestoneSubmissionRes
     reset,
   };
 }
-
-
-
-
-
-

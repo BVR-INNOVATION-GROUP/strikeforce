@@ -48,7 +48,7 @@ const UploadTabs = ({
     { value: "course", label: "Courses (CSV)" },
   ];
 
-  const handleUploadTypeChange = (option: any) => {
+  const handleUploadTypeChange = (option: unknown) => {
     const uploadTypeValue =
       typeof option === "string"
         ? option
@@ -70,21 +70,19 @@ const UploadTabs = ({
       <div className="flex gap-4 border-b border-custom mb-4">
         <button
           onClick={() => onTabChange("manual")}
-          className={`pb-2 px-4 ${
-            activeTab === "manual"
-              ? "border-b-2 border-primary text-primary font-semibold"
-              : "text-secondary"
-          }`}
+          className={`pb-2 px-4 ${activeTab === "manual"
+            ? "border-b-2 border-primary text-primary font-semibold"
+            : "text-secondary"
+            }`}
         >
           Manual Entry
         </button>
         <button
           onClick={() => onTabChange("bulk")}
-          className={`pb-2 px-4 ${
-            activeTab === "bulk"
-              ? "border-b-2 border-primary text-primary font-semibold"
-              : "text-secondary"
-          }`}
+          className={`pb-2 px-4 ${activeTab === "bulk"
+            ? "border-b-2 border-primary text-primary font-semibold"
+            : "text-secondary"
+            }`}
         >
           Bulk Upload
         </button>

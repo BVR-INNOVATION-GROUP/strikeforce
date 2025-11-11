@@ -4,16 +4,17 @@ import IconButton from '@/src/components/core/IconButton'
 import Board from '@/src/components/screen/partner/projects/Board'
 import Project, { ProjectI, projectStatus } from '@/src/components/screen/partner/projects/Project'
 import ProjectForm from '@/src/components/screen/partner/projects/ProjectForm'
+import ProjectsListSkeleton from '@/src/components/screen/partner/projects/ProjectsListSkeleton'
 import { ProjectI as ModelProjectI, ProjectStatus } from '@/src/models/project'
 import React, { useEffect, useState } from 'react'
 import { convertModelToUIProject } from '@/src/utils/projectConversion'
 import { projectService } from '@/src/services/projectService'
-import { useAuthStore } from '@/src/store'
-import { useToast } from '@/src/hooks/useToast'
+import { useAuthStore as UseAuthStore } from '@/src/store'
+import { useToast as UseToast } from '@/src/hooks/useToast'
 
 const page = () => {
-    const { user } = useAuthStore()
-    const { showSuccess, showError } = useToast()
+    const { user } = UseAuthStore()
+    const { showSuccess, showError } = UseToast()
     const [projects, setProjects] = useState<ProjectI[]>([])
     const [loading, setLoading] = useState(true)
     const [open, setOpen] = useState(false)
@@ -30,11 +31,11 @@ const page = () => {
 
             try {
                 setLoading(true)
-                // Fetch all projects and filter by partnerId
-                const allProjects = await projectService.getAllProjects()
-                const partnerProjects = allProjects.filter(
-                    (p) => p.partnerId === user.id || p.partnerId === Number(user.id)
-                )
+                // Fetch projects filtered by partnerId (efficient database query)
+                const partnerId = typeof user.id === 'string' ? Number(user.id) : user.id
+                const partnerProjects = await projectService.getAllProjects({
+                    partnerId: partnerId
+                })
 
                 // Convert model projects to UI format
                 const uiProjects = partnerProjects.map((p) => convertModelToUIProject(p))
@@ -70,9 +71,15 @@ const page = () => {
             // Create project via service
             const createdProject = await projectService.createProject(projectWithPartner)
 
-            // Convert to UI format and add to list
-            const uiProject = convertModelToUIProject(createdProject)
-            setProjects((prev) => [...prev, uiProject])
+            // Reload projects from server to ensure we have the latest data
+            const partnerId = typeof user.id === 'string' ? Number(user.id) : user.id
+            const updatedProjects = await projectService.getAllProjects({
+                partnerId: partnerId
+            })
+
+            // Convert to UI format and update list
+            const uiProjects = updatedProjects.map((p) => convertModelToUIProject(p))
+            setProjects(uiProjects)
 
             showSuccess("Project created successfully!")
             setOpen(false)
@@ -121,8 +128,8 @@ const page = () => {
 
     if (loading) {
         return (
-            <div className='w-full flex flex-col h-full overflow-hidden items-center justify-center'>
-                <p>Loading projects...</p>
+            <div className='w-full flex flex-col h-full overflow-hidden'>
+                <ProjectsListSkeleton />
             </div>
         )
     }

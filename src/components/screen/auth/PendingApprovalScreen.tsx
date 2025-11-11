@@ -77,11 +77,11 @@ export default function PendingApprovalScreen({ organization, userRole }: Props)
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-1">•</span>
-                  <span>You'll receive an email notification once your account is approved</span>
+                  <span>You&apos;ll receive an email notification once your account is approved</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-1">•</span>
-                  <span>Once approved, you'll have full access to your dashboard</span>
+                  <span>Once approved, you&apos;ll have full access to your dashboard</span>
                 </li>
               </ul>
             </div>
@@ -89,7 +89,7 @@ export default function PendingApprovalScreen({ organization, userRole }: Props)
             {userRole === "partner" && (
               <div className="p-4 bg-pale rounded-lg">
                 <p className="text-sm text-gray-600">
-                  <strong>Partner organizations:</strong> After approval, you'll be able to submit projects,
+                  <strong>Partner organizations:</strong> After approval, you&apos;ll be able to submit projects,
                   negotiate milestones, and fund escrow accounts.
                 </p>
               </div>
@@ -98,7 +98,7 @@ export default function PendingApprovalScreen({ organization, userRole }: Props)
             {userRole === "university-admin" && (
               <div className="p-4 bg-pale rounded-lg">
                 <p className="text-sm text-gray-600">
-                  <strong>University admins:</strong> After approval, you'll be able to onboard supervisors
+                  <strong>University admins:</strong> After approval, you&apos;ll be able to onboard supervisors
                   and students, screen applications, and manage project assignments.
                 </p>
               </div>

@@ -35,6 +35,6 @@ export default function StudentSettings() {
     );
   }
 
-  return <UnifiedSettings user={{ id: user.id, email: user.email }} />;
+  return <UnifiedSettings user={{ id: user.id.toString(), email: user.email }} />;
 }
 

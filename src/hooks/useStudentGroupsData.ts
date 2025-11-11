@@ -4,6 +4,8 @@
 import { useState, useEffect } from "react";
 import { GroupI } from "@/src/models/group";
 import { UserI } from "@/src/models/user";
+import { groupService } from "@/src/services/groupService";
+import { userRepository } from "@/src/repositories/userRepository";
 
 export interface UseStudentGroupsDataResult {
   groups: GroupI[];
@@ -23,20 +25,25 @@ export function useStudentGroupsData(
 
   useEffect(() => {
     const loadData = async () => {
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const [groupsData, usersData] = await Promise.all([
-          import("@/src/data/mockGroups.json"),
-          import("@/src/data/mockUsers.json"),
+        // Load groups and users in parallel
+        const [userGroups, allUsers] = await Promise.all([
+          groupService.getUserGroups(userId),
+          userRepository.getAll(),
         ]);
 
-        const userGroups = (groupsData.default as GroupI[]).filter(
-          (g) => g.memberIds.includes(userId || "") || g.leaderId === userId
-        );
         setGroups(userGroups);
 
+        // Create users map for quick lookup
         const usersMap: Record<string, UserI> = {};
-        (usersData.default as UserI[]).forEach((u) => {
-          usersMap[u.id] = u;
+        allUsers.forEach((u) => {
+          const userIdStr = String(u.id);
+          usersMap[userIdStr] = u;
         });
         setUsers(usersMap);
       } catch (error) {

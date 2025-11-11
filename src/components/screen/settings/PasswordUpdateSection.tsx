@@ -17,7 +17,7 @@ export interface Props {
 /**
  * Password update form section
  */
-const PasswordUpdateSection = ({ userId }: Props) => {
+const PasswordUpdateSection = ({ userId: _userId }: Props) => {
   const { showSuccess, showError } = useToast();
 
   // Password form state

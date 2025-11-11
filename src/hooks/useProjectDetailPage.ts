@@ -11,13 +11,16 @@ import { useProjectData } from "@/src/hooks/useProjectData";
 import { useProjectDetailHandlers } from "@/src/hooks/useProjectDetailHandlers";
 import { useProjectDetailModals } from "@/src/hooks/useProjectDetailModals";
 import { transformProjectForDisplay } from "@/src/utils/projectDisplay";
-import { formatDateLong, calculateDaysUntilDeadline } from "@/src/utils/dateFormatters";
+import { calculateDaysUntilDeadline } from "@/src/utils/dateFormatters";
 import { currenciesArray } from "@/src/constants/currencies";
 import { chatService } from "@/src/services/chatService";
+import { projectService } from "@/src/services/projectService";
+import { notificationService } from "@/src/services/notificationService";
 import { userRepository } from "@/src/repositories/userRepository";
 import { ChatMessageI } from "@/src/models/chat";
 import { UserI } from "@/src/models/user";
 import { MilestoneI } from "@/src/models/milestone";
+import { NotificationI } from "@/src/models/notification";
 
 export interface UseProjectDetailPageResult {
   project: Awaited<ReturnType<typeof transformProjectForDisplay>> | null;
@@ -32,14 +35,15 @@ export interface UseProjectDetailPageResult {
   mutations: ReturnType<typeof useProjectMutations>;
   modals: ReturnType<typeof useProjectDetailModals>;
   handlers: ReturnType<typeof useProjectDetailHandlers>;
-  projectData: any;
-  applications: any[];
-  milestones: any[];
-  setProjectData: (data: any) => void;
-  setMilestones: (milestones: any[]) => void;
+  projectData: unknown;
+  applications: unknown[];
+  milestones: unknown[];
+  setProjectData: (data: unknown) => void;
+  setMilestones: (milestones: unknown[]) => void;
   handleAddMilestone: (title: string, scope: string, dueDate: string, amount: string, currency?: string) => Promise<void>;
   handleUpdateMilestone: (milestoneId: string, title: string, scope: string, dueDate: string, amount: string, currency?: string) => Promise<void>;
-  handleSaveProject: (data: any) => Promise<void>;
+  handleDeleteMilestone: (milestoneId: string) => Promise<void>;
+  handleSaveProject: (data: unknown) => Promise<void>;
   handleApproveAndRelease: (milestoneId: string) => Promise<void>;
   handleDisapprove: (milestoneId: string) => Promise<void>;
   handleRequestChanges: (milestoneId: string) => Promise<void>;
@@ -52,6 +56,8 @@ export interface UseProjectDetailPageResult {
   handleReassignProject: (applicationId: number) => Promise<void>;
   handleSendChatMessage: (text: string) => Promise<void>;
   router: ReturnType<typeof useRouter>;
+  isSaving: boolean;
+  isDeleting: boolean;
 }
 
 /**
@@ -67,6 +73,8 @@ export function useProjectDetailPage(
   const [chatMessages, setChatMessages] = useState<ChatMessageI[]>([]);
   const [chatUsers, setChatUsers] = useState<Record<string, UserI>>({});
   const [chatThreadId, setChatThreadId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Legacy messages format for ChatSection display
   const [messages, setMessages] = useState<Array<{ id: string; sender: string; text: string; timestamp: string; avatar?: string }>>([]);
@@ -262,6 +270,75 @@ export function useProjectDetailPage(
     }
   };
 
+  const handleDeleteMilestone = async (milestoneId: string) => {
+    try {
+      // Optimistically remove milestone from UI
+      const updatedMilestones = milestones.filter((m) => String(m.id) !== String(milestoneId));
+      setMilestones(updatedMilestones);
+      
+      // Update project display immediately
+      if (projectData) {
+        const transformed = await transformProjectForDisplay(
+          projectData,
+          applications,
+          updatedMilestones,
+          projectId,
+          undefined,
+          undefined,
+          projectData?.supervisorId,
+          userId
+        );
+        setProject(transformed);
+      }
+      
+      // Delete milestone via repository
+      await mutations.handleDeleteMilestone(milestoneId);
+      
+      // Reload milestones to ensure consistency
+      const projectMilestones = await milestoneService.getProjectMilestones(projectId);
+      setMilestones(projectMilestones);
+      
+      // Update project display with server data
+      if (projectData) {
+        const transformed = await transformProjectForDisplay(
+          projectData,
+          applications,
+          projectMilestones,
+          projectId,
+          undefined,
+          undefined,
+          projectData?.supervisorId,
+          userId
+        );
+        setProject(transformed);
+      }
+      
+      modals.closeDeleteMilestoneConfirm();
+      showSuccess("Milestone deleted successfully!");
+    } catch (error) {
+      // Rollback on error - reload milestones from server
+      const projectMilestones = await milestoneService.getProjectMilestones(projectId);
+      setMilestones(projectMilestones);
+      
+      if (projectData) {
+        const transformed = await transformProjectForDisplay(
+          projectData,
+          applications,
+          projectMilestones,
+          projectId,
+          undefined,
+          undefined,
+          projectData?.supervisorId,
+          userId
+        );
+        setProject(transformed);
+      }
+      
+      console.error("Failed to delete milestone:", error);
+      showError(error instanceof Error ? error.message : "Failed to delete milestone");
+    }
+  };
+
   const handleAddMilestone = async (
     title: string,
     scope: string,
@@ -385,16 +462,37 @@ export function useProjectDetailPage(
     }
   };
 
-  const handleSaveProject = async (data: any) => {
+  const handleSaveProject = async (data: unknown) => {
+    setIsSaving(true);
     try {
       const updated = await mutations.handleSaveProject(data);
       if (updated) {
-        setProjectData(updated);
+        // Reload project data from server to ensure we have the latest
+        const reloadedProject = await projectService.getProjectById(projectId);
+        setProjectData(reloadedProject);
+        
+        // Reload project display to reflect changes
+        if (reloadedProject) {
+          const transformed = await transformProjectForDisplay(
+            reloadedProject,
+            applications,
+            milestones,
+            projectId,
+            undefined,
+            undefined,
+            reloadedProject?.supervisorId,
+            userId
+          );
+          setProject(transformed);
+        }
+        
         modals.closeEditModal();
         showSuccess("Project updated successfully!");
       }
     } catch (error) {
       showError(error instanceof Error ? error.message : "Failed to update project");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -802,8 +900,47 @@ export function useProjectDetailPage(
   };
 
   const handleAcceptApplication = async (applicationId: number) => {
+    // Capture application before status change for notification details
+    const targetApplication = applications.find((app) => app.id === applicationId);
     try {
       await mutations.handleAcceptApplication(applicationId);
+      
+      // Reload applications to reflect the status change
+      const { applicationService } = await import("@/src/services/applicationService");
+      const numericProjectId = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
+      const updatedApps = await applicationService.getProjectApplications(numericProjectId);
+      setApplications(updatedApps);
+      
+      // Update project display with new application statuses
+      if (projectData) {
+        const transformed = await transformProjectForDisplay(
+          projectData,
+          updatedApps,
+          milestones,
+          projectId,
+          undefined,
+          undefined,
+          projectData?.supervisorId,
+          userId
+        );
+        setProject(transformed);
+      }
+      
+      // Notify students that their application was accepted
+      if (targetApplication) {
+        const projectTitle = projectData?.title || project?.title || "Project";
+        const notificationPromises = targetApplication.studentIds.map((studentId) =>
+          notificationService.createNotification({
+            userId: studentId,
+            type: "success",
+            title: "Application Accepted",
+            message: `Your application for '${projectTitle}' has been accepted. The university team will reach out with next steps.`,
+            link: "/student/my-projects",
+          })
+        );
+        await Promise.all(notificationPromises);
+      }
+
       showSuccess("Application accepted. University Admin/Supervisor will be notified to issue offer.");
     } catch (error) {
       showError(error instanceof Error ? error.message : "Failed to accept application");
@@ -811,8 +948,46 @@ export function useProjectDetailPage(
   };
 
   const handleRejectApplication = async (applicationId: number) => {
+    const targetApplication = applications.find((app) => app.id === applicationId);
     try {
       await mutations.handleRejectApplication(applicationId);
+      
+      // Reload applications to reflect the status change
+      const { applicationService } = await import("@/src/services/applicationService");
+      const numericProjectId = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
+      const updatedApps = await applicationService.getProjectApplications(numericProjectId);
+      setApplications(updatedApps);
+      
+      // Update project display with new application statuses
+      if (projectData) {
+        const transformed = await transformProjectForDisplay(
+          projectData,
+          updatedApps,
+          milestones,
+          projectId,
+          undefined,
+          undefined,
+          projectData?.supervisorId,
+          userId
+        );
+        setProject(transformed);
+      }
+      
+      // Notify students that their application was rejected
+      if (targetApplication) {
+        const projectTitle = projectData?.title || project?.title || "Project";
+        const notificationPromises = targetApplication.studentIds.map((studentId) =>
+          notificationService.createNotification({
+            userId: studentId,
+            type: "alert",
+            title: "Application Update",
+            message: `Your application for '${projectTitle}' was not selected. You can explore other projects available in the marketplace.`,
+            link: "/student/find",
+          })
+        );
+        await Promise.all(notificationPromises);
+      }
+
       showSuccess("Application rejected.");
     } catch (error) {
       showError(error instanceof Error ? error.message : "Failed to reject application");
@@ -823,6 +998,21 @@ export function useProjectDetailPage(
     try {
       await mutations.handleRecommendApplication(applicationId, partnerIds);
       const partnerCount = partnerIds?.length || 0;
+
+      if (partnerIds && partnerIds.length > 0) {
+        const projectTitle = projectData?.title || project?.title || "Project";
+        const notificationPromises = partnerIds.map((partnerId) => {
+          const numericPartnerId = typeof partnerId === "string" ? parseInt(partnerId, 10) : Number(partnerId);
+          return notificationService.createNotification({
+            userId: numericPartnerId,
+            type: "info",
+            title: "Project Recommendation",
+            message: `A partner has recommended an application for '${projectTitle}'. Review and consider reaching out to the applicant.`,
+            link: "/partner/projects",
+          });
+        });
+        await Promise.all(notificationPromises);
+      }
       showSuccess(`Application recommended to ${partnerCount} partner${partnerCount !== 1 ? 's' : ''} successfully.`);
     } catch (error) {
       showError(error instanceof Error ? error.message : "Failed to recommend application");
@@ -830,63 +1020,85 @@ export function useProjectDetailPage(
   };
 
   const handleDeleteProject = async () => {
+    setIsDeleting(true);
     try {
       await mutations.handleDeleteProject();
-      showSuccess("Project deleted successfully.");
+      // Navigation happens in mutations.handleDeleteProject, so success message is shown after navigation
+      // Don't show success here as user will be redirected
     } catch (error) {
       showError(error instanceof Error ? error.message : "Failed to delete project");
+      setIsDeleting(false); // Only reset if error (success navigates away)
     }
   };
 
   const handleReassignProject = async (applicationId: number) => {
+    const previouslyAssigned = applications.find((app) => app.status === "ASSIGNED");
     try {
-      // Update application statuses client-side immediately for UI responsiveness
-      const updatedApplications = applications.map((app) => {
-        if (app.id === applicationId) {
-          return { ...app, status: 'ASSIGNED' };
-        } else if (app.status === 'ASSIGNED') {
-          return { ...app, status: 'ACCEPTED' };
-        }
-        return app;
-      });
-      
-      // Update applications state immediately
-      setApplications(updatedApplications);
-      
-      // Update project display with new application statuses
-      const transformed = await transformProjectForDisplay(
-        projectData, 
-        updatedApplications, 
-        milestones, 
-        projectId,
-        undefined,
-        undefined,
-        projectData?.supervisorId,
-        userId
-      );
-      setProject(transformed);
-      
-      // Call actual mutation (which would persist to backend)
+      // Call mutation to update backend
       await mutations.handleReassignProject(applicationId);
       
+      // Reload applications to reflect the status changes
+      const { applicationService } = await import("@/src/services/applicationService");
+      const numericProjectId = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
+      const updatedApps = await applicationService.getProjectApplications(numericProjectId);
+      setApplications(updatedApps);
+      
+      // Update project display with new application statuses
+      if (projectData) {
+        const transformed = await transformProjectForDisplay(
+          projectData,
+          updatedApps,
+          milestones,
+          projectId,
+          undefined,
+          undefined,
+          projectData?.supervisorId,
+          userId
+        );
+        setProject(transformed);
+      }
+      
+      const projectTitle = projectData?.title || project?.title || "Project";
+      const newlyAssigned = updatedApps.find((app) => app.id === applicationId);
+
+      const notificationPromises: Promise<unknown>[] = [];
+
+      if (previouslyAssigned && previouslyAssigned.id !== applicationId) {
+        previouslyAssigned.studentIds.forEach((studentId) => {
+          notificationPromises.push(
+            notificationService.createNotification({
+              userId: studentId,
+              type: "info",
+              title: "Project Assignment Updated",
+              message: `You have been unassigned from '${projectTitle}'. Please explore other opportunities or wait for further updates.`,
+              link: "/student/my-projects",
+            })
+          );
+        });
+      }
+
+      if (newlyAssigned) {
+        newlyAssigned.studentIds.forEach((studentId) => {
+          notificationPromises.push(
+            notificationService.createNotification({
+              userId: studentId,
+              type: "success",
+              title: "Project Assigned",
+              message: `Your team has been assigned to '${projectTitle}'. Review project details and coordinate with the partner.`,
+              link: "/student/my-projects",
+            })
+          );
+        });
+      }
+
+      if (notificationPromises.length > 0) {
+        await Promise.all(notificationPromises);
+      }
+
       // Close modal after successful update
       modals.closeReassignProjectModal();
       showSuccess("Project reassigned to new group successfully.");
     } catch (error) {
-      // Revert UI changes on error
-      const transformed = await transformProjectForDisplay(
-        projectData, 
-        applications, 
-        milestones, 
-        projectId,
-        undefined,
-        undefined,
-        projectData?.supervisorId,
-        userId
-      );
-      setProject(transformed);
-      setApplications(applications);
-      
       showError(error instanceof Error ? error.message : "Failed to reassign project");
     }
   };
@@ -956,6 +1168,7 @@ export function useProjectDetailPage(
     setMilestones,
     handleAddMilestone,
     handleUpdateMilestone,
+    handleDeleteMilestone,
     handleSaveProject,
     handleApproveAndRelease,
     handleRequestChanges,
@@ -968,6 +1181,8 @@ export function useProjectDetailPage(
     handleReassignProject,
     handleSendChatMessage,
     router,
+    isSaving,
+    isDeleting,
   };
 }
 

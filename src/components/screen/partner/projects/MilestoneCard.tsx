@@ -1,7 +1,6 @@
 /**
  * MilestoneCard - displays individual milestone information
  */
-import React from 'react'
 import StatusIndicator from '@/src/components/core/StatusIndicator'
 import Button from '@/src/components/core/Button'
 import { Calendar, CheckCircle2, AlertTriangle, Edit, RotateCcw, AlertCircle } from 'lucide-react'
@@ -32,6 +31,8 @@ export interface Props {
     onUnmarkAsComplete?: () => void
     onEdit?: () => void // Callback for editing milestone
     canEdit?: boolean // Whether user can edit this milestone
+    onDelete?: () => void // Callback for deleting milestone
+    canDelete?: boolean // Whether user can delete this milestone
     canDisapprove?: boolean // Whether user can disapprove milestone (revert approval)
     canMarkAsComplete?: boolean // Whether user can mark as complete
     canUnmarkAsComplete?: boolean // Whether user can unmark as complete
@@ -40,8 +41,8 @@ export interface Props {
 }
 
 const MilestoneCard = (props: Props) => {
-    const { milestone, currencySymbol, formatDate, escrowStatus, supervisorGate, actualStatus, onApproveAndRelease, onDisapprove, onRequestChanges, onMarkAsComplete, onUnmarkAsComplete, onEdit, canEdit, canDisapprove, canMarkAsComplete, canUnmarkAsComplete, onDispute, canDispute } = props
-    
+    const { milestone, currencySymbol, formatDate, supervisorGate, actualStatus, onApproveAndRelease, onDisapprove, onRequestChanges, onMarkAsComplete, onUnmarkAsComplete, onEdit, canEdit, onDelete, canDelete, canDisapprove, onDispute, canDispute } = props
+
     // Get currency symbol from milestone currency or fallback to prop
     const getCurrencySymbol = (): string => {
         if (milestone.currency) {
@@ -50,7 +51,7 @@ const MilestoneCard = (props: Props) => {
         }
         return currencySymbol || "$" // Fallback to prop or default
     }
-    
+
     const displayCurrencySymbol = getCurrencySymbol()
 
     // Determine which action buttons to show
@@ -58,7 +59,7 @@ const MilestoneCard = (props: Props) => {
     // actualStatus comes from fullMilestone?.status (the actual model status, not transformed)
     // Primary check: actualStatus (from model), fallback to display status if actualStatus is undefined
     const isCompleted = actualStatus ? actualStatus === "COMPLETED" : milestone.status === "completed";
-    
+
     // When completed, only show Undo button - hide all other action buttons
     if (isCompleted) {
         return (
@@ -78,7 +79,7 @@ const MilestoneCard = (props: Props) => {
                         <StatusIndicator status={milestone.status} />
                     </div>
                 </div>
-                
+
                 {/* Milestone details */}
                 <div className="flex items-center gap-4 text-[0.875rem] opacity-60">
                     <div className="flex items-center gap-2">
@@ -98,9 +99,10 @@ const MilestoneCard = (props: Props) => {
             </div>
         )
     }
-    
+
     // For non-completed milestones, show appropriate actions
     const showEditButton = canEdit && onEdit;
+    const showDeleteButton = canDelete && onDelete;
     // Show Approve button only if status is PARTNER_REVIEW (not RELEASED or COMPLETED)
     const isPartnerReview = actualStatus === "PARTNER_REVIEW" || milestone.status === "partner-review";
     const showApproveButton = isPartnerReview && supervisorGate && onApproveAndRelease;
@@ -126,6 +128,16 @@ const MilestoneCard = (props: Props) => {
                         >
                             <Edit size={14} />
                             Edit
+                        </Button>
+                    )}
+                    {/* Delete Button */}
+                    {showDeleteButton && (
+                        <Button
+                            onClick={onDelete}
+                            className="bg-red-500 text-white text-[0.8125rem] px-3 py-1.5 flex items-center gap-1.5"
+                        >
+                            <AlertTriangle size={14} />
+                            Delete
                         </Button>
                     )}
                     {/* Approve and Release Button */}
@@ -181,7 +193,7 @@ const MilestoneCard = (props: Props) => {
                     <StatusIndicator status={milestone.status} />
                 </div>
             </div>
-            
+
             {/* Milestone details */}
             <div className="flex items-center gap-4 text-[0.875rem] opacity-60">
                 <div className="flex items-center gap-2">

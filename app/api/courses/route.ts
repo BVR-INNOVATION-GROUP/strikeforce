@@ -5,7 +5,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CourseI } from "@/src/models/project";
 import { getUseMockData } from "@/src/utils/config";
-import { createItem, readMockDataFileServer } from "@/src/utils/fileHelpers.server";
+import {
+  createItem,
+  readMockDataFileServer,
+} from "@/src/utils/fileHelpers.server";
 
 /**
  * GET /api/courses
@@ -19,13 +22,15 @@ export async function GET(request: NextRequest) {
     if (getUseMockData()) {
       // Mock mode: Use JSON files
       const courses = await readMockDataFileServer<CourseI>("mockCourses.json");
-      
+
       if (departmentId) {
         const numericDepartmentId = parseInt(departmentId, 10);
-        const filtered = courses.filter((c) => c.departmentId === numericDepartmentId);
+        const filtered = courses.filter(
+          (c) => c.departmentId === numericDepartmentId
+        );
         return NextResponse.json(filtered, { status: 200 });
       }
-      
+
       return NextResponse.json(courses, { status: 200 });
     }
 
@@ -34,18 +39,24 @@ export async function GET(request: NextRequest) {
     let collection;
     try {
       if (!process.env.MONGODB_URI) {
-        console.error('MONGODB_URI is not configured. Please set it in your .env file.');
+        console.error(
+          "MONGODB_URI is not configured. Please set it in your .env file."
+        );
         return NextResponse.json(
-          { error: 'Database not configured. Please set MONGODB_URI in your .env file.' },
+          {
+            error:
+              "Database not configured. Please set MONGODB_URI in your .env file.",
+          },
           { status: 500 }
         );
       }
-      
+
       const { getCollection } = await import("@/src/lib/mongodb");
-      collection = await getCollection<CourseI>('courses');
+      collection = await getCollection<CourseI>("courses");
     } catch (dbError) {
       console.error("Error connecting to MongoDB:", dbError);
-      const errorMessage = dbError instanceof Error ? dbError.message : "Unknown database error";
+      const errorMessage =
+        dbError instanceof Error ? dbError.message : "Unknown database error";
       return NextResponse.json(
         { error: `Database connection failed: ${errorMessage}` },
         { status: 500 }
@@ -53,7 +64,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build query filter
-    const filter: Record<string, any> = {};
+    const filter: Record<string, unknown> = {};
     if (departmentId) {
       const numericDepartmentId = parseInt(departmentId, 10);
       if (!isNaN(numericDepartmentId)) {
@@ -74,7 +85,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(coursesWithStringIds, { status: 200 });
   } catch (error) {
     console.error("Error fetching courses:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
       { error: `Failed to fetch courses: ${errorMessage}` },
       { status: 500 }
@@ -98,7 +110,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     const { name, departmentId } = body;
 
     // Validate required fields
@@ -118,7 +130,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate departmentId is a number
-    const numericDepartmentId = typeof departmentId === 'string' ? parseInt(departmentId, 10) : departmentId;
+    const numericDepartmentId =
+      typeof departmentId === "string"
+        ? parseInt(departmentId, 10)
+        : departmentId;
     if (isNaN(numericDepartmentId)) {
       return NextResponse.json(
         { error: "Department ID must be a valid number" },
@@ -131,14 +146,20 @@ export async function POST(request: NextRequest) {
 
     if (getUseMockData()) {
       // Check for duplicate name within the same department
-      const existingCourses = await readMockDataFileServer<CourseI>("mockCourses.json");
-      const duplicate = existingCourses.find(
-        (c) => c.name.toLowerCase() === name.toLowerCase().trim() && c.departmentId === numericDepartmentId
+      const existingCourses = await readMockDataFileServer<CourseI>(
+        "mockCourses.json"
       );
-      
+      const duplicate = existingCourses.find(
+        (c) =>
+          c.name.toLowerCase() === name.toLowerCase().trim() &&
+          c.departmentId === numericDepartmentId
+      );
+
       if (duplicate) {
         return NextResponse.json(
-          { error: "A course with this name already exists for this department" },
+          {
+            error: "A course with this name already exists for this department",
+          },
           { status: 409 }
         );
       }
@@ -151,9 +172,12 @@ export async function POST(request: NextRequest) {
     } else {
       // Production mode: Use MongoDB
       if (!process.env.MONGODB_URI) {
-        console.error('MONGODB_URI is not configured');
+        console.error("MONGODB_URI is not configured");
         return NextResponse.json(
-          { error: 'Database not configured. Please set MONGODB_URI in your .env file.' },
+          {
+            error:
+              "Database not configured. Please set MONGODB_URI in your .env file.",
+          },
           { status: 500 }
         );
       }
@@ -164,16 +188,20 @@ export async function POST(request: NextRequest) {
         // Check if MONGODB_URI is set before importing
         if (!process.env.MONGODB_URI) {
           return NextResponse.json(
-            { error: 'Database not configured. Please set MONGODB_URI in your .env file.' },
+            {
+              error:
+                "Database not configured. Please set MONGODB_URI in your .env file.",
+            },
             { status: 500 }
           );
         }
-        
+
         const { getCollection } = await import("@/src/lib/mongodb");
-        collection = await getCollection<CourseI>('courses');
+        collection = await getCollection<CourseI>("courses");
       } catch (dbError) {
         console.error("Error connecting to MongoDB:", dbError);
-        const errorMessage = dbError instanceof Error ? dbError.message : "Unknown database error";
+        const errorMessage =
+          dbError instanceof Error ? dbError.message : "Unknown database error";
         return NextResponse.json(
           { error: `Database connection failed: ${errorMessage}` },
           { status: 500 }
@@ -189,33 +217,44 @@ export async function POST(request: NextRequest) {
 
         if (duplicate) {
           return NextResponse.json(
-            { error: "A course with this name already exists for this department" },
+            {
+              error:
+                "A course with this name already exists for this department",
+            },
             { status: 409 }
           );
         }
 
         // Create new course
-        const newCourse: Omit<CourseI, 'id'> = {
+        const newCourse: Omit<CourseI, "id"> = {
           name: name.trim(),
           departmentId: numericDepartmentId,
           createdAt: new Date().toISOString(),
         };
 
-        const result = await collection.insertOne(newCourse as any);
-        
+        const result = await collection.insertOne(
+          newCourse as unknown as CourseI
+        );
+
         // Fetch the created course
-        const createdCourse = await collection.findOne({ _id: result.insertedId });
+        const createdCourse = await collection.findOne({
+          _id: result.insertedId,
+        });
         if (!createdCourse) {
           throw new Error("Failed to retrieve created course");
         }
 
         course = {
           ...createdCourse,
-          id: createdCourse.id || createdCourse._id?.toString() || result.insertedId.toString(),
+          id:
+            createdCourse.id ||
+            createdCourse._id?.toString() ||
+            result.insertedId.toString(),
         } as CourseI;
       } catch (dbError) {
         console.error("Error creating course in MongoDB:", dbError);
-        const errorMessage = dbError instanceof Error ? dbError.message : "Unknown database error";
+        const errorMessage =
+          dbError instanceof Error ? dbError.message : "Unknown database error";
         return NextResponse.json(
           { error: `Failed to create course in database: ${errorMessage}` },
           { status: 500 }
@@ -226,22 +265,30 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(course, { status: 201 });
   } catch (error) {
     console.error("Error creating course:", error);
-    console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    
+    console.error(
+      "Error stack:",
+      error instanceof Error ? error.stack : "No stack trace"
+    );
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+
     // Always return JSON, never HTML
     return NextResponse.json(
-      { 
+      {
         error: `Failed to create course: ${errorMessage}`,
-        details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
+        details:
+          process.env.NODE_ENV === "development"
+            ? error instanceof Error
+              ? error.stack
+              : undefined
+            : undefined,
       },
-      { 
+      {
         status: 500,
         headers: {
-          'Content-Type': 'application/json',
-        }
+          "Content-Type": "application/json",
+        },
       }
     );
   }
 }
-

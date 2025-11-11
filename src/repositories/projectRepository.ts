@@ -11,14 +11,57 @@ export const projectRepository = {
   /**
    * Get all projects
    * Returns mock data in development, API data in production
+   * @param filters - Optional filters for status, partnerId, universityId
    */
-  getAll: async (): Promise<ProjectI[]> => {
+  getAll: async (filters?: {
+    status?: string;
+    partnerId?: string | number;
+    universityId?: string | number;
+  }): Promise<ProjectI[]> => {
     if (getUseMockData()) {
       // Development: Load from JSON file
-      return await readJsonFile<ProjectI>("mockProjects.json");
+      const projects = await readJsonFile<ProjectI>("mockProjects.json");
+      
+      // Apply filters to mock data
+      if (filters) {
+        let filtered = projects;
+        if (filters.status) {
+          filtered = filtered.filter((p) => p.status === filters.status);
+        }
+        if (filters.partnerId !== undefined) {
+          const partnerIdNum = typeof filters.partnerId === 'string' 
+            ? Number(filters.partnerId) 
+            : filters.partnerId;
+          filtered = filtered.filter(
+            (p) => p.partnerId === partnerIdNum || p.partnerId === Number(partnerIdNum)
+          );
+        }
+        if (filters.universityId !== undefined) {
+          const universityIdNum = typeof filters.universityId === 'string'
+            ? Number(filters.universityId)
+            : filters.universityId;
+          filtered = filtered.filter(
+            (p) => p.universityId === universityIdNum || p.universityId === Number(universityIdNum)
+          );
+        }
+        return filtered;
+      }
+      return projects;
     }
-    // Production: Call actual API
-    return api.get<ProjectI[]>("/api/projects");
+    
+    // Production: Call actual API with query parameters
+    const queryParams = new URLSearchParams();
+    if (filters?.status) queryParams.append('status', filters.status);
+    if (filters?.partnerId !== undefined) {
+      queryParams.append('partnerId', String(filters.partnerId));
+    }
+    if (filters?.universityId !== undefined) {
+      queryParams.append('universityId', String(filters.universityId));
+    }
+    
+    const queryString = queryParams.toString();
+    const url = queryString ? `/api/projects?${queryString}` : "/api/projects";
+    return api.get<ProjectI[]>(url);
   },
 
   /**

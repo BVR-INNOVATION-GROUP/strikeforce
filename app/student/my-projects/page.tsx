@@ -40,7 +40,7 @@ export default function StudentMyProjects() {
         // Get all projects and user's applications
         const [allProjects, userApplications] = await Promise.all([
           projectService.getAllProjects(),
-          applicationService.getUserApplications(user.id),
+          applicationService.getUserApplications(user.id.toString()),
         ]);
 
         // Load groups and users data for member information
@@ -106,7 +106,7 @@ export default function StudentMyProjects() {
             groupName = assignedTransformedApp.groupName;
             groupMembers = assignedTransformedApp.members || [];
           } else {
-            // Try to find any application for this project to show group info
+            // Try to find unknown application for this project to show group info
             const firstApp = projectApplications[0];
             if (firstApp) {
               const projectTransformedApp = appIdToTransformedMap.get(firstApp.id);

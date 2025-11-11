@@ -5,7 +5,6 @@
 
 import React from "react";
 import Card from "@/src/components/core/Card";
-import Input from "@/src/components/core/Input";
 import Select from "@/src/components/core/Select";
 import { Globe } from "lucide-react";
 

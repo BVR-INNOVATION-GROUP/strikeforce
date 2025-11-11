@@ -122,3 +122,5 @@ const RangeSlider = ({ min, max, value, onChange, step = 1000, className = "" }:
 export default RangeSlider;
 
 
+
+

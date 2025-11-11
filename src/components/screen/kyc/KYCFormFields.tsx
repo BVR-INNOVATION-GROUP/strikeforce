@@ -110,7 +110,7 @@ const KYCFormFields = ({
         <ul className="list-disc list-inside space-y-1 text-xs">
           <li>Documents are encrypted and stored securely</li>
           <li>Super Admin will review within 2-3 business days</li>
-          <li>You'll be notified when reviewed</li>
+          <li>You&apos;ll be notified when reviewed</li>
           <li>KYC approval required before funding or payouts</li>
         </ul>
       </div>

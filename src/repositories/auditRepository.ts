@@ -5,7 +5,7 @@
 import { api } from "@/src/api/client";
 import { AuditEventI } from "@/src/utils/auditColumns";
 import { getUseMockData } from "@/src/utils/config";
-import { readJsonFile, findById } from "@/src/utils/fileHelpers";
+import { readJsonFile } from "@/src/utils/fileHelpers";
 
 export const auditRepository = {
   /**
@@ -77,4 +77,5 @@ export const auditRepository = {
     return api.post<AuditEventI>("/api/audit", event);
   },
 };
+
 

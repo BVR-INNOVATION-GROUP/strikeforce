@@ -1,1 +1,53 @@
-[]
+[
+  {
+    "id": 1,
+    "userId": 50,
+    "projectId": 41,
+    "milestoneId": 3,
+    "role": "Data Engineer",
+    "scope": "Designed and deployed sorghum farmer data ingestion pipelines with quality checks for three cooperatives.",
+    "proof": ["https://github.com/portfolio/brian-sorghum-pipeline", "/uploads/portfolio/ubl-dashboard.png"],
+    "rating": 4.8,
+    "complexity": "MEDIUM",
+    "amountDelivered": 18000000,
+    "currency": "UGX",
+    "onTime": true,
+    "verifiedAt": "2025-12-22T09:30:00.000Z",
+    "createdAt": "2025-12-22T09:30:00.000Z",
+    "updatedAt": "2025-12-22T09:30:00.000Z"
+  },
+  {
+    "id": 2,
+    "userId": 54,
+    "projectId": 86,
+    "milestoneId": 8,
+    "role": "Analytics Lead",
+    "scope": "Built Outbox hackathon analytics dashboards and trained programme team on insights workflows.",
+    "proof": ["/uploads/portfolio/outbox-dashboard-demo.mp4"],
+    "rating": 4.6,
+    "complexity": "MEDIUM",
+    "amountDelivered": 14500000,
+    "currency": "UGX",
+    "onTime": true,
+    "verifiedAt": "2025-12-07T12:20:00.000Z",
+    "createdAt": "2025-12-07T12:20:00.000Z",
+    "updatedAt": "2025-12-07T12:20:00.000Z"
+  },
+  {
+    "id": 3,
+    "userId": 40,
+    "projectId": 2,
+    "milestoneId": 1,
+    "role": "Product Research Lead",
+    "scope": "Conducted 25 stakeholder interviews and produced connectivity insights report for MTN rural hubs.",
+    "proof": ["/uploads/portfolio/mtn-rural-hubs-report.pdf"],
+    "rating": 4.9,
+    "complexity": "LOW",
+    "amountDelivered": 25000000,
+    "currency": "UGX",
+    "onTime": true,
+    "verifiedAt": "2025-12-14T08:45:00.000Z",
+    "createdAt": "2025-12-14T08:45:00.000Z",
+    "updatedAt": "2025-12-14T08:45:00.000Z"
+  }
+]

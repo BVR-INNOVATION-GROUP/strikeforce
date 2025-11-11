@@ -5,8 +5,6 @@
 
 import React, { useState } from "react";
 import { useAuthStore } from "@/src/store";
-import { useRouter } from "next/navigation";
-import { useToast } from "@/src/hooks/useToast";
 import Card from "@/src/components/core/Card";
 import Button from "@/src/components/core/Button";
 import { LogOut } from "lucide-react";
@@ -17,8 +15,6 @@ import ConfirmationDialog from "@/src/components/base/ConfirmationDialog";
  */
 const LogoutSection = () => {
   const { logout } = useAuthStore();
-  const router = useRouter();
-  const { showSuccess } = useToast();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Handle logout

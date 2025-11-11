@@ -27,7 +27,7 @@ export interface UseUniversityAdminOffersResult {
 /**
  * Hook for managing university admin offers state and logic
  */
-export function useUniversityAdminOffers(): UseUniversityAdminOffersResult {
+export function useUniversityAdminOffers(universityId: string | number | null): UseUniversityAdminOffersResult {
   const [applications, setApplications] = useState<ApplicationI[]>([]);
   const [projects, setProjects] = useState<Record<string, ProjectI>>({});
   const [selectedApplication, setSelectedApplication] = useState<ApplicationI | null>(null);
@@ -39,18 +39,48 @@ export function useUniversityAdminOffers(): UseUniversityAdminOffersResult {
 
   useEffect(() => {
     const loadData = async () => {
+      setLoading(true);
+
+      if (!universityId) {
+        setApplications([]);
+        setProjects({});
+        setLoading(false);
+        return;
+      }
+
       try {
-        const [applicationsData, projectsData] = await Promise.all([
-          import("@/src/data/mockApplications.json"),
+        const [{ applicationRepository }] = await Promise.all([
+          import("@/src/repositories/applicationRepository"),
+        ]);
+
+        const [allApplications, allProjects] = await Promise.all([
+          applicationRepository.getAll(),
           projectService.getAllProjects(),
         ]);
 
-        setApplications(applicationsData.default as ApplicationI[]);
+        const numericUniversityId =
+          typeof universityId === "string" ? parseInt(universityId, 10) : universityId;
+
+        const universityProjects = allProjects.filter((project) => {
+          const projectUniversityId =
+            typeof project.universityId === "string"
+              ? parseInt(project.universityId, 10)
+              : project.universityId;
+          return projectUniversityId === numericUniversityId;
+        });
+
+        const projectIds = new Set(universityProjects.map((project) => project.id.toString()));
+
+        const filteredApplications = allApplications.filter((application) =>
+          projectIds.has(application.projectId.toString())
+        );
 
         const projectsMap: Record<string, ProjectI> = {};
-        projectsData.forEach((p) => {
-          projectsMap[p.id] = p;
+        universityProjects.forEach((project) => {
+          projectsMap[project.id.toString()] = project;
         });
+
+        setApplications(filteredApplications);
         setProjects(projectsMap);
       } catch (error) {
         console.error("Failed to load applications:", error);
@@ -58,40 +88,56 @@ export function useUniversityAdminOffers(): UseUniversityAdminOffersResult {
         setLoading(false);
       }
     };
+
     loadData();
-  }, []);
+  }, [universityId]);
 
   const handleIssueOffer = (application: ApplicationI) => {
     setSelectedApplication(application);
     setIsOfferModalOpen(true);
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + 7);
-    setOfferExpiry(expiryDate.toISOString().split("T")[0]);
+    const defaultExpiry = application.offerExpiresAt
+      ? application.offerExpiresAt.split("T")[0]
+      : (() => {
+          const expiryDate = new Date();
+          expiryDate.setDate(expiryDate.getDate() + 7);
+          return expiryDate.toISOString().split("T")[0];
+        })();
+    setOfferExpiry(defaultExpiry);
+    setErrors({});
   };
 
   const handleSendOffer = async () => {
     if (!selectedApplication) return;
 
-    const validationErrors = validateOfferExpiry(offerExpiry);
-    setErrors(validationErrors);
-    
-    if (Object.keys(validationErrors).length > 0) {
-      showError("Please fix the errors before sending the offer");
-      return;
-    }
-
     try {
-      setApplications(
-        applications.map((app) =>
-          app.id === selectedApplication.id
-            ? {
-                ...app,
-                status: "OFFERED",
-                offerExpiresAt: new Date(offerExpiry).toISOString(),
-              }
-            : app
-        )
+      const validationErrors = validateOfferExpiry(offerExpiry);
+      setErrors(validationErrors);
+
+      if (Object.keys(validationErrors).length > 0) {
+        showError("Please fix the errors before sending the offer");
+        return;
+      }
+
+      const [{ applicationRepository }] = await Promise.all([
+        import("@/src/repositories/applicationRepository"),
+      ]);
+
+      const numericAppId =
+        typeof selectedApplication.id === "string"
+          ? parseInt(selectedApplication.id, 10)
+          : selectedApplication.id;
+
+      const offerExpiresAt = new Date(offerExpiry).toISOString();
+      const updatedApplication = await applicationRepository.update(numericAppId, {
+        status: "OFFERED",
+        offerExpiresAt,
+        updatedAt: new Date().toISOString(),
+      });
+
+      setApplications((apps) =>
+        apps.map((app) => (app.id === updatedApplication.id ? updatedApplication : app))
       );
+
       showSuccess("Offer sent successfully! The applicant will be notified.");
       resetForm();
     } catch (error) {

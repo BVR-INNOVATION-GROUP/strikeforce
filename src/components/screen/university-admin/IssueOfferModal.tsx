@@ -3,11 +3,10 @@
  */
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import Modal from "@/src/components/base/Modal";
 import Button from "@/src/components/core/Button";
 import Input from "@/src/components/core/Input";
-import ErrorMessage from "@/src/components/core/ErrorMessage";
 import { ApplicationI } from "@/src/models/application";
 import { ProjectI } from "@/src/models/project";
 import { Send } from "lucide-react";
@@ -36,6 +35,11 @@ const IssueOfferModal = ({
   onExpiryChange,
   onSubmit,
 }: Props) => {
+  const minExpiryDate = useMemo(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split("T")[0];
+  }, []);
   return (
     <Modal
       title="Issue Offer"
@@ -56,7 +60,7 @@ const IssueOfferModal = ({
           <div>
             <p className="text-sm text-secondary mb-1">Project</p>
             <p className="font-semibold">
-              {projects[application.projectId]?.title || application.projectId}
+              {projects[application.projectId.toString()]?.title || application.projectId}
             </p>
           </div>
           <div>
@@ -70,7 +74,7 @@ const IssueOfferModal = ({
             type="date"
             value={offerExpiry}
             onChange={(e) => onExpiryChange(e.target.value)}
-            min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
+            min={minExpiryDate}
             error={errors.expiry}
           />
           <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">

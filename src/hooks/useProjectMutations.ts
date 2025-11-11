@@ -32,14 +32,16 @@ export const useProjectMutations = (projectId: string) => {
 
     /**
      * Accept an application (Partner can recommend, University Admin/Supervisor issues offers)
-     * Partner action: Recommend for acceptance
+     * Partner action: Accept application - sets status to ACCEPTED
      */
     const handleAcceptApplication = async (applicationId: number): Promise<void> => {
         try {
-            console.log('Accepting application:', applicationId)
-            // TODO: Implement actual acceptance logic
-            // This would typically update application status to ACCEPTED
-            // and notify University Admin/Supervisor for final offer issuance
+            const { applicationRepository } = await import('@/src/repositories/applicationRepository');
+            // Update application status to ACCEPTED
+            await applicationRepository.update(applicationId, {
+                status: "ACCEPTED",
+                updatedAt: new Date().toISOString(),
+            });
         } catch (error) {
             console.error("Failed to accept application:", error)
             throw new Error("Failed to accept application. Please try again.")
@@ -48,13 +50,16 @@ export const useProjectMutations = (projectId: string) => {
 
     /**
      * Reject an application
-     * Partner action: Reject application
+     * Partner action: Reject application - sets status to REJECTED
      */
     const handleRejectApplication = async (applicationId: number, reason?: string): Promise<void> => {
         try {
-            console.log('Rejecting application:', applicationId, 'reason:', reason)
-            // TODO: Implement actual rejection logic
-            // This would typically update application status to REJECTED
+            const { applicationRepository } = await import('@/src/repositories/applicationRepository');
+            // Update application status to REJECTED
+            await applicationRepository.update(applicationId, {
+                status: "REJECTED",
+                updatedAt: new Date().toISOString(),
+            });
         } catch (error) {
             console.error("Failed to reject application:", error)
             throw new Error("Failed to reject application. Please try again.")
@@ -64,13 +69,21 @@ export const useProjectMutations = (projectId: string) => {
     /**
      * Recommend an application to other partners
      * Partner action: Recommend to selected partners
+     * Note: This doesn't change application status, just notifies partners
      */
     const handleRecommendApplication = async (applicationId: number, partnerIds?: string[]): Promise<void> => {
         try {
-            console.log('Recommending application:', applicationId, 'to partners:', partnerIds)
-            // TODO: Implement actual recommendation logic
-            // This would typically notify selected partners about the application
-            // and possibly update application score/status for consideration
+            // Recommendation is a notification action, not a status change
+            // In the future, this could create notifications or update a recommendations table
+            // For now, we just log it - the modal handles the partner selection
+            if (partnerIds && partnerIds.length > 0) {
+                console.log('Recommending application:', applicationId, 'to partners:', partnerIds);
+                // TODO: Create notifications for recommended partners
+                // This would typically:
+                // - Create notification records for each partner
+                // - Send emails/notifications to partners
+                // - Possibly update application metadata with recommended partner IDs
+            }
         } catch (error) {
             console.error("Failed to recommend application:", error)
             throw new Error("Failed to recommend application. Please try again.")
@@ -90,8 +103,11 @@ export const useProjectMutations = (projectId: string) => {
         currency?: string
     ): Promise<void> => {
         try {
+            // Convert projectId to number if it's a string
+            const numericProjectId = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
+            
             await milestoneRepository.create({
-                projectId: projectId,
+                projectId: numericProjectId,
                 title,
                 scope: scope || "No scope defined",
                 acceptanceCriteria: "To be defined",
@@ -134,6 +150,20 @@ export const useProjectMutations = (projectId: string) => {
         } catch (error) {
             console.error("Failed to update milestone:", error)
             throw new Error("Failed to update milestone. Please try again.")
+        }
+    }
+
+    /**
+     * Delete milestone
+     * Note: Validation should be done in the service layer
+     */
+    const handleDeleteMilestone = async (milestoneId: string): Promise<void> => {
+        try {
+            const { milestoneService } = await import('@/src/services/milestoneService');
+            await milestoneService.deleteMilestone(milestoneId);
+        } catch (error) {
+            console.error("Failed to delete milestone:", error)
+            throw new Error(error instanceof Error ? error.message : "Failed to delete milestone. Please try again.")
         }
     }
 
@@ -183,15 +213,29 @@ export const useProjectMutations = (projectId: string) => {
         }
 
         try {
-            // TODO: Implement actual reassignment logic
-            // 1. Find currently assigned application and set status to ACCEPTED or SHORTLISTED
-            // 2. Set the new application status to ASSIGNED
-            // 3. Update project to reflect the new assignment
-            console.log('Reassigning project to application:', applicationId)
-            // This would typically:
-            // - Update old application status from ASSIGNED to ACCEPTED
-            // - Update new application status to ASSIGNED
-            // - Notify both groups of the change
+            const { applicationRepository } = await import('@/src/repositories/applicationRepository');
+            const { applicationService } = await import('@/src/services/applicationService');
+            
+            // Get all applications for this project
+            const numericProjectId = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
+            const allApplications = await applicationService.getProjectApplications(numericProjectId);
+            
+            // Find currently assigned application
+            const currentlyAssigned = allApplications.find(app => app.status === "ASSIGNED");
+            
+            // Update old application status from ASSIGNED to ACCEPTED (if exists)
+            if (currentlyAssigned && currentlyAssigned.id !== applicationId) {
+                await applicationRepository.update(currentlyAssigned.id, {
+                    status: "ACCEPTED",
+                    updatedAt: new Date().toISOString(),
+                });
+            }
+            
+            // Set the new application status to ASSIGNED
+            await applicationRepository.update(applicationId, {
+                status: "ASSIGNED",
+                updatedAt: new Date().toISOString(),
+            });
         } catch (error) {
             console.error("Failed to reassign project:", error)
             throw new Error("Failed to reassign project. Please try again.")
@@ -205,6 +249,7 @@ export const useProjectMutations = (projectId: string) => {
         handleRecommendApplication,
         handleAddMilestone,
         handleUpdateMilestone,
+        handleDeleteMilestone,
         handleSaveProject,
         handleDeleteProject,
         handleReassignProject

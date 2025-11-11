@@ -101,21 +101,23 @@ async function createPasswordResetToken(email: string): Promise<void> {
       "passwordResetTokens"
     );
 
-    // Invalidate any existing unused tokens for this user
+    // Invalidate unknown existing unused tokens for this user
     await tokensCollection.updateMany(
       { userId: user.id, used: false },
       { $set: { used: true } }
     );
 
     // Create new token
-    // MongoDB will auto-generate _id, so we don't need to provide id
-    await tokensCollection.insertOne({
+    const resetToken: PasswordResetTokenI = {
+      id: Date.now(),
       userId: user.id,
       token,
       expiresAt: expiresAt.toISOString(),
       used: false,
       createdAt: new Date().toISOString(),
-    } as any);
+    };
+
+    await tokensCollection.insertOne(resetToken);
   }
 
   // Send password reset email

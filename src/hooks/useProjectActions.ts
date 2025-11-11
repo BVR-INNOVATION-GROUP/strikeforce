@@ -92,7 +92,7 @@ export const useProjectActions = (projectId: string, options?: UseProjectActions
         try {
             await navigator.clipboard.writeText(shareUrl)
             return { success: true, message: 'Project link copied to clipboard!' }
-        } catch (error) {
+        } catch (_error) {
             try {
                 const textarea = document.createElement('textarea')
                 textarea.value = shareUrl
@@ -101,7 +101,7 @@ export const useProjectActions = (projectId: string, options?: UseProjectActions
                 document.execCommand('copy')
                 document.body.removeChild(textarea)
                 return { success: true, message: 'Project link copied to clipboard!' }
-            } catch (err) {
+            } catch (_err) {
                 return { success: false, message: 'Failed to copy link. Please copy manually.' }
             }
         }

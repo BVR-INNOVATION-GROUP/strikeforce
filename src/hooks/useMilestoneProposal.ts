@@ -3,8 +3,10 @@
  */
 import { useState, useEffect } from "react";
 import { MilestoneProposalI } from "@/src/models/milestone";
-import { UserI } from "@/src/models/user";
-import { validateMilestoneProposal, ValidationErrors } from "@/src/utils/milestoneProposalValidation";
+import {
+  validateMilestoneProposal,
+  ValidationErrors,
+} from "@/src/utils/milestoneProposalValidation";
 import { useToast } from "@/src/hooks/useToast";
 
 export interface UseMilestoneProposalResult {
@@ -22,26 +24,31 @@ export interface UseMilestoneProposalResult {
   setAmount: (amount: string) => void;
   clearError: (field: string) => void;
   validate: () => boolean;
-  prepareProposal: (projectId: string, proposerId: string) => Partial<MilestoneProposalI>;
+  prepareProposal: (
+    projectId: string,
+    proposerId: string
+  ) => Partial<MilestoneProposalI>;
   reset: () => void;
 }
 
 /**
  * Hook for managing milestone proposal form state and logic
  */
-export function useMilestoneProposal(open: boolean): UseMilestoneProposalResult {
+export function useMilestoneProposal(
+  open: boolean
+): UseMilestoneProposalResult {
   const [title, setTitleState] = useState("");
   const [scope, setScopeState] = useState("");
   const [acceptanceCriteria, setAcceptanceCriteriaState] = useState("");
   const [dueDate, setDueDateState] = useState("");
   const [amount, setAmountState] = useState("");
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting /* setSubmitting */] = useState(false);
   const { showError } = useToast();
 
   useEffect(() => {
     if (!open) {
-      reset();
+      // reset();
     }
   }, [open]);
 
@@ -124,9 +131,3 @@ export function useMilestoneProposal(open: boolean): UseMilestoneProposalResult 
     reset,
   };
 }
-
-
-
-
-
-

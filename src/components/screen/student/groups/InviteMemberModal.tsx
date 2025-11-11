@@ -31,7 +31,7 @@ const InviteMemberModal = ({
   group,
   availableMembers,
   usersMap,
-  currentUserId,
+  currentUserId: _currentUserId,
   onInvite,
 }: Props) => {
   const [selectedMembers, setSelectedMembers] = useState<OptionI[]>([]);

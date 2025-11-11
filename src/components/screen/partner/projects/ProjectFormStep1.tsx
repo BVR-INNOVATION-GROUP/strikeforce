@@ -46,9 +46,9 @@ const ProjectFormStep1 = ({
   const [universities, setUniversities] = useState<OrganizationI[]>([]);
   const [departments, setDepartments] = useState<DepartmentI[]>([]);
   const [courses, setCourses] = useState<CourseI[]>([]);
-  const [loadingUniversities, setLoadingUniversities] = useState(false);
-  const [loadingDepartments, setLoadingDepartments] = useState(false);
-  const [loadingCourses, setLoadingCourses] = useState(false);
+  const [/* loadingUniversities */, setLoadingUniversities] = useState(false);
+  const [/* loadingDepartments */, setLoadingDepartments] = useState(false);
+  const [/* loadingCourses */, setLoadingCourses] = useState(false);
 
   /**
    * Load all universities (organizations with type UNIVERSITY)

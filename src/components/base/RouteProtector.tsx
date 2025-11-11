@@ -52,7 +52,7 @@ function hasAccess(userRole: UserRole | null, pathname: string, allowedRoles?: U
     return allowedRoles.includes(userRole);
   }
 
-  // Check if pathname matches any of the role's allowed routes
+  // Check if pathname matches unknown of the role's allowed routes
   const allowedRoutes = roleRoutes[userRole] || [];
   return allowedRoutes.some((route) => pathname.startsWith(route));
 }
@@ -66,7 +66,7 @@ export default function RouteProtector({ children, allowedRoles }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const lastRedirectRef = useRef<string | null>(null);
-  
+
   // Memoize allowedRoles string for stable comparison
   const allowedRolesKey = useMemo(() => {
     return allowedRoles ? allowedRoles.sort().join(',') : '';

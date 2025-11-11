@@ -63,6 +63,7 @@ export default function PartnerSignUpPage() {
     setSubmitting(true);
     try {
       // Create organization with PENDING KYC status
+      // Note: billingProfile.orgId will be set by the API route after organization creation
       const org = await organizationService.createOrganization({
         name: formData.orgName,
         type: "PARTNER",
@@ -73,8 +74,8 @@ export default function PartnerSignUpPage() {
           phone: formData.phone,
           address: formData.address,
           website: formData.website,
+          orgId: 0, // Temporary placeholder - will be set by API route
         },
-        description: formData.description,
       });
 
       showSuccess("Organization registered! Your application is pending Super Admin approval.");
@@ -83,7 +84,7 @@ export default function PartnerSignUpPage() {
       }, 2000);
     } catch (error: any) {
       console.error("Failed to register organization:", error);
-      showError(error.message || "Failed to register. Please try again.");
+      showError(error?.message || "Failed to register. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -121,4 +122,3 @@ export default function PartnerSignUpPage() {
     </div>
   );
 }
-

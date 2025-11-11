@@ -15,10 +15,12 @@ export const supervisorRepository = {
    * Get all supervisor requests
    * @param supervisorId - Optional filter by supervisor
    * @param projectId - Optional filter by project
+   * @param studentId - Optional filter by student/group
    */
   getRequests: async (
     supervisorId?: number | string,
-    projectId?: number
+    projectId?: number,
+    studentId?: number | string
   ): Promise<SupervisorRequestI[]> => {
     if (getUseMockData()) {
       let requests = await readJsonFile<SupervisorRequestI>("mockSupervisorRequests.json");
@@ -29,12 +31,17 @@ export const supervisorRepository = {
       if (projectId) {
         requests = requests.filter((r) => r.projectId === projectId);
       }
+      if (studentId) {
+        const numericStudentId = typeof studentId === 'string' ? parseInt(studentId, 10) : studentId;
+        requests = requests.filter((r) => r.studentOrGroupId === numericStudentId);
+      }
       return requests;
     }
     const params = new URLSearchParams();
-    if (supervisorId) params.append("supervisorId", supervisorId);
-    if (projectId) params.append("projectId", projectId.toString());
-    const url = `/api/supervisor/requests?${params.toString()}`;
+    if (supervisorId) params.append("supervisorId", String(supervisorId));
+    if (projectId) params.append("projectId", String(projectId));
+    if (studentId) params.append("studentId", String(studentId));
+    const url = `/api/supervisor-requests?${params.toString()}`;
     return api.get<SupervisorRequestI[]>(url);
   },
 
@@ -50,7 +57,7 @@ export const supervisorRepository = {
       }
       return request;
     }
-    return api.get<SupervisorRequestI>(`/api/supervisor/requests/${id}`);
+    return api.get<SupervisorRequestI>(`/api/supervisor-requests/${id}`);
   },
 
   /**
@@ -60,7 +67,7 @@ export const supervisorRepository = {
     request: Partial<SupervisorRequestI>
   ): Promise<SupervisorRequestI> => {
     // Always use API route (even in mock mode) - API routes handle file operations server-side
-    return api.post<SupervisorRequestI>("/api/supervisor/requests", request);
+    return api.post<SupervisorRequestI>("/api/supervisor-requests", request);
   },
 
   /**
@@ -72,7 +79,7 @@ export const supervisorRepository = {
   ): Promise<SupervisorRequestI> => {
     // Always use API route (even in mock mode) - API routes handle file operations server-side
     return api.put<SupervisorRequestI>(
-      `/api/supervisor/requests/${id}`,
+      `/api/supervisor-requests/${id}`,
       request
     );
   },
@@ -82,7 +89,7 @@ export const supervisorRepository = {
    */
   deleteRequest: async (id: number): Promise<void> => {
     // Always use API route (even in mock mode) - API routes handle file operations server-side
-    return api.delete(`/api/supervisor/requests/${id}`);
+    return api.delete(`/api/supervisor-requests/${id}`);
   },
 
   /**

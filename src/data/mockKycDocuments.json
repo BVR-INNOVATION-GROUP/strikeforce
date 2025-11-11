@@ -1,1 +1,65 @@
-[]
+[
+  {
+    "id": 1,
+    "orgId": 12,
+    "type": "LICENSE",
+    "url": "/uploads/kyc/airtel-trading-license.pdf",
+    "status": "APPROVED",
+    "reviewedBy": 1,
+    "reviewedAt": "2025-11-04T10:20:00.000Z",
+    "notes": "Valid trading license for Airtel Uganda FY2025/26.",
+    "expiresAt": "2026-06-30T00:00:00.000Z",
+    "createdAt": "2025-10-05T08:30:00.000Z"
+  },
+  {
+    "id": 2,
+    "orgId": 14,
+    "type": "CERTIFICATE",
+    "url": "/uploads/kyc/nwsc-incorporation.pdf",
+    "status": "APPROVED",
+    "reviewedBy": 1,
+    "reviewedAt": "2025-11-05T11:00:00.000Z",
+    "notes": "Incorporation certificate verified.",
+    "createdAt": "2025-10-09T08:15:00.000Z"
+  },
+  {
+    "id": 3,
+    "orgId": 15,
+    "type": "REGISTRATION",
+    "url": "/uploads/kyc/unra-ppda-certificate.pdf",
+    "status": "PENDING",
+    "createdAt": "2025-10-12T07:50:00.000Z"
+  },
+  {
+    "id": 4,
+    "orgId": 23,
+    "type": "TAX_DOCUMENT",
+    "url": "/uploads/kyc/ucc-tax-clearance.pdf",
+    "status": "APPROVED",
+    "reviewedBy": 1,
+    "reviewedAt": "2025-11-02T09:45:00.000Z",
+    "expiresAt": "2026-09-30T00:00:00.000Z",
+    "createdAt": "2025-10-22T07:45:00.000Z"
+  },
+  {
+    "id": 5,
+    "orgId": 27,
+    "type": "IDENTITY",
+    "url": "/uploads/kyc/innovation-village-director-id.pdf",
+    "status": "APPROVED",
+    "reviewedBy": 1,
+    "reviewedAt": "2025-11-03T14:10:00.000Z",
+    "createdAt": "2025-10-27T09:05:00.000Z"
+  },
+  {
+    "id": 6,
+    "orgId": 30,
+    "type": "LICENSE",
+    "url": "/uploads/kyc/fenix-ura-trading-license.pdf",
+    "status": "APPROVED",
+    "reviewedBy": 1,
+    "reviewedAt": "2025-11-06T08:25:00.000Z",
+    "expiresAt": "2026-11-05T00:00:00.000Z",
+    "createdAt": "2025-10-30T08:45:00.000Z"
+  }
+]

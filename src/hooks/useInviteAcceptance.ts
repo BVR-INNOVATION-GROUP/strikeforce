@@ -5,7 +5,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { invitationService } from "@/src/services/invitationService";
 import { InvitationI } from "@/src/models/invitation";
-import { validateInviteAcceptance, ValidationErrors } from "@/src/utils/inviteAcceptanceValidation";
+import {
+  validateInviteAcceptance,
+  ValidationErrors,
+} from "@/src/utils/inviteAcceptanceValidation";
 import { useToast } from "@/src/hooks/useToast";
 
 export interface UseInviteAcceptanceResult {
@@ -14,11 +17,10 @@ export interface UseInviteAcceptanceResult {
   formData: {
     password: string;
     confirmPassword: string;
-    name: string;
   };
   errors: ValidationErrors;
   submitting: boolean;
-  setFormData: (data: { password: string; confirmPassword: string; name: string }) => void;
+  setFormData: (data: { password: string; confirmPassword: string }) => void;
   setFieldValue: (field: string, value: string) => void;
   clearError: (field: string) => void;
   validate: () => boolean;
@@ -28,14 +30,15 @@ export interface UseInviteAcceptanceResult {
 /**
  * Hook for managing invite acceptance state and logic
  */
-export function useInviteAcceptance(token: string | null): UseInviteAcceptanceResult {
+export function useInviteAcceptance(
+  token: string | null
+): UseInviteAcceptanceResult {
   const router = useRouter();
   const [invitation, setInvitation] = useState<InvitationI | null>(null);
   const [validating, setValidating] = useState(true);
   const [formData, setFormData] = useState({
     password: "",
     confirmPassword: "",
-    name: "",
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -52,7 +55,7 @@ export function useInviteAcceptance(token: string | null): UseInviteAcceptanceRe
       try {
         const inv = await invitationService.validateInvitation(token);
         setInvitation(inv);
-      } catch (error: any) {
+      } catch (error: unknown) {
         showError(error.message || "Invalid or expired invitation");
       } finally {
         setValidating(false);
@@ -95,14 +98,13 @@ export function useInviteAcceptance(token: string | null): UseInviteAcceptanceRe
     try {
       const { user } = await invitationService.useInvitation(
         token,
-        formData.password,
-        formData.name
+        formData.password
       );
       showSuccess("Account created successfully! Redirecting to login...");
       setTimeout(() => {
         router.push("/auth/login");
       }, 2000);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to accept invitation:", error);
       showError(error.message || "Failed to create account. Please try again.");
     } finally {
@@ -123,8 +125,3 @@ export function useInviteAcceptance(token: string | null): UseInviteAcceptanceRe
     handleSubmit,
   };
 }
-
-
-
-
-

@@ -6,8 +6,8 @@
 import React from "react";
 import Input from "@/src/components/core/Input";
 import Select from "@/src/components/core/Select";
-import { ValidationErrors } from "@/src/utils/manualEntryValidation";
-import { UploadType } from "@/src/utils/manualEntryValidation";
+import { CourseI, DepartmentI } from "@/src/models/project";
+import { ValidationErrors, UploadType } from "@/src/utils/manualEntryValidation";
 
 export interface Props {
   uploadType: UploadType;
@@ -20,6 +20,8 @@ export interface Props {
   errors: ValidationErrors;
   onFieldChange: (field: string, value: string) => void;
   onClearError: (field: string) => void;
+  courses?: CourseI[]; // Courses for student selection (department is derived from course)
+  departments?: DepartmentI[]; // Departments for supervisor selection
 }
 
 /**
@@ -31,6 +33,8 @@ const ManualEntryFormFields = ({
   errors,
   onFieldChange,
   onClearError,
+  courses = [],
+  departments = [],
 }: Props) => {
   return (
     <div className="space-y-4">
@@ -58,48 +62,49 @@ const ManualEntryFormFields = ({
       )}
 
       {uploadType === "student" && (
-        <>
-          <Select
-            title="Department *"
-            options={[
-              { value: "cs", label: "Computer Science" },
-              { value: "eng", label: "Engineering" },
-            ]}
-            value={formData.department}
-            onChange={(option) => {
-              const value =
-                typeof option === "string"
-                  ? option
-                  : typeof option === "object" && "value" in option
-                    ? String(option.value)
-                    : "";
-              onFieldChange("department", value);
-              onClearError("department");
-            }}
-            placeHolder="Select department"
-            error={errors.department}
-          />
-          <Select
-            title="Course *"
-            options={[
-              { value: "cs101", label: "CS101" },
-              { value: "cs201", label: "CS201" },
-            ]}
-            value={formData.course}
-            onChange={(option) => {
-              const value =
-                typeof option === "string"
-                  ? option
-                  : typeof option === "object" && "value" in option
-                    ? String(option.value)
-                    : "";
-              onFieldChange("course", value);
-              onClearError("course");
-            }}
-            placeHolder="Select course"
-            error={errors.course}
-          />
-        </>
+        <Select
+          title="Course *"
+          options={courses.map((course) => ({
+            value: course.id.toString(),
+            label: course.name,
+          }))}
+          value={formData.course}
+          onChange={(option) => {
+            const value =
+              typeof option === "string"
+                ? option
+                : typeof option === "object" && "value" in option
+                  ? String(option.value)
+                  : "";
+            onFieldChange("course", value);
+            onClearError("course");
+          }}
+          placeHolder="Select course"
+          error={errors.course}
+        />
+      )}
+
+      {uploadType === "supervisor" && (
+        <Select
+          title="Department *"
+          options={departments.map((department) => ({
+            value: department.id.toString(),
+            label: department.name,
+          }))}
+          value={formData.department}
+          onChange={(option) => {
+            const value =
+              typeof option === "string"
+                ? option
+                : typeof option === "object" && "value" in option
+                  ? String(option.value)
+                  : "";
+            onFieldChange("department", value);
+            onClearError("department");
+          }}
+          placeHolder="Select department"
+          error={errors.department}
+        />
       )}
     </div>
   );

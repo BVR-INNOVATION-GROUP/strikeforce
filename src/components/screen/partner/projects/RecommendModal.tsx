@@ -9,7 +9,6 @@ import Modal from '@/src/components/base/Modal';
 import Button from '@/src/components/core/Button';
 import MultiSelect, { OptionI } from '@/src/components/base/MultiSelect';
 import { userRepository } from '@/src/repositories/userRepository';
-import { UserI } from '@/src/models/user';
 
 export interface Props {
   open: boolean;

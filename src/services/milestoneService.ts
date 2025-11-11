@@ -242,5 +242,21 @@ export const milestoneService = {
       updatedAt: new Date().toISOString(),
     });
   },
+
+  /**
+   * Delete milestone
+   * Business rule: Only PROPOSED or FINALIZED milestones can be deleted
+   */
+  deleteMilestone: async (id: string): Promise<void> => {
+    const milestone = await milestoneRepository.getById(id);
+
+    // Business rule: Only PROPOSED or FINALIZED milestones can be deleted
+    // Once milestone is in progress or completed, it should not be deleted
+    if (milestone.status !== "PROPOSED" && milestone.status !== "FINALIZED") {
+      throw new Error(`Cannot delete milestone. Only PROPOSED or FINALIZED milestones can be deleted. Current status: ${milestone.status}`);
+    }
+
+    return milestoneRepository.delete(id);
+  },
 };
 

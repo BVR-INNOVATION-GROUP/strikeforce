@@ -50,9 +50,12 @@ export interface Props {
     onAccept?: (applicationId: number) => void
     onReject?: (applicationId: number) => void
     onRecommend?: (applicationId: number) => void
+    onWithdraw?: (applicationId: number) => void
+    onTerminate?: (applicationId: number) => void
     onOpenChat: () => void
     onAddMilestone: () => void
     onEditMilestone?: (milestoneId: string) => void // Callback for editing milestone
+    onDeleteMilestone?: (milestoneId: string) => void // Callback for deleting milestone
     onApproveAndRelease?: (milestoneId: string) => void
     onDisapprove?: (milestoneId: string) => void
     onRequestChanges?: (milestoneId: string) => void
@@ -60,6 +63,7 @@ export interface Props {
     onUnmarkAsComplete?: (milestoneId: string) => void
     userRole?: string // User role for permission checks
     isProjectOwner?: boolean // Whether user owns the project
+    canEditProject?: boolean // Whether user can edit the project (super-admin only)
 }
 
 const ProjectContent = (props: Props) => {
@@ -77,16 +81,21 @@ const ProjectContent = (props: Props) => {
         onAccept,
         onReject,
         onRecommend,
+        onWithdraw,
+        onTerminate,
         onOpenChat,
         onAddMilestone,
         onEditMilestone,
+        onDeleteMilestone,
         onApproveAndRelease,
         onDisapprove,
         onRequestChanges,
         onMarkAsComplete,
         onUnmarkAsComplete,
         userRole,
-        isProjectOwner = false
+        isProjectOwner = false,
+        canEditProject = false,
+
     } = props
 
 
@@ -137,7 +146,11 @@ const ProjectContent = (props: Props) => {
                                     onAccept={onAccept}
                                     onReject={onReject}
                                     onRecommend={onRecommend}
+                                    onWithdraw={onWithdraw}
+                                    onTerminate={onTerminate}
                                     formatDate={formatDate}
+                                    // currentUserId={currentUserId}
+                                    userRole={userRole}
                                 />
                             ) : null
                         })}
@@ -148,7 +161,7 @@ const ProjectContent = (props: Props) => {
             <Card
                 title="Project Milestones"
                 actions={
-                    (userRole === 'partner' && isProjectOwner) || userRole === 'super-admin' ? (
+                    canEditProject && onAddMilestone ? (
                         <Button onClick={onAddMilestone} className="bg-primary text-[0.875rem]">Add Milestone</Button>
                     ) : undefined
                 }
@@ -158,8 +171,8 @@ const ProjectContent = (props: Props) => {
                         project.milestones.map((milestone) => {
                             // Find full milestone by matching IDs (handle both string and number types)
                             const fullMilestone = milestones.find(m => {
-                                const mId = typeof m.id === 'number' ? m.id.toString() : m.id;
-                                const milestoneId = typeof milestone.id === 'number' ? milestone.id.toString() : milestone.id.toString();
+                                const mId = typeof m.id === 'number' ? parseInt(m.id)?.toString() : m.id;
+                                const milestoneId = typeof milestone.id === 'number' ? milestone.id.toString() : parseInt(milestone.id).toString();
                                 return mId === milestoneId;
                             }) as MilestoneI | undefined
 
@@ -180,6 +193,8 @@ const ProjectContent = (props: Props) => {
                                     supervisorGate={fullMilestone?.supervisorGate}
                                     onEdit={onEditMilestone && permissions.canEdit ? () => onEditMilestone(String(milestone.id)) : undefined}
                                     canEdit={permissions.canEdit}
+                                    onDelete={onDeleteMilestone && permissions.canEdit ? () => onDeleteMilestone(String(milestone.id)) : undefined}
+                                    canDelete={permissions.canEdit}
                                     onApproveAndRelease={onApproveAndRelease && permissions.canApproveAndRelease ? () => onApproveAndRelease(String(milestone.id)) : undefined}
                                     onDisapprove={onDisapprove && permissions.canDisapprove ? () => onDisapprove(String(milestone.id)) : undefined}
                                     onRequestChanges={onRequestChanges && permissions.canRequestChanges ? () => onRequestChanges(String(milestone.id)) : undefined}
@@ -193,7 +208,7 @@ const ProjectContent = (props: Props) => {
                             )
                         })
                     ) : (
-                        <p className="text-sm text-gray-500">No milestones yet. Click "Add Milestone" to create one.</p>
+                        <p className="text-sm text-gray-500">No milestones yet. Click &quot;Add Milestone&quot; to create one.</p>
                     )}
                 </div>
             </Card>
@@ -202,9 +217,12 @@ const ProjectContent = (props: Props) => {
                 <AttachmentsCard attachments={attachments} />
             )}
 
-            <Card title="Project Chat">
-                <ChatSection messages={messages} onOpenFullChat={onOpenChat} />
-            </Card>
+            {/* Only show chat section if there's an assigned application */}
+            {applications.some(a => a.status === "ASSIGNED") && (
+                <Card title="Project Chat">
+                    <ChatSection messages={messages} onOpenFullChat={onOpenChat} />
+                </Card>
+            )}
         </div>
     )
 }

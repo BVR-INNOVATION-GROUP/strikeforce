@@ -8,15 +8,20 @@
 
 import { MongoClient, Db, Collection } from 'mongodb';
 
-// MongoDB connection URI from environment variables
-const uri = process.env.MONGODB_URI;
-
-if (!uri) {
-  throw new Error('Please add MONGODB_URI to your .env file');
-}
-
 // Database name from environment (defaults to 'strikeforce')
 const dbName = process.env.MONGODB_DB_NAME || 'strikeforce';
+
+/**
+ * Get MongoDB connection URI
+ * Throws error only when actually trying to use MongoDB (lazy check)
+ */
+function getMongoUri(): string {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error('Please add MONGODB_URI to your .env file');
+  }
+  return uri;
+}
 
 // TypeScript interfaces
 interface MongoGlobal {
@@ -27,11 +32,10 @@ interface MongoGlobal {
 // Cache the MongoDB client and promise in global scope
 // This prevents creating multiple connections in development due to hot reloading
 declare global {
-  // eslint-disable-next-line no-var
   var _mongoClient: MongoGlobal | undefined;
 }
 
-let cached: MongoGlobal = global._mongoClient || { client: null, promise: null };
+const cached: MongoGlobal = global._mongoClient || { client: null, promise: null };
 
 if (!global._mongoClient) {
   global._mongoClient = cached;
@@ -43,6 +47,9 @@ if (!global._mongoClient) {
  * @returns Promise<MongoClient>
  */
 export async function getMongoClient(): Promise<MongoClient> {
+  // Lazy check for MONGODB_URI - only when actually trying to connect
+  const uri = getMongoUri();
+  
   // If we have a cached client, return it
   if (cached.client) {
     return cached.client;
@@ -50,7 +57,7 @@ export async function getMongoClient(): Promise<MongoClient> {
 
   // If we don't have a promise, create one
   if (!cached.promise) {
-    cached.promise = MongoClient.connect(uri!).then((client) => {
+    cached.promise = MongoClient.connect(uri).then((client) => {
       // Set connection options
       client.on('error', (err) => {
         console.error('MongoDB connection error:', err);
@@ -71,12 +78,15 @@ export async function getMongoClient(): Promise<MongoClient> {
  * Returns the promise directly without awaiting
  */
 export function getMongoClientPromise(): Promise<MongoClient> {
+  // Lazy check for MONGODB_URI - only when actually trying to connect
+  const uri = getMongoUri();
+  
   if (cached.client) {
     return Promise.resolve(cached.client);
   }
   
   if (!cached.promise) {
-    cached.promise = MongoClient.connect(uri!).then((client) => {
+    cached.promise = MongoClient.connect(uri).then((client) => {
       client.on('error', (err) => {
         console.error('MongoDB connection error:', err);
       });
@@ -104,7 +114,7 @@ export async function getDatabase(databaseName?: string): Promise<Db> {
  * @param databaseName - Optional database name
  * @returns Promise<Collection>
  */
-export async function getCollection<T = any>(
+export async function getCollection<T = unknown>(
   collectionName: string,
   databaseName?: string
 ): Promise<Collection<T>> {

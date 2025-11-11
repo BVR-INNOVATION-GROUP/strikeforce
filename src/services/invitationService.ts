@@ -2,7 +2,7 @@
  * Invitation Service - business logic for invitation links
  * PRD Reference: Section 4, Section 15 - Invitations
  */
-import { InvitationI, InvitationRole, InvitationStatus } from '@/src/models/invitation';
+import { InvitationI, InvitationRole } from '@/src/models/invitation';
 
 /**
  * Business logic layer for invitation operations
@@ -113,19 +113,14 @@ export const invitationService = {
    * PRD: One-time use; supports password set
    * @param token - Invitation token
    * @param password - User password
-   * @param name - User name
    * @returns Created user account
    */
-  useInvitation: async (token: string, password: string, name: string): Promise<{ user: any; invitation: InvitationI }> => {
+  useInvitation: async (token: string, password: string): Promise<{ user: unknown; invitation: InvitationI }> => {
     // Validate first
     const invitation = await invitationService.validateInvitation(token);
 
     if (!password || password.length < 8) {
       throw new Error("Password must be at least 8 characters");
-    }
-
-    if (!name || name.trim().length === 0) {
-      throw new Error("Name is required");
     }
 
     // Call API endpoint to create user account and mark invitation as used
@@ -137,22 +132,19 @@ export const invitationService = {
       body: JSON.stringify({
         token,
         password,
-        name: name.trim(),
       }),
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({ error: "Failed to accept invitation" }));
       throw new Error(errorData.error || "Failed to accept invitation");
     }
 
     const user = await response.json();
 
-    // Get updated invitation
-    const { invitationRepository } = await import('@/src/repositories/invitationRepository');
-    const updated = await invitationRepository.getById(invitation.id);
-
-    return { user, invitation: updated };
+    // Return the invitation we already have (no need to fetch updated version)
+    // The API route already marks it as used
+    return { user, invitation };
   },
 
   /**

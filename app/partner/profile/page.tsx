@@ -25,7 +25,7 @@ export default function PartnerProfile() {
         setLoading(false);
       }
     }
-  }, [user, _hasHydrated, router]);
+  }, [user, _hasHydrated, router, setLoading]);
 
   if (loading || !user) {
     return (

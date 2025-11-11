@@ -28,17 +28,67 @@ export interface Props {
     onAccept?: (applicationId: number) => void
     onReject?: (applicationId: number) => void
     onRecommend?: (applicationId: number) => void
+    onWithdraw?: (applicationId: number) => void
+    onTerminate?: (applicationId: number) => void
     formatDate: (dateString: string) => string
+    currentUserId?: string | number
+    userRole?: string
 }
 
 const ApplicationCard = (props: Props) => {
-    const { application, applicationData, hasAssignedApplication = false, onViewProfile, onMessage, onReassign, onAccept, onReject, onRecommend, formatDate } = props
+    const { 
+        application, 
+        applicationData, 
+        hasAssignedApplication = false, 
+        onViewProfile, 
+        onMessage, 
+        onReassign, 
+        onAccept, 
+        onReject, 
+        onRecommend,
+        onWithdraw,
+        onTerminate,
+        formatDate,
+        currentUserId,
+        userRole
+    } = props
+    
+    // Check if current user is a student and part of this application
+    // Handle both string and number IDs
+    const numericUserId = currentUserId !== undefined && currentUserId !== null
+      ? (typeof currentUserId === 'string' ? parseInt(currentUserId, 10) : Number(currentUserId))
+      : undefined
+    
+    // Convert studentIds to numbers for comparison (they might be strings or numbers)
+    const numericStudentIds = applicationData.studentIds.map(id => {
+      if (typeof id === 'string') {
+        return parseInt(id, 10);
+      }
+      return Number(id);
+    })
+    
+    // Check if user ID is in the studentIds array (using strict equality after conversion)
+    const isStudentViewingOwnApplication = userRole === 'student' && 
+      numericUserId !== undefined && 
+      numericUserId !== null &&
+      !isNaN(numericUserId) &&
+      numericStudentIds.some(id => Number(id) === Number(numericUserId))
     
     // Determine which actions to show based on application status
     // Hide accept/reject if there's already an assigned application
     const showManagementActions = (applicationData.status === "SUBMITTED" || applicationData.status === "SHORTLISTED" || applicationData.status === "WAITLIST") && !hasAssignedApplication
     const showReassign = applicationData.status === "ASSIGNED" && onReassign
     const showRecommendForAssigned = applicationData.status === "ASSIGNED" && onRecommend
+    // Only show message button if this application is assigned or if there's an assigned application
+    const showMessageButton = applicationData.status === "ASSIGNED" || hasAssignedApplication
+    
+    // Student actions
+    const canWithdraw = isStudentViewingOwnApplication && 
+        (applicationData.status === "SUBMITTED" || applicationData.status === "SHORTLISTED" || applicationData.status === "WAITLIST") &&
+        onWithdraw
+    const canTerminate = isStudentViewingOwnApplication && 
+        applicationData.status === "ASSIGNED" && 
+        onTerminate
 
     return (
         <div className="rounded-lg p-6 bg-pale hover:bg-very-pale transition-colors">
@@ -76,12 +126,14 @@ const ApplicationCard = (props: Props) => {
                 >
                     View Details
                 </Button>
-                <Button
-                    onClick={() => onMessage(application.id)}
-                    className="bg-primary text-[0.875rem] py-2 px-4"
-                >
-                    Message
-                </Button>
+                {showMessageButton && (
+                    <Button
+                        onClick={() => onMessage(application.id)}
+                        className="bg-primary text-[0.875rem] py-2 px-4"
+                    >
+                        Message
+                    </Button>
+                )}
                 
                 {/* Management actions for pending applications */}
                 {showManagementActions && (
@@ -130,6 +182,24 @@ const ApplicationCard = (props: Props) => {
                         className="bg-pale text-[0.875rem] py-2 px-4"
                     >
                         Reassign Group
+                    </Button>
+                )}
+                
+                {/* Student actions */}
+                {canWithdraw && (
+                    <Button
+                        onClick={() => onWithdraw && onWithdraw(application.id)}
+                        className="bg-orange-500 text-white text-[0.875rem] py-2 px-4"
+                    >
+                        Withdraw Application
+                    </Button>
+                )}
+                {canTerminate && (
+                    <Button
+                        onClick={() => onTerminate && onTerminate(application.id)}
+                        className="bg-red-500 text-white text-[0.875rem] py-2 px-4"
+                    >
+                        Terminate Contract
                     </Button>
                 )}
             </div>

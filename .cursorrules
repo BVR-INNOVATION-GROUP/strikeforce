@@ -74,7 +74,7 @@ StrikeForce is a Next.js-based web application for managing partnerships, projec
 
 ### Type Safety
 
-- **NEVER use `any` or `unknown`** - Always define proper TypeScript types
+- **NEVER use `unknown` or `unknown`** - Always define proper TypeScript types
 - Use interfaces for object shapes
 - Use union types for enums/status values
 - Type all function parameters and return values
@@ -278,7 +278,7 @@ The codebase follows **SOLID principles** to ensure maintainability and scalabil
      export type projectStatus = "in-progress" | "on-hold" | "completed";
      ```
    - All props must be typed with interfaces
-   - **NO `any` or `unknown`** - use proper types or generics
+   - **NO `unknown` or `unknown`** - use proper types or generics
 
 ### React Conventions
 
@@ -910,7 +910,7 @@ export const projectService = {
 - Benchmark UI from existing components
 - Use ONLY theme colors from `globals.css`
 - Extract to components folder when reusable
-- Type everything with proper TypeScript interfaces (NO `any` or `unknown`)
+- Type everything with proper TypeScript interfaces (NO `unknown` or `unknown`)
 - Use absolute imports (`@/src/...`)
 - Performance optimize before finalizing
 - **ONLY modify files directly related to the issue**
@@ -919,7 +919,7 @@ export const projectService = {
 ### Step 4: Verify
 
 - Check component size (< 150 lines)
-- Verify TypeScript (no errors, no `any`/`unknown`)
+- Verify TypeScript (no errors, no `unknown`/`unknown`)
 - Verify theme colors match `globals.css`
 - Test functionality
 - Check for regressions
@@ -932,7 +932,7 @@ export const projectService = {
 
 - Keep functions small (max 150 lines for components)
 - Extract sub-components when component grows
-- Use TypeScript interfaces for all props (NO `any` or `unknown`)
+- Use TypeScript interfaces for all props (NO `unknown` or `unknown`)
 - Follow composition pattern
 - Avoid prop drilling (use Zustand or context if needed)
 - Benchmark UI from existing components
@@ -1126,7 +1126,7 @@ export const projectRepository: ProjectRepository = {
 - Show user-friendly error messages
 - Log errors to console for debugging
 - Implement error boundaries for production
-- Type errors properly (NO `any`)
+- Type errors properly (NO `unknown`)
 
 ### Loading States
 
@@ -1165,7 +1165,7 @@ export const projectRepository: ProjectRepository = {
 Before submitting code, ensure:
 
 - [ ] Component size under 150 lines
-- [ ] TypeScript types defined for all props and functions (NO `any` or `unknown`)
+- [ ] TypeScript types defined for all props and functions (NO `unknown` or `unknown`)
 - [ ] Follows existing patterns and conventions
 - [ ] Properly modularized (core/base/screen separation)
 - [ ] Uses Zustand for global state (when applicable)
@@ -2092,8 +2092,8 @@ export interface ProjectCardProps {
   className?: string
 }
 
-// ❌ Bad: Using 'any' or inline types
-const ProjectCard = ({ project, onSelect }: any) => { ... }
+// ❌ Bad: Using 'unknown' or inline types
+const ProjectCard = ({ project, onSelect }: unknown) => { ... }
 ```
 
 #### 5. Error Handling
@@ -2429,7 +2429,7 @@ The architecture is scalable and ready for growth, with clear separation of conc
 - Use NextAuth for authentication
 - Only modify files related to the current issue
 - Follow SOLID principles
-- Type everything with TypeScript (NO `any` or `unknown`)
+- Type everything with TypeScript (NO `unknown` or `unknown`)
 - Maintain code style consistency
 - Comment your code (especially business logic and "why")
 - Avoid God functions - keep functions focused and small (20-30 lines target)

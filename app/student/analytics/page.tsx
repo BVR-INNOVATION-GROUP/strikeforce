@@ -28,10 +28,16 @@ export default function StudentAnalytics() {
     const fetchData = async () => {
       try {
         if (user?.id) {
-          const [dashboardStats, projectsData, applicationsData] = await Promise.all([
-            dashboardService.getStudentDashboardStats(user.id),
+          // Use API route for analytics stats
+          const statsResponse = await fetch(`/api/analytics/student?studentId=${user.id}`);
+          if (!statsResponse.ok) {
+            throw new Error("Failed to fetch analytics stats");
+          }
+          const dashboardStats = await statsResponse.json();
+
+          const [projectsData, applicationsData] = await Promise.all([
             projectService.getAllProjects(),
-            applicationService.getUserApplications(user.id),
+            applicationService.getUserApplications(user.id.toString()),
           ]);
           setStats(dashboardStats);
           setProjects(projectsData);
@@ -73,7 +79,7 @@ export default function StudentAnalytics() {
     const statusMap = applications.reduce((acc, app) => {
       const status = app.status === "SUBMITTED" ? "Submitted" :
         app.status === "SHORTLISTED" ? "Shortlisted" :
-        app.status === "WAITLISTED" ? "Waitlisted" :
+        app.status === "WAITLIST" ? "Waitlisted" :
         app.status === "ACCEPTED" ? "Accepted" :
         app.status === "REJECTED" ? "Rejected" : "Pending";
       acc[status] = (acc[status] || 0) + 1;

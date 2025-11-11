@@ -12,7 +12,7 @@ import { FileText } from "lucide-react";
 export interface Props {
   orgId: string;
   isUniversity?: boolean;
-  onKYCSubmit: (documentData: any) => Promise<void>;
+  onKYCSubmit: (documentData: unknown) => Promise<void>;
 }
 
 /**

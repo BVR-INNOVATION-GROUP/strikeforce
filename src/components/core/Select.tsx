@@ -83,7 +83,6 @@ const Select = (props: Props) => {
         }
 
         const triggerRect = triggerRef.current.getBoundingClientRect()
-        const viewportWidth = window.innerWidth
         const viewportHeight = window.innerHeight
 
         // Calculate available space above and below

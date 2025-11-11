@@ -8,6 +8,8 @@ import { ProjectI } from "@/src/models/project";
 import { UserI } from "@/src/models/user";
 import { projectService } from "@/src/services/projectService";
 import { applicationService } from "@/src/services/applicationService";
+import { supervisorRepository } from "@/src/repositories/supervisorRepository";
+import { userRepository } from "@/src/repositories/userRepository";
 
 export interface UseSupervisorRequestDataResult {
   projects: ProjectI[];
@@ -35,12 +37,6 @@ export function useSupervisorRequestData(
       }
 
       try {
-        const [allProjects, supervisorsData, requestsData] = await Promise.all([
-          projectService.getAllProjects(),
-          import("@/src/data/mockUsers.json"),
-          import("@/src/data/mockSupervisorRequests.json"),
-        ]);
-
         // Get user's applications to filter assigned projects
         // PRD: Students can only request supervisors for projects they're assigned to
         let userApplications;
@@ -58,19 +54,24 @@ export function useSupervisorRequestData(
             .map((app) => app.projectId.toString())
         );
 
+        // Load all data in parallel
+        const [allProjects, allUsers, userRequests] = await Promise.all([
+          projectService.getAllProjects(),
+          userRepository.getAll(),
+          supervisorRepository.getRequests(undefined, undefined, userId),
+        ]);
+
+        // Filter projects to only those where student is assigned
         const eligibleProjects = allProjects.filter((p) =>
           assignedProjectIds.has(p.id.toString())
         );
 
         setProjects(eligibleProjects);
 
-        const allUsers = supervisorsData.default as UserI[];
+        // Filter supervisors
         const supervisorUsers = allUsers.filter((u) => u.role === "supervisor");
         setSupervisors(supervisorUsers);
 
-        const userRequests = (requestsData.default as SupervisorRequestI[]).filter(
-          (r) => r.studentOrGroupId === userId || r.studentOrGroupId === "group-1"
-        );
         setRequests(userRequests);
       } catch (error) {
         console.error("Failed to load data:", error);

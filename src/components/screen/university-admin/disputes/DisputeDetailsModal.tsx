@@ -3,13 +3,13 @@
  */
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import SideModal from "@/src/components/base/SideModal";
 import Button from "@/src/components/core/Button";
 import StatusIndicator from "@/src/components/core/StatusIndicator";
 import { DisputeI } from "@/src/models/dispute";
 import { UserI } from "@/src/models/user";
-import { AlertCircle, Calendar, FileText, User } from "lucide-react";
+import { AlertCircle, Calendar, FileText } from "lucide-react";
 import { formatDateShort } from "@/src/utils/dateFormatters";
 import { getInitials, hasAvatar } from "@/src/utils/avatarUtils";
 

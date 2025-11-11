@@ -7,7 +7,7 @@ import StatCard from "@/src/components/core/StatCard";
 import LineChart from "@/src/components/base/LineChart";
 import BarChart from "@/src/components/base/BarChart";
 import { projectService } from "@/src/services/projectService";
-import { dashboardService, PartnerDashboardStats } from "@/src/services/dashboardService";
+import { dashboardService, DashboardStats } from "@/src/services/dashboardService";
 import { ProjectI } from "@/src/models/project";
 import { useAuthStore } from "@/src/store";
 import { Briefcase, DollarSign, Users, TrendingUp } from "lucide-react";
@@ -18,7 +18,7 @@ import { Briefcase, DollarSign, Users, TrendingUp } from "lucide-react";
 export default function PartnerDashboard() {
   const { user } = useAuthStore();
   const [projects, setProjects] = useState<ProjectI[]>([]);
-  const [stats, setStats] = useState<PartnerDashboardStats | null>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export default function PartnerDashboard() {
       try {
         const [projectsData, dashboardStats] = await Promise.all([
           projectService.getAllProjects(),
-          dashboardService.getPartnerDashboardStats(user?.id || "", user?.orgId),
+          dashboardService.getPartnerDashboardStats(user?.id?.toString() || "", user?.orgId?.toString()),
         ]);
         setProjects(projectsData);
         setStats(dashboardStats);

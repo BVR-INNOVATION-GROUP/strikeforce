@@ -44,6 +44,10 @@ export interface ProjectDetailModals {
   selectedRejectApplicationId: number | null;
   openRejectConfirm: (applicationId: number) => void;
   closeRejectConfirm: () => void;
+  isDeleteMilestoneConfirmOpen: boolean;
+  selectedDeleteMilestoneId: string | null;
+  openDeleteMilestoneConfirm: (milestoneId: string) => void;
+  closeDeleteMilestoneConfirm: () => void;
 }
 
 /**
@@ -78,6 +82,8 @@ export function useProjectDetailModals(): ProjectDetailModals {
   >(null);
   const [isApplicationDetailModalOpen, setIsApplicationDetailModalOpen] = useState(false);
   const [selectedApplicationDetailId, setSelectedApplicationDetailId] = useState<number | null>(null);
+  const [isDeleteMilestoneConfirmOpen, setIsDeleteMilestoneConfirmOpen] = useState(false);
+  const [selectedDeleteMilestoneId, setSelectedDeleteMilestoneId] = useState<string | null>(null);
 
   return {
     isMilestoneModalOpen,
@@ -161,6 +167,16 @@ export function useProjectDetailModals(): ProjectDetailModals {
     closeRejectConfirm: () => {
       setIsRejectConfirmOpen(false);
       setSelectedRejectApplicationId(null);
+    },
+    isDeleteMilestoneConfirmOpen,
+    selectedDeleteMilestoneId,
+    openDeleteMilestoneConfirm: (milestoneId: string) => {
+      setSelectedDeleteMilestoneId(milestoneId);
+      setIsDeleteMilestoneConfirmOpen(true);
+    },
+    closeDeleteMilestoneConfirm: () => {
+      setIsDeleteMilestoneConfirmOpen(false);
+      setSelectedDeleteMilestoneId(null);
     },
   };
 }

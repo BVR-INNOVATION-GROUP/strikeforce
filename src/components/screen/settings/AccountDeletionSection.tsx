@@ -5,7 +5,6 @@
 
 import React, { useState } from "react";
 import { useAuthStore } from "@/src/store";
-import { useRouter } from "next/navigation";
 import { useToast } from "@/src/hooks/useToast";
 import Card from "@/src/components/core/Card";
 import Button from "@/src/components/core/Button";
@@ -19,9 +18,8 @@ export interface Props {
 /**
  * Account deletion section component
  */
-const AccountDeletionSection = ({ userId }: Props) => {
+const AccountDeletionSection = ({ userId: _userId }: Props) => {
   const { logout } = useAuthStore();
-  const router = useRouter();
   const { showSuccess, showError } = useToast();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);

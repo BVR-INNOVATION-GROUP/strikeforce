@@ -20,7 +20,7 @@ export default function StudentDashboard() {
     const fetchData = async () => {
       try {
         if (user?.id) {
-          const dashboardStats = await dashboardService.getStudentDashboardStats(user.id);
+          const dashboardStats = await dashboardService.getStudentDashboardStats(user.id.toString());
           setStats(dashboardStats);
         }
       } catch (error) {
@@ -72,7 +72,7 @@ export default function StudentDashboard() {
 
       {/* Find Projects Section */}
       <Card className="mb-8">
-        <Link href="/student/projects" className="flex items-center gap-4 p-6 hover:bg-pale transition-colors rounded-lg">
+        <Link href="/student/find" className="flex items-center gap-4 p-6 hover:bg-pale transition-colors rounded-lg">
           <div className="p-4 rounded-lg bg-pale-primary">
             <Search size={24} className="text-primary" />
           </div>

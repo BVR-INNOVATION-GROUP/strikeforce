@@ -42,7 +42,7 @@ export const invitationRepository = {
   /**
    * Get invitation by ID
    */
-  getById: async (id: number): Promise<InvitationI> => {
+  getById: async (id: number | string): Promise<InvitationI> => {
     if (getUseMockData()) {
       try {
         const invitations = await readJsonFile<InvitationI>(

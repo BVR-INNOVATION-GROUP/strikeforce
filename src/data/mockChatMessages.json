@@ -1,1 +1,69 @@
-[]
+[
+  {
+    "id": 1,
+    "threadId": 1,
+    "senderId": 7,
+    "type": "TEXT",
+    "body": "Welcome team, please share initial findings from the Acholi hub interviews by Friday.",
+    "createdAt": "2025-11-08T09:05:00.000Z"
+  },
+  {
+    "id": 2,
+    "threadId": 1,
+    "senderId": 40,
+    "type": "TEXT",
+    "body": "Draft insights report uploaded. Key outages tied to solar maintenance gaps.",
+    "createdAt": "2025-11-09T17:15:00.000Z",
+    "attachments": ["/uploads/projects/chat/mtn-insights-draft.pdf"]
+  },
+  {
+    "id": 3,
+    "threadId": 1,
+    "senderId": 36,
+    "type": "TEXT",
+    "body": "Reviewed the report. Let's add visual of hub uptime trends per district.",
+    "createdAt": "2025-11-10T08:30:00.000Z"
+  },
+  {
+    "id": 4,
+    "threadId": 2,
+    "senderId": 15,
+    "type": "TEXT",
+    "body": "Remember to include farmer payment history in your dashboard handover next week.",
+    "createdAt": "2025-11-24T10:05:00.000Z"
+  },
+  {
+    "id": 5,
+    "threadId": 2,
+    "senderId": 50,
+    "type": "TEXT",
+    "body": "All pipelines running on schedule. Handover deck ready for Friday's review.",
+    "createdAt": "2025-12-16T13:40:00.000Z",
+    "attachments": ["/uploads/projects/chat/ubl-handover-deck.pptx"]
+  },
+  {
+    "id": 6,
+    "threadId": 3,
+    "senderId": 24,
+    "type": "TEXT",
+    "body": "Can we include year-on-year retention in the hackathon analytics dashboard?",
+    "createdAt": "2025-11-21T08:25:00.000Z"
+  },
+  {
+    "id": 7,
+    "threadId": 3,
+    "senderId": 54,
+    "type": "TEXT",
+    "body": "Yes, adding retention metric plus conversion funnel. Preview shared here.",
+    "createdAt": "2025-11-23T16:00:00.000Z",
+    "attachments": ["/uploads/projects/chat/outbox-retention-preview.png"]
+  },
+  {
+    "id": 8,
+    "threadId": 3,
+    "senderId": 23,
+    "type": "TEXT",
+    "body": "Looks great. Please schedule training with the analytics team early December.",
+    "createdAt": "2025-11-24T09:50:00.000Z"
+  }
+]

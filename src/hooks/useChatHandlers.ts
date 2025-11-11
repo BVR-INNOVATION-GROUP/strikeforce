@@ -86,8 +86,8 @@ export function useChatHandlers({
 
   const handleSendMessage = async (
     messageText: string,
-    threads: ChatThreadI[],
-    setThreads: (threads: ChatThreadI[]) => void
+    _threads: ChatThreadI[],
+    _setThreads: (threads: ChatThreadI[]) => void
   ) => {
     if (!messageText.trim() || !selectedThread || !userId) return;
 

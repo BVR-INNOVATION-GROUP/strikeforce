@@ -11,6 +11,7 @@ import { UserI } from "@/src/models/user";
 import { GroupI } from "@/src/models/group";
 import { userRepository } from "@/src/repositories/userRepository";
 import { groupRepository } from "@/src/repositories/groupRepository";
+import { useAuthStore } from "@/src/store";
 
 /**
  * University Admin Offers - issue offers to shortlisted applications
@@ -18,9 +19,15 @@ import { groupRepository } from "@/src/repositories/groupRepository";
  */
 export default function UniversityAdminOffers() {
   const [users, setUsers] = useState<Record<string, UserI>>({});
-  const [groups, setGroups] = useState<Record<number, GroupI>>({});
+  const [groups, setGroups] = useState<Record<string, GroupI>>({});
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedApplicationForDetails, setSelectedApplicationForDetails] = useState<ApplicationI | null>(null);
+
+  const { user, organization } = useAuthStore();
+  const universityId =
+    organization?.id ??
+    (user?.role === "university-admin" ? user?.orgId : user?.universityId) ??
+    null;
 
   const {
     applications,
@@ -34,7 +41,7 @@ export default function UniversityAdminOffers() {
     handleIssueOffer,
     handleSendOffer,
     resetForm,
-  } = useUniversityAdminOffers();
+  } = useUniversityAdminOffers(universityId);
 
   /**
    * Load users and groups data for avatars from backend
@@ -53,9 +60,9 @@ export default function UniversityAdminOffers() {
         });
         setUsers(usersMap);
 
-        const groupsMap: Record<number, GroupI> = {};
+        const groupsMap: Record<string, GroupI> = {};
         groupsList.forEach((group) => {
-          groupsMap[group.id] = group;
+          groupsMap[group.id.toString()] = group;
         });
         setGroups(groupsMap);
       } catch (error) {
@@ -70,13 +77,13 @@ export default function UniversityAdminOffers() {
    */
   const getStudentsForApplication = (application: ApplicationI): UserI[] => {
     if (application.applicantType === "GROUP" && application.groupId) {
-      const group = groups[application.groupId];
+      const group = groups[application.groupId.toString()];
       if (group) {
         const memberIds = [...(group.memberIds || []), group.leaderId].filter(Boolean);
-        return memberIds.map((id) => users[id]).filter(Boolean);
+        return memberIds.map((id) => users[id.toString()]).filter(Boolean);
       }
     } else {
-      return application.studentIds.map((id) => users[id]).filter(Boolean);
+      return application.studentIds.map((id) => users[id.toString()]).filter(Boolean);
     }
     return [];
   };
@@ -86,7 +93,7 @@ export default function UniversityAdminOffers() {
    */
   const getGroupForApplication = (application: ApplicationI): GroupI | undefined => {
     if (application.applicantType === "GROUP" && application.groupId) {
-      return groups[application.groupId];
+      return groups[application.groupId.toString()];
     }
     return undefined;
   };
@@ -137,7 +144,7 @@ export default function UniversityAdminOffers() {
               <ApplicationOfferCard
                 key={application.id}
                 application={application}
-                project={projects[application.projectId]}
+                project={projects[application.projectId.toString()]}
                 onIssueOffer={handleIssueOffer}
                 onViewDetails={handleViewDetails}
               />
@@ -168,7 +175,7 @@ export default function UniversityAdminOffers() {
           setSelectedApplicationForDetails(null);
         }}
         application={selectedApplicationForDetails}
-        project={selectedApplicationForDetails ? projects[selectedApplicationForDetails.projectId] : undefined}
+        project={selectedApplicationForDetails ? projects[selectedApplicationForDetails.projectId.toString()] : undefined}
         students={selectedApplicationForDetails ? getStudentsForApplication(selectedApplicationForDetails) : []}
         group={selectedApplicationForDetails ? getGroupForApplication(selectedApplicationForDetails) : undefined}
         onIssueOffer={handleIssueOffer}

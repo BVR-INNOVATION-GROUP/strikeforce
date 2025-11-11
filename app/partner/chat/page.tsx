@@ -27,7 +27,7 @@ export default function PartnerChat() {
   const { showSuccess, showError } = useToast();
 
   const chatHandlers = useChatHandlers({
-    userId: user?.id,
+    userId: user?.id?.toString(),
     selectedThread,
   });
 
@@ -36,7 +36,7 @@ export default function PartnerChat() {
       try {
         if (user) {
           setLoading(true);
-          const threadsData = await chatService.getUserThreads(user.id);
+          const threadsData = await chatService.getUserThreads(user.id.toString());
           setThreads(threadsData);
           if (threadsData.length > 0 && !selectedThread) {
             setSelectedThread(threadsData[0]);
@@ -80,7 +80,7 @@ export default function PartnerChat() {
       await chatHandlers.handleFinalizeProposal(proposalId);
       showSuccess('Proposal finalized! Milestone created successfully.');
     } catch (error: any) {
-      showError(error.message || 'Failed to finalize proposal. Please try again.');
+      showError(error?.message || 'Failed to finalize proposal. Please try again.');
     }
   };
 
@@ -107,7 +107,7 @@ export default function PartnerChat() {
                 messages={chatHandlers.messages}
                 users={chatHandlers.users}
                 proposals={chatHandlers.proposals}
-                currentUserId={user?.id}
+                currentUserId={user?.id?.toString()}
                 userRole="partner"
                 onFinalizeProposal={handleFinalizeProposal}
                 isFinalizing={chatHandlers.finalizingProposalId !== null}
@@ -133,7 +133,7 @@ export default function PartnerChat() {
       {selectedThread && (
         <MilestoneProposalForm
           open={isProposalModalOpen}
-          projectId={selectedThread.projectId || ""}
+          projectId={selectedThread.projectId?.toString() || ""}
           onClose={() => setIsProposalModalOpen(false)}
           onSubmit={handleProposalSubmit}
         />
@@ -142,4 +142,3 @@ export default function PartnerChat() {
     </div>
   );
 }
-

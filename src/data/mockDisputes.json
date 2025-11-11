@@ -1,1 +1,46 @@
-[]
+[
+  {
+    "id": 1,
+    "subjectType": "MILESTONE",
+    "subjectId": 3,
+    "reason": "Review feedback discrepancy",
+    "description": "Student flagged conflicting feedback on UBL laboratory data pipeline milestone and requested supervisor clarification.",
+    "evidence": ["/uploads/projects/disputes/ubl-feedback-thread.pdf"],
+    "status": "IN_REVIEW",
+    "level": "SUPERVISOR",
+    "raisedBy": 50,
+    "assignedTo": 38,
+    "createdAt": "2025-12-21T11:15:00.000Z",
+    "updatedAt": "2025-12-22T08:40:00.000Z"
+  },
+  {
+    "id": 2,
+    "subjectType": "PAYOUT",
+    "subjectId": 6,
+    "reason": "Delayed milestone payout",
+    "description": "Kyambogo Infrastructure Studio reported that milestone 6 payout has not reached the group account despite approval.",
+    "evidence": ["/uploads/projects/disputes/payout-request-email.eml"],
+    "status": "OPEN",
+    "level": "UNIVERSITY_ADMIN",
+    "raisedBy": 60,
+    "assignedTo": 31,
+    "createdAt": "2026-01-07T09:05:00.000Z",
+    "updatedAt": "2026-01-07T09:05:00.000Z"
+  },
+  {
+    "id": 3,
+    "subjectType": "APPLICATION",
+    "subjectId": 9,
+    "reason": "Score appeal",
+    "description": "Applicant requested reconsideration of WAITLIST decision citing additional airtime demand forecasts.",
+    "evidence": ["/uploads/projects/disputes/airtel-forecast.xlsx"],
+    "status": "RESOLVED",
+    "level": "SUPERVISOR",
+    "raisedBy": 63,
+    "assignedTo": 36,
+    "resolution": "Supervisor reviewed new analysis and maintained waitlist decision with added feedback.",
+    "createdAt": "2025-11-18T15:20:00.000Z",
+    "updatedAt": "2025-11-20T10:10:00.000Z",
+    "resolvedAt": "2025-11-20T10:10:00.000Z"
+  }
+]

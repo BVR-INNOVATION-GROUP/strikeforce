@@ -1,1 +1,236 @@
-[]
+[
+  {
+    "name": "BIST",
+    "departmentId": 1,
+    "createdAt": "2025-11-07T06:03:16.440Z",
+    "id": 1
+  },
+  {
+    "name": "B.SC",
+    "departmentId": 1,
+    "createdAt": "2025-11-07T06:12:09.372Z",
+    "id": 2
+  },
+  {
+    "name": "Bachelor of Civil Engineering",
+    "departmentId": 2,
+    "createdAt": "2025-09-18T09:00:00.000Z",
+    "id": 3
+  },
+  {
+    "name": "Bachelor of Mechanical Engineering",
+    "departmentId": 2,
+    "createdAt": "2025-09-18T09:30:00.000Z",
+    "id": 4
+  },
+  {
+    "name": "BSc Computer Science",
+    "departmentId": 3,
+    "createdAt": "2025-09-20T10:20:00.000Z",
+    "id": 5
+  },
+  {
+    "name": "BSc Software Engineering",
+    "departmentId": 3,
+    "createdAt": "2025-09-20T10:50:00.000Z",
+    "id": 6
+  },
+  {
+    "name": "BSc Electrical Engineering",
+    "departmentId": 4,
+    "createdAt": "2025-09-22T11:40:00.000Z",
+    "id": 7
+  },
+  {
+    "name": "Bachelor of Architecture",
+    "departmentId": 4,
+    "createdAt": "2025-09-22T12:05:00.000Z",
+    "id": 8
+  },
+  {
+    "name": "Bachelor of Commerce",
+    "departmentId": 5,
+    "createdAt": "2025-09-24T11:10:00.000Z",
+    "id": 9
+  },
+  {
+    "name": "Bachelor of Entrepreneurship",
+    "departmentId": 5,
+    "createdAt": "2025-09-24T11:40:00.000Z",
+    "id": 10
+  },
+  {
+    "name": "Bachelor of Business Administration",
+    "departmentId": 6,
+    "createdAt": "2025-09-25T09:15:00.000Z",
+    "id": 11
+  },
+  {
+    "name": "Bachelor of Procurement and Logistics",
+    "departmentId": 6,
+    "createdAt": "2025-09-25T09:45:00.000Z",
+    "id": 12
+  },
+  {
+    "name": "Bachelor of Laws",
+    "departmentId": 7,
+    "createdAt": "2025-09-26T10:00:00.000Z",
+    "id": 13
+  },
+  {
+    "name": "Bachelor of Human Rights and Governance",
+    "departmentId": 7,
+    "createdAt": "2025-09-26T10:30:00.000Z",
+    "id": 14
+  },
+  {
+    "name": "BSc Computer Engineering",
+    "departmentId": 8,
+    "createdAt": "2025-09-27T10:40:00.000Z",
+    "id": 15
+  },
+  {
+    "name": "BSc Information Technology",
+    "departmentId": 8,
+    "createdAt": "2025-09-27T11:05:00.000Z",
+    "id": 16
+  },
+  {
+    "name": "Bachelor of Medicine and Surgery",
+    "departmentId": 9,
+    "createdAt": "2025-09-28T12:20:00.000Z",
+    "id": 17
+  },
+  {
+    "name": "Bachelor of Nursing Science",
+    "departmentId": 9,
+    "createdAt": "2025-09-28T12:45:00.000Z",
+    "id": 18
+  },
+  {
+    "name": "BSc Agriculture",
+    "departmentId": 10,
+    "createdAt": "2025-09-29T09:10:00.000Z",
+    "id": 19
+  },
+  {
+    "name": "BSc Agribusiness Management",
+    "departmentId": 10,
+    "createdAt": "2025-09-29T09:40:00.000Z",
+    "id": 20
+  },
+  {
+    "name": "Bachelor of Education Science",
+    "departmentId": 11,
+    "createdAt": "2025-09-30T10:05:00.000Z",
+    "id": 21
+  },
+  {
+    "name": "Bachelor of Guidance and Counselling",
+    "departmentId": 11,
+    "createdAt": "2025-09-30T10:35:00.000Z",
+    "id": 22
+  },
+  {
+    "name": "BSc Information Technology",
+    "departmentId": 12,
+    "createdAt": "2025-10-01T11:45:00.000Z",
+    "id": 23
+  },
+  {
+    "name": "BSc Data Science",
+    "departmentId": 12,
+    "createdAt": "2025-10-01T12:10:00.000Z",
+    "id": 24
+  },
+  {
+    "name": "Bachelor of International Business",
+    "departmentId": 13,
+    "createdAt": "2025-10-02T10:15:00.000Z",
+    "id": 25
+  },
+  {
+    "name": "Bachelor of Finance and Accounting",
+    "departmentId": 13,
+    "createdAt": "2025-10-02T10:45:00.000Z",
+    "id": 26
+  },
+  {
+    "name": "BBA Accounting and Finance",
+    "departmentId": 14,
+    "createdAt": "2025-10-03T09:50:00.000Z",
+    "id": 27
+  },
+  {
+    "name": "Bachelor of Microfinance",
+    "departmentId": 14,
+    "createdAt": "2025-10-03T10:20:00.000Z",
+    "id": 28
+  },
+  {
+    "name": "Bachelor of Education Arts",
+    "departmentId": 15,
+    "createdAt": "2025-10-04T09:05:00.000Z",
+    "id": 29
+  },
+  {
+    "name": "Bachelor of Curriculum and Instruction",
+    "departmentId": 15,
+    "createdAt": "2025-10-04T09:30:00.000Z",
+    "id": 30
+  },
+  {
+    "name": "BSc Information Systems",
+    "departmentId": 16,
+    "createdAt": "2025-10-05T11:00:00.000Z",
+    "id": 31
+  },
+  {
+    "name": "BSc Multimedia and Graphics",
+    "departmentId": 16,
+    "createdAt": "2025-10-05T11:20:00.000Z",
+    "id": 32
+  },
+  {
+    "name": "Bachelor of Tourism Management",
+    "departmentId": 17,
+    "createdAt": "2025-10-06T12:20:00.000Z",
+    "id": 33
+  },
+  {
+    "name": "Bachelor of Hospitality and Hotel Management",
+    "departmentId": 17,
+    "createdAt": "2025-10-06T12:45:00.000Z",
+    "id": 34
+  },
+  {
+    "name": "BSc Industrial Engineering",
+    "departmentId": 18,
+    "createdAt": "2025-10-07T09:25:00.000Z",
+    "id": 35
+  },
+  {
+    "name": "BSc Mechanical and Manufacturing Engineering",
+    "departmentId": 18,
+    "createdAt": "2025-10-07T09:55:00.000Z",
+    "id": 36
+  },
+  {
+    "name": "BSc Environmental Science",
+    "departmentId": 19,
+    "createdAt": "2025-10-08T11:40:00.000Z",
+    "id": 37
+  },
+  {
+    "name": "BSc Climate Change and Disaster Management",
+    "departmentId": 19,
+    "createdAt": "2025-10-08T12:05:00.000Z",
+    "id": 38
+  },
+  {
+    "name": "BS. EG",
+    "departmentId": 2,
+    "createdAt": "2025-11-07T09:27:32.474Z",
+    "id": 39
+  }
+]

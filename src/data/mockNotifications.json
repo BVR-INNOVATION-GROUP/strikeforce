@@ -1,0 +1,178 @@
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "type": "info",
+    "title": "New Partner Registration",
+    "message": "A new partner organization has registered and requires KYC approval",
+    "read": false,
+    "link": "/super-admin/kyc",
+    "createdAt": "2025-01-15T10:30:00Z",
+    "updatedAt": "2025-01-15T10:30:00Z"
+  },
+  {
+    "id": 2,
+    "userId": 1,
+    "type": "success",
+    "title": "KYC Approved",
+    "message": "University KYC documents have been approved",
+    "read": false,
+    "link": "/super-admin/kyc",
+    "createdAt": "2025-01-15T09:15:00Z",
+    "updatedAt": "2025-01-15T09:15:00Z"
+  },
+  {
+    "id": 3,
+    "userId": 2,
+    "type": "info",
+    "title": "New Student Invitation",
+    "message": "Student invitation has been sent successfully",
+    "read": false,
+    "link": "/university-admin/students",
+    "createdAt": "2025-01-15T11:00:00Z",
+    "updatedAt": "2025-01-15T11:00:00Z"
+  },
+  {
+    "id": 4,
+    "userId": 2,
+    "type": "alert",
+    "title": "Supervisor Capacity Warning",
+    "message": "Supervisor Jane Doe has reached 80% capacity",
+    "read": true,
+    "link": "/university-admin/supervisors",
+    "createdAt": "2025-01-14T14:20:00Z",
+    "updatedAt": "2025-01-14T14:20:00Z"
+  },
+  {
+    "id": 5,
+    "userId": 4,
+    "type": "success",
+    "title": "Application Submitted",
+    "message": "Your application for 'E-Commerce Platform' has been submitted successfully",
+    "read": false,
+    "link": "/student/my-projects",
+    "createdAt": "2025-01-15T12:30:00Z",
+    "updatedAt": "2025-01-15T12:30:00Z"
+  },
+  {
+    "id": 6,
+    "userId": 4,
+    "type": "info",
+    "title": "Offer Received",
+    "message": "You have received an offer for the project 'Mobile App Development'",
+    "read": false,
+    "link": "/student/offers",
+    "createdAt": "2025-01-15T08:45:00Z",
+    "updatedAt": "2025-01-15T08:45:00Z"
+  },
+  {
+    "id": 7,
+    "userId": 4,
+    "type": "alert",
+    "title": "Milestone Due Soon",
+    "message": "Milestone 'Design Phase' is due in 2 days",
+    "read": true,
+    "link": "/student/projects",
+    "createdAt": "2025-01-13T10:00:00Z",
+    "updatedAt": "2025-01-13T10:00:00Z"
+  },
+  {
+    "id": 8,
+    "userId": 5,
+    "type": "info",
+    "title": "Supervisor Request",
+    "message": "Student Brian has requested you as supervisor for 'E-Commerce Platform'",
+    "read": false,
+    "link": "/supervisor/requests",
+    "createdAt": "2025-01-15T13:15:00Z",
+    "updatedAt": "2025-01-15T13:15:00Z"
+  },
+  {
+    "id": 9,
+    "userId": 5,
+    "type": "success",
+    "title": "Submission Ready for Review",
+    "message": "New submission for milestone 'Development Phase' is ready for your review",
+    "read": false,
+    "link": "/supervisor/reviews",
+    "createdAt": "2025-01-15T11:30:00Z",
+    "updatedAt": "2025-01-15T11:30:00Z"
+  },
+  {
+    "id": 10,
+    "userId": 7,
+    "type": "success",
+    "title": "Project Approved",
+    "message": "Your project 'E-Commerce Platform' has been approved and published",
+    "read": false,
+    "link": "/partner/projects",
+    "createdAt": "2025-01-15T14:00:00Z",
+    "updatedAt": "2025-01-15T14:00:00Z"
+  },
+  {
+    "id": 11,
+    "userId": 7,
+    "type": "info",
+    "title": "New Application",
+    "message": "A new group has applied to your project 'Mobile App Development'",
+    "read": false,
+    "link": "/partner/projects",
+    "createdAt": "2025-01-15T09:20:00Z",
+    "updatedAt": "2025-01-15T09:20:00Z"
+  },
+  {
+    "id": 12,
+    "userId": 7,
+    "type": "success",
+    "title": "Payment Released",
+    "message": "Payment for milestone 'Development Phase' has been released",
+    "read": true,
+    "link": "/partner/wallet",
+    "createdAt": "2025-01-14T16:45:00Z",
+    "updatedAt": "2025-01-14T16:45:00Z"
+  },
+  {
+    "id": 13,
+    "userId": 40,
+    "type": "info",
+    "title": "Supervisor Approved",
+    "message": "Dr. Kawuma approved your research findings for MTN Smart Rural Hubs milestone 1.",
+    "read": false,
+    "link": "/student/projects/2",
+    "createdAt": "2025-12-09T13:45:00Z",
+    "updatedAt": "2025-12-09T13:45:00Z"
+  },
+  {
+    "id": 14,
+    "userId": 50,
+    "type": "success",
+    "title": "Invoice Paid",
+    "message": "UBL has cleared the payment for your farmer analytics milestone.",
+    "read": true,
+    "link": "/student/wallet",
+    "createdAt": "2025-12-20T11:30:00Z",
+    "updatedAt": "2025-12-20T11:30:00Z"
+  },
+  {
+    "id": 15,
+    "userId": 24,
+    "type": "info",
+    "title": "New Analytics Preview",
+    "message": "Outbox analytics preview upload is available for review.",
+    "read": false,
+    "link": "/partner/projects/86",
+    "createdAt": "2025-11-23T16:05:00Z",
+    "updatedAt": "2025-11-23T16:05:00Z"
+  },
+  {
+    "userId": 10,
+    "type": "info",
+    "title": "Project Recommendation",
+    "message": "A partner has recommended an application for 'Stanbic SME Cashflow Coach'. Review and consider reaching out to the applicant.",
+    "read": false,
+    "link": "/partner/projects",
+    "createdAt": "2025-11-07T09:47:42.296Z",
+    "updatedAt": "2025-11-07T09:47:42.296Z",
+    "id": 16
+  }
+]

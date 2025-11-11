@@ -63,12 +63,17 @@ export function useSupervisorRequestForm(isModalOpen: boolean): UseSupervisorReq
 
     setSubmitting(true);
     try {
+      // Convert IDs to numbers for service
+      const numericProjectId = typeof formData.projectId === 'string' ? parseInt(formData.projectId, 10) : formData.projectId;
+      const numericSupervisorId = typeof formData.supervisorId === 'string' ? parseInt(formData.supervisorId, 10) : formData.supervisorId;
+      const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+
       // Use supervisorService to create request with business validation
       const { supervisorService } = await import("@/src/services/supervisorService");
       const newRequest = await supervisorService.createRequest({
-        projectId: formData.projectId,
-        studentOrGroupId: userId,
-        supervisorId: formData.supervisorId,
+        projectId: numericProjectId,
+        studentOrGroupId: numericUserId,
+        supervisorId: numericSupervisorId,
         message: requestMessage.trim(),
       });
 

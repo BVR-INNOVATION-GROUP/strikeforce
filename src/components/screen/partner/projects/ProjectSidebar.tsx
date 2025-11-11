@@ -39,6 +39,9 @@ export interface Props {
     onShareProject: () => void
     onReassignProject: () => void
     onDeleteProject: () => void
+    userRole?: string
+    isProjectOwner?: boolean
+    canEditProject?: boolean
 }
 
 const ProjectSidebar = (props: Props) => {
@@ -51,7 +54,8 @@ const ProjectSidebar = (props: Props) => {
         onExportDetails,
         onShareProject,
         onReassignProject,
-        onDeleteProject
+        onDeleteProject,
+        canEditProject = false
     } = props
 
     return (
@@ -70,13 +74,16 @@ const ProjectSidebar = (props: Props) => {
                 course={project.course}
             />
             <TeamMembersCard teamMembers={project.teamMembers} />
-            <QuickActionsCard
-                onEditProject={onEditProject}
-                onExportDetails={onExportDetails}
-                onShareProject={onShareProject}
-                onReassignProject={onReassignProject}
-                onDeleteProject={onDeleteProject}
-            />
+            {/* Only show Quick Actions for super-admins (read-only for all other roles) */}
+            {canEditProject && (
+                <QuickActionsCard
+                    onEditProject={onEditProject || (() => {})}
+                    onExportDetails={onExportDetails}
+                    onShareProject={onShareProject}
+                    onReassignProject={onReassignProject || (() => {})}
+                    onDeleteProject={onDeleteProject || (() => {})}
+                />
+            )}
         </div>
     )
 }

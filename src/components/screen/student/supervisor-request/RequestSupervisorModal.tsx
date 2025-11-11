@@ -51,7 +51,7 @@ const RequestSupervisorModal = ({
   onSubmit,
 }: Props) => {
   const [supervisorCapacities, setSupervisorCapacities] = useState<Record<string, { current: number; max: number }>>({});
-  const [loadingCapacities, setLoadingCapacities] = useState(false);
+  const [/* loadingCapacities */, setLoadingCapacities] = useState(false);
 
   /**
    * Load supervisor capacities when supervisor list changes

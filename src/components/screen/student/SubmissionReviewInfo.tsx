@@ -16,7 +16,7 @@ const SubmissionReviewInfo = () => {
         <li>Your submission will first be reviewed by the supervisor</li>
         <li>Supervisor will approve or request changes</li>
         <li>Once approved by supervisor, partner reviews and releases payment</li>
-        <li>You'll be notified at each step</li>
+        <li>You&apos;ll be notified at each step</li>
       </ul>
     </div>
   );

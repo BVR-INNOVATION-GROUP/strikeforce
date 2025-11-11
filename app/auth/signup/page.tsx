@@ -49,8 +49,8 @@ const SignUpPage = () => {
         {/* Info Note */}
         <div className="mt-6 p-4 bg-pale-primary rounded-lg">
           <p className="text-xs text-primary">
-            <strong>Note:</strong> Students are invited by university administrators. 
-            If you're a student, check your email for an invitation link.
+            <strong>Note:</strong> Students are invited by university administrators.
+            If you are a student, check your email for an invitation link.
           </p>
         </div>
 

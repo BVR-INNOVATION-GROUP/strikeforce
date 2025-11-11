@@ -5,14 +5,14 @@ import React from 'react'
 import Checkbox from '@/src/components/core/Checkbox'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 
-export interface Column<T> {
+export interface Column {
     key: string
     header: string
     sortable?: boolean
 }
 
 export interface Props<T> {
-    columns: Column<T>[]
+    columns: Column[]
     sortColumn: string | null
     sortDirection: 'asc' | 'desc'
     allSelected: boolean

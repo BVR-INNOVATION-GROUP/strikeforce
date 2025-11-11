@@ -38,8 +38,8 @@ const MilestoneReviewDetail = ({
   onNotesChange,
   onRisksChange,
   onProgressChange,
-  onApprove,
-  onRequestChanges,
+  onApprove: _onApprove,
+  onRequestChanges: _onRequestChanges,
   showApproveConfirm,
   showRequestChangesConfirm,
   onShowApproveConfirm,
@@ -108,7 +108,7 @@ const MilestoneReviewDetail = ({
         <TextArea
           value={risks}
           onChange={(e) => onRisksChange(e.target.value)}
-          placeholder="Identify any risks, concerns, or issues with this milestone submission..."
+          placeholder="Identify unknown risks, concerns, or issues with this milestone submission..."
           rows={3}
         />
       </div>

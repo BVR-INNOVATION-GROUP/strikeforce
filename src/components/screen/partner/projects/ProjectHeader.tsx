@@ -16,7 +16,7 @@ export interface Props {
 }
 
 const ProjectHeader = (props: Props) => {
-    const { title, status, createdAt, onBack, onOpenChat, formatDate } = props
+    const { title, status, createdAt, onOpenChat, formatDate } = props
 
     return (
         <div className="flex items-center gap-6">

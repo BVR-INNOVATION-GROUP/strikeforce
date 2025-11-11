@@ -77,7 +77,7 @@ const DisputeFormFields = ({
           onDescriptionChange(e.target.value);
           onClearError("description");
         }}
-        placeholder="Provide a detailed description of the dispute. Include relevant context, timelines, and what resolution you're seeking..."
+        placeholder="Provide a detailed description of the dispute. Include relevant context, timelines, and what resolution you&apos;re seeking..."
         rows={6}
         error={errors.description}
       />
@@ -119,7 +119,7 @@ const DisputeFormFields = ({
           <li>Level 3: University Admin → Super Admin (Final)</li>
         </ul>
         <p className="mt-2 text-xs text-muted">
-          Disputes are reviewed at each level before escalation. You'll be
+          Disputes are reviewed at each level before escalation. You will be
           notified at each step.
         </p>
       </div>

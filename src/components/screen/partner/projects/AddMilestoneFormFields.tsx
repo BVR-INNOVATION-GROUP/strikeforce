@@ -64,11 +64,11 @@ const AddMilestoneFormFields = ({
         error={errors.title}
       />
       <RichTextEditor
-        title="Scope"
+
         value={scope}
         onChange={onScopeChange}
         placeholder="Describe the milestone scope..."
-        rows={4}
+
       />
       <DatePicker
         title="Due Date *"
@@ -80,7 +80,7 @@ const AddMilestoneFormFields = ({
         min={new Date().toISOString().split("T")[0]}
         error={errors.dueDate}
         placeholder="Select due date"
-        onClearError={(field) => onClearError("dueDate" as keyof ValidationErrors)}
+        onClearError={() => onClearError("dueDate" as keyof ValidationErrors)}
       />
       <CurrencyInput
         title="Amount *"
@@ -96,7 +96,7 @@ const AddMilestoneFormFields = ({
         }}
         currencyError={errors.currency}
         amountError={errors.amount}
-        onClearError={onClearError}
+        // onClearError={onClearError}
         placeholder="0.00"
       />
     </div>

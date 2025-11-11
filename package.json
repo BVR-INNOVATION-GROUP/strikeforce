@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.11.1",
+    "@tiptap/extension-placeholder": "^3.10.2",
+    "@tiptap/react": "^3.10.2",
+    "@tiptap/starter-kit": "^3.10.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/multer": "^2.0.0",
     "bcryptjs": "^3.0.3",

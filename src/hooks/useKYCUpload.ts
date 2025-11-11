@@ -20,7 +20,7 @@ export interface UseKYCUploadResult {
   validate: () => boolean;
   uploadAndSubmit: (
     orgId: string,
-    onSubmit: (document: any) => Promise<void>,
+    onSubmit: (document: unknown) => Promise<void>,
     onSuccess: () => void
   ) => Promise<void>;
   reset: () => void;
@@ -29,10 +29,10 @@ export interface UseKYCUploadResult {
 /**
  * Hook for managing KYC document upload state and logic
  */
-export function useKYCUpload(
-  open: boolean
-): UseKYCUploadResult {
-  const [documentType, setDocumentTypeState] = useState<KycDocumentType | "">("");
+export function useKYCUpload(open: boolean): UseKYCUploadResult {
+  const [documentType, setDocumentTypeState] = useState<KycDocumentType | "">(
+    ""
+  );
   const [file, setFile] = useState<File | null>(null);
   const [expiresAt, setExpiresAtState] = useState("");
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -79,7 +79,7 @@ export function useKYCUpload(
 
   const uploadAndSubmit = async (
     orgId: string,
-    onSubmit: (document: any) => Promise<void>,
+    onSubmit: (document: unknown) => Promise<void>,
     onSuccess: () => void
   ) => {
     if (!validate()) {
@@ -149,9 +149,3 @@ export function useKYCUpload(
     reset,
   };
 }
-
-
-
-
-
-
