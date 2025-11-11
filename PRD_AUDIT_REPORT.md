@@ -11,7 +11,7 @@
 
 - ✅ **Completed:** Core infrastructure, Partner forms, basic Student forms
 - ⚠️ **In Progress:** Form validation across all roles
-- ❌ **Missing:** Critical application forms, milestone proposals, KYC uploads, dispute creation
+- ❌ **Missing:** Critical application forms, milestone proposals, KYC uploads, dispute creation.
 
 ---
 
