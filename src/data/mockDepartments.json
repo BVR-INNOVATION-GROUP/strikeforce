@@ -1,0 +1,116 @@
+[
+  {
+    "name": "art",
+    "universityId": 1,
+    "createdAt": "2025-11-07T05:43:18.687Z",
+    "id": 1
+  },
+  {
+    "name": "Faculty of Engineering",
+    "universityId": 1,
+    "createdAt": "2025-09-18T08:00:00.000Z",
+    "id": 2
+  },
+  {
+    "name": "School of Computing and Informatics",
+    "universityId": 3,
+    "createdAt": "2025-09-20T09:15:00.000Z",
+    "id": 3
+  },
+  {
+    "name": "College of Engineering Design Art and Technology",
+    "universityId": 3,
+    "createdAt": "2025-09-22T11:05:00.000Z",
+    "id": 4
+  },
+  {
+    "name": "Makerere Business School",
+    "universityId": 3,
+    "createdAt": "2025-09-24T10:30:00.000Z",
+    "id": 5
+  },
+  {
+    "name": "Faculty of Business Administration",
+    "universityId": 4,
+    "createdAt": "2025-09-25T08:45:00.000Z",
+    "id": 6
+  },
+  {
+    "name": "Faculty of Law",
+    "universityId": 4,
+    "createdAt": "2025-09-26T09:20:00.000Z",
+    "id": 7
+  },
+  {
+    "name": "Faculty of Computing and Informatics",
+    "universityId": 5,
+    "createdAt": "2025-09-27T10:10:00.000Z",
+    "id": 8
+  },
+  {
+    "name": "Faculty of Medicine",
+    "universityId": 5,
+    "createdAt": "2025-09-28T12:05:00.000Z",
+    "id": 9
+  },
+  {
+    "name": "Faculty of Agriculture and Environment",
+    "universityId": 6,
+    "createdAt": "2025-09-29T08:30:00.000Z",
+    "id": 10
+  },
+  {
+    "name": "School of Education and Humanities",
+    "universityId": 6,
+    "createdAt": "2025-09-30T09:55:00.000Z",
+    "id": 11
+  },
+  {
+    "name": "School of Computing and IT",
+    "universityId": 7,
+    "createdAt": "2025-10-01T11:15:00.000Z",
+    "id": 12
+  },
+  {
+    "name": "School of Business and Management",
+    "universityId": 7,
+    "createdAt": "2025-10-02T10:05:00.000Z",
+    "id": 13
+  },
+  {
+    "name": "Faculty of Business and Governance",
+    "universityId": 8,
+    "createdAt": "2025-10-03T09:40:00.000Z",
+    "id": 14
+  },
+  {
+    "name": "School of Education",
+    "universityId": 8,
+    "createdAt": "2025-10-04T08:55:00.000Z",
+    "id": 15
+  },
+  {
+    "name": "School of ICT",
+    "universityId": 9,
+    "createdAt": "2025-10-05T10:45:00.000Z",
+    "id": 16
+  },
+  {
+    "name": "School of Tourism and Hospitality Management",
+    "universityId": 9,
+    "createdAt": "2025-10-06T12:10:00.000Z",
+    "id": 17
+  },
+  {
+    "name": "Faculty of Engineering",
+    "universityId": 10,
+    "createdAt": "2025-10-07T08:20:00.000Z",
+    "id": 18
+  },
+  {
+    "name": "Faculty of Natural Resources and Environmental Sciences",
+    "universityId": 11,
+    "createdAt": "2025-10-08T11:30:00.000Z",
+    "id": 19
+  }
+]

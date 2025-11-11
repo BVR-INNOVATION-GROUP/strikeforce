@@ -1,0 +1,497 @@
+[
+  {
+    "name": "Kyambogo University",
+    "type": "UNIVERSITY",
+    "email": "kigongovincent625+ku@gmail.com",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Ntwali Andrew",
+      "phone": "+256756644325",
+      "address": "123 kenya",
+      "website": "",
+      "orgId": 1
+    },
+    "createdAt": "2025-11-06T13:35:18.500Z",
+    "updatedAt": "2025-11-06T13:42:21.842Z",
+    "id": 1
+  },
+  {
+    "name": "MTN UGANDA",
+    "type": "PARTNER",
+    "email": "kigongovincent625+mtn@gmail.com",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "kigongo micheal",
+      "phone": "+256756644325",
+      "address": "123 kampala, Lumumba AV",
+      "website": "",
+      "orgId": 2
+    },
+    "createdAt": "2025-11-07T07:15:13.843Z",
+    "updatedAt": "2025-11-07T09:21:28.627Z",
+    "id": 2
+  },
+  {
+    "name": "Makerere University",
+    "type": "UNIVERSITY",
+    "email": "partnerships@mak.ac.ug",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Dr. Sarah Bbumba",
+      "phone": "+256414543222",
+      "address": "Makerere Hill Road, Kampala",
+      "website": "https://www.mak.ac.ug",
+      "orgId": 3
+    },
+    "createdAt": "2025-09-15T08:00:00.000Z",
+    "updatedAt": "2025-10-20T09:30:00.000Z",
+    "id": 3
+  },
+  {
+    "name": "Uganda Christian University",
+    "type": "UNIVERSITY",
+    "email": "partnerships@ucu.ac.ug",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Rev. David Kansiime",
+      "phone": "+256312350800",
+      "address": "Bishop Tucker Road, Mukono",
+      "website": "https://www.ucu.ac.ug",
+      "orgId": 4
+    },
+    "createdAt": "2025-09-20T08:45:00.000Z",
+    "updatedAt": "2025-10-18T10:15:00.000Z",
+    "id": 4
+  },
+  {
+    "name": "Mbarara University of Science and Technology",
+    "type": "UNIVERSITY",
+    "email": "partnerships@must.ac.ug",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Dr. Sylvia Turyasingura",
+      "phone": "+256414668122",
+      "address": "Mbarara - Bushenyi Road, Mbarara",
+      "website": "https://www.must.ac.ug",
+      "orgId": 5
+    },
+    "createdAt": "2025-09-25T07:30:00.000Z",
+    "updatedAt": "2025-10-22T11:00:00.000Z",
+    "id": 5
+  },
+  {
+    "name": "Gulu University",
+    "type": "UNIVERSITY",
+    "email": "partnerships@gulu.ac.ug",
+    "kycStatus": "PENDING",
+    "billingProfile": {
+      "contactName": "Dr. Nelson Onono",
+      "phone": "+256471432129",
+      "address": "Laroo Division, Gulu City",
+      "website": "https://www.gu.ac.ug",
+      "orgId": 6
+    },
+    "createdAt": "2025-10-01T09:10:00.000Z",
+    "updatedAt": "2025-11-02T12:20:00.000Z",
+    "id": 6
+  },
+  {
+    "name": "Kampala International University",
+    "type": "UNIVERSITY",
+    "email": "partnerships@kiu.ac.ug",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Dr. Juliet Nabukeera",
+      "phone": "+256414267043",
+      "address": "Kansanga, Kampala",
+      "website": "https://www.kiu.ac.ug",
+      "orgId": 7
+    },
+    "createdAt": "2025-10-04T08:25:00.000Z",
+    "updatedAt": "2025-10-29T13:45:00.000Z",
+    "id": 7
+  },
+  {
+    "name": "Uganda Martyrs University",
+    "type": "UNIVERSITY",
+    "email": "partnerships@umu.ac.ug",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Sr. Angella Nakimera",
+      "phone": "+256382410611",
+      "address": "Nkozi, Mpigi District",
+      "website": "https://www.umu.ac.ug",
+      "orgId": 8
+    },
+    "createdAt": "2025-09-28T09:40:00.000Z",
+    "updatedAt": "2025-10-21T15:00:00.000Z",
+    "id": 8
+  },
+  {
+    "name": "Nkumba University",
+    "type": "UNIVERSITY",
+    "email": "partnerships@nkumbauniversity.ac.ug",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Assoc. Prof. Josephine Aseey",
+      "phone": "+256312301000",
+      "address": "Entebbe Road, Wakiso",
+      "website": "https://nkumbauniversity.ac.ug",
+      "orgId": 9
+    },
+    "createdAt": "2025-10-06T10:15:00.000Z",
+    "updatedAt": "2025-10-30T09:50:00.000Z",
+    "id": 9
+  },
+  {
+    "name": "Busitema University",
+    "type": "UNIVERSITY",
+    "email": "partnerships@busitema.ac.ug",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Dr. Stephen Ochola",
+      "phone": "+256465443610",
+      "address": "Busitema Campus, Tororo",
+      "website": "https://www.busitema.ac.ug",
+      "orgId": 10
+    },
+    "createdAt": "2025-10-08T07:55:00.000Z",
+    "updatedAt": "2025-10-26T14:35:00.000Z",
+    "id": 10
+  },
+  {
+    "name": "Kabale University",
+    "type": "UNIVERSITY",
+    "email": "partnerships@kab.ac.ug",
+    "kycStatus": "PENDING",
+    "billingProfile": {
+      "contactName": "Dr. Evelyne Nyesiga",
+      "phone": "+256392000040",
+      "address": "Buniary Road, Kabale",
+      "website": "https://www.kab.ac.ug",
+      "orgId": 11
+    },
+    "createdAt": "2025-10-10T11:05:00.000Z",
+    "updatedAt": "2025-11-01T08:25:00.000Z",
+    "id": 11
+  },
+  {
+    "name": "Airtel Uganda",
+    "type": "PARTNER",
+    "email": "partnerships@ug.airtel.com",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Agnes Nalwoga",
+      "phone": "+256312200200",
+      "address": "Wampewo Avenue, Kololo, Kampala",
+      "website": "https://www.airtel.co.ug",
+      "orgId": 12
+    },
+    "createdAt": "2025-10-05T08:00:00.000Z",
+    "updatedAt": "2025-11-03T09:45:00.000Z",
+    "id": 12
+  },
+  {
+    "name": "Stanbic Bank Uganda",
+    "type": "PARTNER",
+    "email": "enterprise@stanbic.com.ug",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "James Byaruhanga",
+      "phone": "+256312224600",
+      "address": "Stanbic Bank House, Kampala Road",
+      "website": "https://www.stanbicbank.co.ug",
+      "orgId": 13
+    },
+    "createdAt": "2025-10-07T09:20:00.000Z",
+    "updatedAt": "2025-11-04T12:05:00.000Z",
+    "id": 13
+  },
+  {
+    "name": "National Water and Sewerage Corporation",
+    "type": "PARTNER",
+    "email": "projects@nwsc.co.ug",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Eng. Silver Mugisha",
+      "phone": "+256313315800",
+      "address": "Plot 39, Jinja Road, Kampala",
+      "website": "https://www.nwsc.co.ug",
+      "orgId": 14
+    },
+    "createdAt": "2025-10-09T08:10:00.000Z",
+    "updatedAt": "2025-11-02T14:30:00.000Z",
+    "id": 14
+  },
+  {
+    "name": "Uganda National Roads Authority",
+    "type": "PARTNER",
+    "email": "partnerships@unra.go.ug",
+    "kycStatus": "PENDING",
+    "billingProfile": {
+      "contactName": "Allen Kagina",
+      "phone": "+256417300000",
+      "address": "Plot 3-5 New Port Bell Road, Kampala",
+      "website": "https://www.unra.go.ug",
+      "orgId": 15
+    },
+    "createdAt": "2025-10-12T07:40:00.000Z",
+    "updatedAt": "2025-11-05T10:15:00.000Z",
+    "id": 15
+  },
+  {
+    "name": "Vision Group",
+    "type": "PARTNER",
+    "email": "corporate@newvision.co.ug",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Don Wanyama",
+      "phone": "+256414337000",
+      "address": "Plot 19/21 First Street, Industrial Area, Kampala",
+      "website": "https://www.newvision.co.ug",
+      "orgId": 16
+    },
+    "createdAt": "2025-10-13T09:55:00.000Z",
+    "updatedAt": "2025-11-04T11:20:00.000Z",
+    "id": 16
+  },
+  {
+    "name": "SafeBoda",
+    "type": "PARTNER",
+    "email": "ops@safeboda.com",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Ricky Rapa Thomson",
+      "phone": "+256702900900",
+      "address": "Bukoto Crescent, Kampala",
+      "website": "https://www.safeboda.com/ug",
+      "orgId": 17
+    },
+    "createdAt": "2025-10-14T08:25:00.000Z",
+    "updatedAt": "2025-11-03T13:05:00.000Z",
+    "id": 17
+  },
+  {
+    "name": "Jumia Uganda",
+    "type": "PARTNER",
+    "email": "marketplace@jumia.ug",
+    "kycStatus": "PENDING",
+    "billingProfile": {
+      "contactName": "Ron Kawamara",
+      "phone": "+256414567800",
+      "address": "14th Floor, Victoria Towers, Kampala",
+      "website": "https://www.jumia.ug",
+      "orgId": 18
+    },
+    "createdAt": "2025-10-16T10:05:00.000Z",
+    "updatedAt": "2025-11-06T09:15:00.000Z",
+    "id": 18
+  },
+  {
+    "name": "Uganda Breweries Limited",
+    "type": "PARTNER",
+    "email": "community@ubl.co.ug",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Alfred Balinda",
+      "phone": "+256414505800",
+      "address": "Port Bell Road, Luzira, Kampala",
+      "website": "https://www.ugandabreweries.com",
+      "orgId": 19
+    },
+    "createdAt": "2025-10-18T09:35:00.000Z",
+    "updatedAt": "2025-11-05T15:25:00.000Z",
+    "id": 19
+  },
+  {
+    "name": "Nile Breweries Uganda",
+    "type": "PARTNER",
+    "email": "csr@nilebreweries.com",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Onapito Ekomoloit",
+      "phone": "+256392730200",
+      "address": "Jinja Road, Kampala",
+      "website": "https://www.nilebreweries.com",
+      "orgId": 20
+    },
+    "createdAt": "2025-10-19T07:50:00.000Z",
+    "updatedAt": "2025-11-03T10:40:00.000Z",
+    "id": 20
+  },
+  {
+    "name": "dfcu Bank",
+    "type": "PARTNER",
+    "email": "enterprise@dfcugroup.com",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Charles Mudiwa",
+      "phone": "+256312300000",
+      "address": "Plot 26 Kyadondo Road, Kampala",
+      "website": "https://www.dfcugroup.com",
+      "orgId": 21
+    },
+    "createdAt": "2025-10-20T08:45:00.000Z",
+    "updatedAt": "2025-11-02T12:55:00.000Z",
+    "id": 21
+  },
+  {
+    "name": "Cipla Quality Chemical Industries",
+    "type": "PARTNER",
+    "email": "partnerships@ciplaqci.com",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Ajay Kumar",
+      "phone": "+256417335000",
+      "address": "Plot 1-7, First Street, Luzira Industrial Park",
+      "website": "https://www.ciplaqcil.co.ug",
+      "orgId": 22
+    },
+    "createdAt": "2025-10-21T10:10:00.000Z",
+    "updatedAt": "2025-11-01T14:45:00.000Z",
+    "id": 22
+  },
+  {
+    "name": "Uganda Communications Commission",
+    "type": "PARTNER",
+    "email": "innovation@ucc.co.ug",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Irene Kaggwa Sewankambo",
+      "phone": "+256417333000",
+      "address": "Plot 42-44 Spring Road, Bugolobi, Kampala",
+      "website": "https://www.ucc.co.ug",
+      "orgId": 23
+    },
+    "createdAt": "2025-10-22T07:25:00.000Z",
+    "updatedAt": "2025-11-02T09:35:00.000Z",
+    "id": 23
+  },
+  {
+    "name": "Electricity Regulatory Authority",
+    "type": "PARTNER",
+    "email": "projects@era.go.ug",
+    "kycStatus": "PENDING",
+    "billingProfile": {
+      "contactName": "Ziria Tibalwa Waako",
+      "phone": "+256417712260",
+      "address": "Plot 15 Shimoni Road, Kampala",
+      "website": "https://www.era.go.ug",
+      "orgId": 24
+    },
+    "createdAt": "2025-10-24T08:05:00.000Z",
+    "updatedAt": "2025-11-06T11:50:00.000Z",
+    "id": 24
+  },
+  {
+    "name": "Uganda Coffee Development Authority",
+    "type": "PARTNER",
+    "email": "partnerships@ugandacoffee.go.ug",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Dr. Emmanuel Iyamulemye",
+      "phone": "+256313260372",
+      "address": "Coffee House, Plot 35 Jinja Road, Kampala",
+      "website": "https://ugandacoffee.go.ug",
+      "orgId": 25
+    },
+    "createdAt": "2025-10-25T09:15:00.000Z",
+    "updatedAt": "2025-11-05T13:30:00.000Z",
+    "id": 25
+  },
+  {
+    "name": "Roofings Group",
+    "type": "PARTNER",
+    "email": "csr@roofingsgroup.com",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Oliver Lalani",
+      "phone": "+256312242400",
+      "address": "Plot 126 Entebbe Road, Lubowa",
+      "website": "https://www.roofingsgroup.com",
+      "orgId": 26
+    },
+    "createdAt": "2025-10-26T07:35:00.000Z",
+    "updatedAt": "2025-11-04T14:10:00.000Z",
+    "id": 26
+  },
+  {
+    "name": "The Innovation Village Kampala",
+    "type": "PARTNER",
+    "email": "partnerships@innovationvillage.co.ug",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "CK Japheth",
+      "phone": "+256393194719",
+      "address": "Plot 5, Kimathi Avenue, Kampala",
+      "website": "https://innovationvillage.co.ug",
+      "orgId": 27
+    },
+    "createdAt": "2025-10-27T08:50:00.000Z",
+    "updatedAt": "2025-11-03T16:05:00.000Z",
+    "id": 27
+  },
+  {
+    "name": "Outbox Hub",
+    "type": "PARTNER",
+    "email": "hello@outbox.co.ug",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Richard Zulu",
+      "phone": "+256393100182",
+      "address": "Lumumba Avenue, Nakasero, Kampala",
+      "website": "https://outbox.co.ug",
+      "orgId": 28
+    },
+    "createdAt": "2025-10-28T09:05:00.000Z",
+    "updatedAt": "2025-11-05T08:40:00.000Z",
+    "id": 28
+  },
+  {
+    "name": "Tugende Uganda",
+    "type": "PARTNER",
+    "email": "partnerships@tugende.com",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Michael Wilkerson",
+      "phone": "+256392177226",
+      "address": "Ntinda Complex, Kampala",
+      "website": "https://www.tugende.com",
+      "orgId": 29
+    },
+    "createdAt": "2025-10-29T10:20:00.000Z",
+    "updatedAt": "2025-11-06T12:55:00.000Z",
+    "id": 29
+  },
+  {
+    "name": "Fenix International Uganda",
+    "type": "PARTNER",
+    "email": "community@fenixintl.com",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "Daniel Wilkins",
+      "phone": "+256417202400",
+      "address": "Plot 13, Seroma Road, Bugolobi",
+      "website": "https://www.engie-energyaccess.com",
+      "orgId": 30
+    },
+    "createdAt": "2025-10-30T08:40:00.000Z",
+    "updatedAt": "2025-11-06T09:50:00.000Z",
+    "id": 30
+  },
+  {
+    "name": "Muni University",
+    "type": "UNIVERSITY",
+    "email": "brian.ndyaguma@bvrdesign.africa",
+    "kycStatus": "APPROVED",
+    "billingProfile": {
+      "contactName": "brian ndyaguma",
+      "phone": "+256782065238",
+      "address": "Arua Clsoe",
+      "orgId": 31
+    },
+    "createdAt": "2025-11-07T09:25:27.651Z",
+    "updatedAt": "2025-11-07T09:25:27.651Z",
+    "id": 31
+  }
+]

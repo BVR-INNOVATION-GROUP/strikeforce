@@ -1,0 +1,84 @@
+[
+  {
+    "id": 1,
+    "partnerId": 7,
+    "lineItems": [
+      {
+        "description": "Connectivity needs assessment deliverable",
+        "quantity": 1,
+        "unitPrice": 25000000,
+        "total": 25000000
+      }
+    ],
+    "subtotal": 25000000,
+    "tax": 4500000,
+    "total": 29500000,
+    "currency": "UGX",
+    "status": "PAID",
+    "paidAt": "2025-12-20T11:15:00.000Z",
+    "createdAt": "2025-12-12T08:30:00.000Z"
+  },
+  {
+    "id": 2,
+    "partnerId": 15,
+    "lineItems": [
+      {
+        "description": "Sorghum farmer analytics MVP",
+        "quantity": 1,
+        "unitPrice": 18000000,
+        "total": 18000000
+      },
+      {
+        "description": "Training workshop",
+        "quantity": 1,
+        "unitPrice": 3500000,
+        "total": 3500000
+      }
+    ],
+    "subtotal": 21500000,
+    "tax": 3870000,
+    "total": 25370000,
+    "currency": "UGX",
+    "status": "SENT",
+    "dueDate": "2026-01-05T00:00:00.000Z",
+    "createdAt": "2025-12-22T10:20:00.000Z"
+  },
+  {
+    "id": 3,
+    "partnerId": 24,
+    "lineItems": [
+      {
+        "description": "Hackathon analytics dashboard",
+        "quantity": 1,
+        "unitPrice": 14500000,
+        "total": 14500000
+      }
+    ],
+    "subtotal": 14500000,
+    "tax": 2610000,
+    "total": 17110000,
+    "currency": "UGX",
+    "status": "PAID",
+    "paidAt": "2025-12-29T12:05:00.000Z",
+    "createdAt": "2025-12-05T11:35:00.000Z"
+  },
+  {
+    "id": 4,
+    "partnerId": 26,
+    "lineItems": [
+      {
+        "description": "Energy portfolio health dashboard",
+        "quantity": 1,
+        "unitPrice": 18800000,
+        "total": 18800000
+      }
+    ],
+    "subtotal": 18800000,
+    "tax": 3384000,
+    "total": 22184000,
+    "currency": "UGX",
+    "status": "SENT",
+    "dueDate": "2026-02-28T00:00:00.000Z",
+    "createdAt": "2025-12-21T09:50:00.000Z"
+  }
+]

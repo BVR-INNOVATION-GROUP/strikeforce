@@ -1,0 +1,155 @@
+/**
+ * Application Service - business logic for student applications to projects
+ * PRD Reference: Section 6 - Groups and Applications
+ */
+import { ApplicationI, ApplicationType } from '@/src/models/application';
+import { applicationRepository } from '@/src/repositories/applicationRepository';
+
+/**
+ * Business logic layer for application operations
+ */
+export const applicationService = {
+  /**
+   * Submit a new application
+   * @param applicationData - Application data to submit
+   * @returns Created application
+   */
+  submitApplication: async (applicationData: Partial<ApplicationI>): Promise<ApplicationI> => {
+    // Business validation
+    if (!applicationData.projectId) {
+      throw new Error("Project ID is required");
+    }
+
+    if (!applicationData.applicantType) {
+      throw new Error("Applicant type is required");
+    }
+
+    // Strip HTML tags for validation (statement is now HTML from rich text editor)
+    const stripHtml = (html: string): string => {
+      if (typeof window !== "undefined") {
+        const tmp = document.createElement("div");
+        tmp.innerHTML = html;
+        return tmp.textContent || tmp.innerText || "";
+      }
+      return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+    };
+
+    const plainTextStatement = stripHtml(applicationData.statement || "");
+    if (!applicationData.statement || plainTextStatement.length < 50) {
+      throw new Error("Application statement must be at least 50 characters");
+    }
+
+    if (!applicationData.studentIds || applicationData.studentIds.length === 0) {
+      throw new Error("At least one student is required");
+    }
+
+    if (applicationData.applicantType === "GROUP" && !applicationData.groupId) {
+      throw new Error("Group ID is required for group applications");
+    }
+
+    // Create application via repository
+    // Repository will generate numeric ID
+    return applicationRepository.create({
+      projectId: applicationData.projectId as number,
+      applicantType: applicationData.applicantType as ApplicationType,
+      studentIds: applicationData.studentIds,
+      groupId: applicationData.groupId,
+      statement: applicationData.statement.trim(),
+      status: "SUBMITTED",
+    });
+  },
+
+  /**
+   * Check if user has already applied to a project
+   * @param projectId - Project ID
+   * @param studentId - Student ID
+   * @returns True if already applied
+   */
+  hasApplied: async (projectId: string | number, studentId: string): Promise<boolean> => {
+    try {
+      const numericProjectId = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
+      const applications = await applicationRepository.getAll(numericProjectId);
+      return applications.some(
+        (app) => app.projectId === numericProjectId && app.studentIds.includes(studentId)
+      );
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * Get applications for a project
+   * @param projectId - Project ID
+   * @returns Array of applications
+   */
+  getProjectApplications: async (projectId: string | number): Promise<ApplicationI[]> => {
+    try {
+      const numericProjectId = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
+      return applicationRepository.getAll(numericProjectId);
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Get user's applications
+   * @param studentId - Student ID
+   * @returns Array of user's applications
+   */
+  getUserApplications: async (studentId: string): Promise<ApplicationI[]> => {
+    try {
+      return applicationRepository.getByUserId(studentId);
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Withdraw an application (student action)
+   * @param applicationId - Application ID
+   * @returns Updated application
+   */
+  withdrawApplication: async (applicationId: number): Promise<ApplicationI> => {
+    // Business validation - can only withdraw if status is SUBMITTED, SHORTLISTED, or WAITLIST
+    const application = await applicationRepository.getById(applicationId);
+    
+    if (application.status === "ASSIGNED") {
+      throw new Error("Cannot withdraw an assigned application. Use terminate contract instead.");
+    }
+    
+    if (application.status === "REJECTED" || application.status === "DECLINED") {
+      throw new Error("Cannot withdraw a rejected or declined application.");
+    }
+
+    // Update status to DECLINED (student withdrew)
+    return applicationRepository.update(applicationId, {
+      status: "DECLINED",
+      updatedAt: new Date().toISOString(),
+    });
+  },
+
+  /**
+   * Terminate contract (student action for assigned applications)
+   * @param applicationId - Application ID
+   * @returns Updated application
+   */
+  terminateContract: async (applicationId: number): Promise<ApplicationI> => {
+    // Business validation - can only terminate if status is ASSIGNED
+    const application = await applicationRepository.getById(applicationId);
+    
+    if (application.status !== "ASSIGNED") {
+      throw new Error("Can only terminate an assigned application.");
+    }
+
+    // Update status to DECLINED (student terminated)
+    return applicationRepository.update(applicationId, {
+      status: "DECLINED",
+      updatedAt: new Date().toISOString(),
+    });
+  },
+};
+
+
+
+
+

@@ -1,0 +1,159 @@
+[
+  {
+    "projectId": "1",
+    "applicantType": "INDIVIDUAL",
+    "studentIds": [4],
+    "statement": "<p><strong>heading</strong></p><p>Millions of trees are planted every year across Africa — yet too few survive. Ensigo Africa is fixing that by building a tech-driven native seed network that ensures every tree planted is traceable, viable, and ecologically appropriate.</p>",
+    "status": "",
+    "createdAt": "2025-11-07T08:15:38.284Z",
+    "updatedAt": "2025-11-07T13:02:40.786Z",
+    "id": 1,
+    "score": {
+      "applicationId": 1,
+      "autoScore": 70,
+      "manualSupervisorScore": 80,
+      "finalScore": 80,
+      "skillMatch": 80,
+      "portfolioScore": 75,
+      "ratingScore": 80,
+      "onTimeRate": 0.85,
+      "reworkRate": 0.1
+    }
+  },
+  {
+    "projectId": 2,
+    "applicantType": "INDIVIDUAL",
+    "studentIds": [40],
+    "statement": "<p>Leading the Makerere Smart Mobility Lab with experience building transport dashboards for Kampala Smart City.</p>",
+    "status": "SHORTLISTED",
+    "createdAt": "2025-11-08T09:20:00.000Z",
+    "updatedAt": "2025-11-10T10:15:00.000Z",
+    "id": 2,
+    "score": {
+      "applicationId": 2,
+      "autoScore": 86,
+      "manualSupervisorScore": 8,
+      "finalScore": 90,
+      "skillMatch": 92,
+      "portfolioScore": 85,
+      "ratingScore": 88,
+      "onTimeRate": 0.95,
+      "reworkRate": 0.05
+    }
+  },
+  {
+    "projectId": 6,
+    "applicantType": "GROUP",
+    "studentIds": [60, 61, 64, 68],
+    "groupId": 3,
+    "statement": "<p>The Kyambogo Infrastructure Studio has delivered GIS dashboards for Kampala Capital City Authority and is ready to support Airtel's rural coverage planning.</p>",
+    "status": "SUBMITTED",
+    "createdAt": "2025-11-09T11:05:00.000Z",
+    "updatedAt": "2025-11-09T11:05:00.000Z",
+    "id": 3
+  },
+  {
+    "projectId": 41,
+    "applicantType": "INDIVIDUAL",
+    "studentIds": [50],
+    "statement": "<p>Finance major specialising in agribusiness analytics proposing sorghum yield dashboards for UBL suppliers.</p>",
+    "status": "OFFERED",
+    "offerExpiresAt": "2025-11-20T23:59:59.000Z",
+    "createdAt": "2025-11-10T08:40:00.000Z",
+    "updatedAt": "2025-11-11T09:55:00.000Z",
+    "id": 4
+  },
+  {
+    "projectId": 71,
+    "applicantType": "GROUP",
+    "studentIds": [90, 91, 94, 95],
+    "groupId": 6,
+    "statement": "<p>Gulu Agro Data Guild brings expertise in mobile data collection and agribusiness advisory to digitise UCDA farmer traceability.</p>",
+    "status": "SUBMITTED",
+    "createdAt": "2025-11-11T12:25:00.000Z",
+    "updatedAt": "2025-11-11T12:25:00.000Z",
+    "id": 5
+  },
+  {
+    "projectId": 96,
+    "applicantType": "INDIVIDUAL",
+    "studentIds": [96],
+    "statement": "<p>Energy analytics specialist with experience analysing PAYG data for rural solar providers in Lango.</p>",
+    "status": "SUBMITTED",
+    "createdAt": "2025-11-12T07:30:00.000Z",
+    "updatedAt": "2025-11-12T07:30:00.000Z",
+    "id": 6
+  },
+  {
+    "projectId": 46,
+    "applicantType": "GROUP",
+    "studentIds": [80, 81, 82, 86],
+    "groupId": 5,
+    "statement": "<p>MUST Telehealth Builders offer IoT and agronomy expertise to support Nile Breweries' field lab operations.</p>",
+    "status": "SHORTLISTED",
+    "createdAt": "2025-11-12T09:15:00.000Z",
+    "updatedAt": "2025-11-13T10:45:00.000Z",
+    "id": 7
+  },
+  {
+    "projectId": 11,
+    "applicantType": "INDIVIDUAL",
+    "studentIds": [52],
+    "statement": "<p>Entrepreneurship student with strong SME analytics experience ready to support Stanbic's cashflow coach.</p>",
+    "status": "ASSIGNED",
+    "createdAt": "2025-11-12T11:20:00.000Z",
+    "updatedAt": "2025-11-14T08:05:00.000Z",
+    "id": 8
+  },
+  {
+    "projectId": 6,
+    "applicantType": "INDIVIDUAL",
+    "studentIds": [63],
+    "statement": "<p>Statistics student proposing to enhance Airtel's coverage planner with demand forecasting models.</p>",
+    "status": "WAITLIST",
+    "createdAt": "2025-11-13T07:40:00.000Z",
+    "updatedAt": "2025-11-13T07:40:00.000Z",
+    "id": 9
+  },
+  {
+    "projectId": 56,
+    "applicantType": "INDIVIDUAL",
+    "studentIds": [58],
+    "statement": "<p>Mobile developer with PAYG experience ready to build predictive maintenance dashboards for Cipla's production line.</p>",
+    "status": "SUBMITTED",
+    "createdAt": "2025-11-13T08:15:00.000Z",
+    "updatedAt": "2025-11-13T08:15:00.000Z",
+    "id": 10
+  },
+  {
+    "projectId": 32,
+    "applicantType": "GROUP",
+    "studentIds": [40, 41, 42],
+    "groupId": 2,
+    "statement": "<p>Mak Smart Mobility Lab proposing campus mobility pass architecture with SafeBoda integration.</p>",
+    "status": "ACCEPTED",
+    "createdAt": "2025-11-14T09:05:00.000Z",
+    "updatedAt": "2025-11-15T08:20:00.000Z",
+    "id": 11
+  },
+  {
+    "projectId": 41,
+    "applicantType": "INDIVIDUAL",
+    "studentIds": [59],
+    "statement": "<p>Business analytics student specialising in Power BI accepted offer to support UBL sorghum analytics.</p>",
+    "status": "ACCEPTED",
+    "createdAt": "2025-11-14T10:40:00.000Z",
+    "updatedAt": "2025-11-16T07:55:00.000Z",
+    "id": 12
+  },
+  {
+    "projectId": 86,
+    "applicantType": "INDIVIDUAL",
+    "studentIds": [54],
+    "statement": "<p>Software engineer leading analytics for Outbox hackathons seeks to build impact dashboards.</p>",
+    "status": "SUBMITTED",
+    "createdAt": "2025-11-15T08:50:00.000Z",
+    "updatedAt": "2025-11-15T08:50:00.000Z",
+    "id": 13
+  }
+]

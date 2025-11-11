@@ -1,0 +1,124 @@
+[
+  {
+    "email": "kigongovincent625+kv@gmail.com",
+    "role": "student",
+    "universityId": 1,
+    "token": "af0d0dd401b13bb68638de24612dc8f31ed87f95808f6396b42b98c71b8adb46",
+    "expiresAt": "2025-11-14T06:07:18.242Z",
+    "status": "PENDING",
+    "createdAt": "2025-11-07T06:07:18.383Z",
+    "id": 1
+  },
+  {
+    "email": "kigongovincent625+kv2@gmail.com",
+    "role": "student",
+    "universityId": 1,
+    "token": "fe0d6d49cb13df218f03fb89d637ef64d618f1f8c4c03542f70d7e43a88f824e",
+    "expiresAt": "2025-11-14T06:17:36.650Z",
+    "status": "PENDING",
+    "createdAt": "2025-11-07T06:17:36.727Z",
+    "id": 2
+  },
+  {
+    "email": "kigongovincent625+v@gmail.com",
+    "role": "student",
+    "universityId": 1,
+    "token": "14fa0e3add9aa2d11744e9c70205654bd8e44c95b41630202f00a1bd1a0bd538",
+    "expiresAt": "2025-11-14T06:30:34.971Z",
+    "status": "PENDING",
+    "createdAt": "2025-11-07T06:30:35.073Z",
+    "id": 3
+  },
+  {
+    "email": "kigongovincent625+v2@gmail.com",
+    "role": "student",
+    "universityId": 1,
+    "token": "cc1daccde5149162844ba050b62bd196c81ec8e7099e21ead9bc7624fe21fc6d",
+    "expiresAt": "2025-11-14T06:32:09.205Z",
+    "status": "PENDING",
+    "createdAt": "2025-11-07T06:32:09.333Z",
+    "id": 4
+  },
+  {
+    "email": "kigongovincent625+v4@gmail.com",
+    "role": "student",
+    "universityId": 1,
+    "token": "741cfbaf1618466fcea1c902c1b6ee91a0a6d29c15ec4ff21505281cdd3b6a32",
+    "expiresAt": "2025-11-14T06:38:33.175Z",
+    "status": "USED",
+    "createdAt": "2025-11-07T06:38:33.175Z",
+    "id": 5,
+    "usedAt": "2025-11-07T06:46:44.155Z"
+  },
+  {
+    "email": "kigongovincent625+jane@gmail.com",
+    "role": "supervisor",
+    "universityId": 1,
+    "token": "a426633ee86308c0d0bc88abe6924a236d536bbf24e8128bd4d54acf723927ce",
+    "expiresAt": "2025-11-14T06:55:02.252Z",
+    "status": "PENDING",
+    "createdAt": "2025-11-07T06:55:02.252Z",
+    "id": 6
+  },
+  {
+    "email": "kigongovincent625+b1@gmail.com",
+    "role": "student",
+    "universityId": 1,
+    "token": "36c854e24e8c649e80d40190d1e5dc3274fd4b4d87dcea5405228b5267310f9b",
+    "expiresAt": "2025-11-14T07:11:54.692Z",
+    "status": "PENDING",
+    "createdAt": "2025-11-07T07:11:54.692Z",
+    "id": 7
+  },
+  {
+    "email": "innovation@mak.ac.ug",
+    "role": "university-admin",
+    "orgId": 3,
+    "token": "0f4fb317eaf541e49a4aa645dfb9dc38",
+    "expiresAt": "2025-11-30T09:00:00.000Z",
+    "status": "USED",
+    "createdAt": "2025-11-15T09:10:00.000Z",
+    "id": 8,
+    "usedAt": "2025-11-16T08:05:00.000Z"
+  },
+  {
+    "email": "soroti.agrohub@tugende.com",
+    "role": "partner",
+    "orgId": 29,
+    "token": "abf94d2f458f4c7fab9c77df3abdde24",
+    "expiresAt": "2025-11-25T10:30:00.000Z",
+    "status": "PENDING",
+    "createdAt": "2025-11-18T07:45:00.000Z",
+    "id": 9
+  },
+  {
+    "email": "uclimate@kab.ac.ug",
+    "role": "student",
+    "universityId": 11,
+    "token": "ce194c41f6c44ec1b1f5fa61f82176a6",
+    "expiresAt": "2025-11-29T12:00:00.000Z",
+    "status": "PENDING",
+    "createdAt": "2025-11-19T11:25:00.000Z",
+    "id": 10
+  },
+  {
+    "email": "analytics@outbox.co.ug",
+    "role": "partner",
+    "orgId": 28,
+    "token": "2e3aff3b1e58400ba3cf583438db03d9",
+    "expiresAt": "2025-11-27T18:00:00.000Z",
+    "status": "PENDING",
+    "createdAt": "2025-11-19T07:05:00.000Z",
+    "id": 11
+  },
+  {
+    "email": "b.kisitu@nkumba.ac.ug",
+    "role": "student",
+    "universityId": 9,
+    "token": "2cdf1db1825340d9ad9f5cf7a0f0c3b3",
+    "expiresAt": "2025-11-28T09:00:00.000Z",
+    "status": "PENDING",
+    "createdAt": "2025-11-20T06:55:00.000Z",
+    "id": 12
+  }
+]

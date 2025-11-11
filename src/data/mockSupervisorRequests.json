@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "projectId": 2,
+    "studentOrGroupId": 40,
+    "supervisorId": 36,
+    "status": "APPROVED",
+    "message": "Brian has requested mentorship for the rural hubs analytics milestone.",
+    "createdAt": "2025-11-08T09:45:00.000Z",
+    "updatedAt": "2025-11-09T08:30:00.000Z"
+  },
+  {
+    "id": 2,
+    "projectId": 32,
+    "studentOrGroupId": 2,
+    "supervisorId": 37,
+    "status": "APPROVED",
+    "message": "Kyambogo Infrastructure Studio seeks structural feedback on SafeBoda pilot architecture.",
+    "createdAt": "2025-11-14T09:20:00.000Z",
+    "updatedAt": "2025-11-07T09:40:38.230Z"
+  },
+  {
+    "id": 3,
+    "projectId": 46,
+    "studentOrGroupId": 5,
+    "supervisorId": 38,
+    "status": "APPROVED",
+    "message": "MUST Telehealth Builders request clinical oversight for Nile Breweries field data pilot.",
+    "createdAt": "2025-11-12T10:05:00.000Z",
+    "updatedAt": "2025-11-13T11:15:00.000Z"
+  },
+  {
+    "id": 4,
+    "projectId": 71,
+    "studentOrGroupId": 6,
+    "supervisorId": 37,
+    "status": "PENDING",
+    "message": "UCDA traceability team requests support on enumerator training validation.",
+    "createdAt": "2025-11-16T12:45:00.000Z",
+    "updatedAt": "2025-11-16T12:45:00.000Z"
+  },
+  {
+    "projectId": 32,
+    "supervisorId": 36,
+    "studentOrGroupId": 40,
+    "status": "PENDING",
+    "message": "",
+    "createdAt": "2025-11-07T11:25:53.275Z",
+    "updatedAt": "2025-11-07T11:25:53.275Z",
+    "id": 5
+  }
+]
