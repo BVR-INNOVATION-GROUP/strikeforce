@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Button from "@/src/components/core/Button";
 import { useToast } from "@/src/hooks/useToast";
 import { DepartmentI } from "@/src/models/project";
@@ -10,25 +11,32 @@ import ConfirmationDialog from "@/src/components/base/ConfirmationDialog";
 import Input from "@/src/components/core/Input";
 import FileUpload from "@/src/components/base/FileUpload";
 import DepartmentCard from "@/src/components/screen/university-admin/departments/DepartmentCard";
-import DepartmentDetailsModal from "@/src/components/screen/university-admin/departments/DepartmentDetailsModal";
 import { downloadDepartmentsTemplate } from "@/src/utils/csvTemplateDownload";
 import { Download } from "lucide-react";
-import { departmentService } from "@/src/services/departmentService";
-import { useAuthStore } from "@/src/store";
+import {
+  GET,
+  POST,
+  PUT,
+  DELETE_REQ,
+  SourceDepartment,
+  SourceCourse,
+  transformDepartment,
+  transformDepartments,
+  transformCourses,
+} from "@/base";
 
 /**
  * University Admin Departments - manage university departments
  * PRD Reference: Section 4 - University Admin can add departments via manual/bulk uploads
  */
 export default function UniversityAdminDepartments() {
+  const router = useRouter();
   const { showSuccess, showError } = useToast();
-  const { user, organization } = useAuthStore();
   const [departments, setDepartments] = useState<DepartmentI[]>([]);
+  const [programmeCounts, setProgrammeCounts] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBulkUploadModalOpen, setIsBulkUploadModalOpen] = useState(false);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [selectedDepartment, setSelectedDepartment] = useState<DepartmentI | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [editingDepartment, setEditingDepartment] = useState<DepartmentI | null>(null);
   const [formData, setFormData] = useState({ name: "" });
@@ -37,14 +45,8 @@ export default function UniversityAdminDepartments() {
   const [departmentToDelete, setDepartmentToDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    // For university-admin, use organization.id or user.orgId
-    const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
-    if (universityId) {
-      loadDepartments();
-    } else {
-      setLoading(false);
-    }
-  }, [user?.orgId, user?.universityId, organization?.id]);
+    loadDepartments();
+  }, []);
 
   /**
    * Load departments from backend
@@ -52,16 +54,32 @@ export default function UniversityAdminDepartments() {
   const loadDepartments = async () => {
     try {
       setLoading(true);
-      // For university-admin, use organization.id or user.orgId
-      const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
-      if (!universityId) {
-        setLoading(false);
-        return;
-      }
 
-      const numericUniversityId = typeof universityId === 'string' ? parseInt(universityId, 10) : universityId;
-      const departmentsData = await departmentService.getAllDepartments(numericUniversityId);
-      setDepartments(departmentsData);
+      const { data, status, msg } = await GET<SourceDepartment[]>("api/v1/departments");
+      const normalizedData = Array.isArray(data) ? data : [];
+      const transformedDepartments = transformDepartments(normalizedData);
+      setDepartments(transformedDepartments);
+
+      // Fetch programme counts for each department
+      const counts: Record<number, number> = {};
+      await Promise.all(
+        transformedDepartments.map(async (dept) => {
+          try {
+            const coursesResponse = await GET<SourceCourse[]>(`api/v1/courses?dept=${dept.id}`);
+            const courses = Array.isArray(coursesResponse.data) ? coursesResponse.data : [];
+            counts[dept.id] = courses.length;
+          } catch (error) {
+            console.error(`Failed to load courses for department ${dept.id}:`, error);
+            counts[dept.id] = 0;
+          }
+        })
+      );
+      setProgrammeCounts(counts);
+
+      if (status != 200) {
+        // showError(msg)
+        // return
+      }
     } catch (error) {
       console.error("Failed to load departments:", error);
       showError("Failed to load departments");
@@ -88,35 +106,40 @@ export default function UniversityAdminDepartments() {
   const handleSubmit = async () => {
     if (!validate()) return;
 
-    // For university-admin, use organization.id or user.orgId
-    const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
-    if (!universityId) {
-      showError("University ID not found. Please log in again.");
-      return;
-    }
-
     try {
-      const numericUniversityId = typeof universityId === 'string' ? parseInt(universityId, 10) : universityId;
-
       if (editingDepartment) {
-        // Update existing department
-        const updated = await departmentService.updateDepartment(
-          editingDepartment.id,
+        if (!editingDepartment.id) {
+          showError("Invalid department: missing ID");
+          return;
+        }
+        const deptId = typeof editingDepartment.id === "number"
+          ? editingDepartment.id.toString()
+          : editingDepartment.id;
+        const response = await PUT<SourceDepartment>(
+          `api/v1/departments/${deptId}`,
           { name: formData.name }
         );
-        setDepartments(
-          departments.map((d) =>
-            d.id === editingDepartment.id ? updated : d
+        const updatedDepartment = response.data
+          ? transformDepartment(response.data)
+          : { ...editingDepartment, name: formData.name };
+        setDepartments((prev) =>
+          prev.map((d) =>
+            d.id === updatedDepartment.id ? updatedDepartment : d
           )
         );
         showSuccess("Department updated successfully");
       } else {
-        // Create new department
-        const newDepartment = await departmentService.createDepartment({
+        const { data, status, msg } = await POST<SourceDepartment>("api/v1/departments", {
           name: formData.name,
-          universityId: numericUniversityId,
         });
-        setDepartments([...departments, newDepartment]);
+
+        if (status != 201) {
+          showError(msg);
+          return;
+        }
+
+        const newDepartment = transformDepartment(data);
+        setDepartments((prev) => [...prev, newDepartment]);
         showSuccess("Department created successfully");
       }
       handleClose();
@@ -130,6 +153,10 @@ export default function UniversityAdminDepartments() {
    * Handle delete department click - show confirmation
    */
   const handleDeleteClick = (departmentId: string) => {
+    if (!departmentId || departmentId.trim() === "") {
+      showError("Invalid department ID");
+      return;
+    }
     setDepartmentToDelete(departmentId);
     setShowDeleteConfirm(true);
   };
@@ -141,37 +168,36 @@ export default function UniversityAdminDepartments() {
     if (!departmentToDelete) return;
 
     try {
-      await departmentService.deleteDepartment(departmentToDelete);
-      
-      // Update UI immediately using functional update to ensure latest state
+      await DELETE_REQ(`api/v1/departments/${departmentToDelete}`);
+
       setDepartments((prevDepartments) =>
-        prevDepartments.filter((d) => d.id.toString() !== departmentToDelete)
+        prevDepartments.filter((d) => d.id?.toString() !== departmentToDelete)
       );
-      
+
       showSuccess("Department deleted successfully");
       setShowDeleteConfirm(false);
       setDepartmentToDelete(null);
-      
-      // Silently reload in background to ensure consistency with backend
-      // Don't show loading state since UI is already updated
-      const universityId = organization?.id || (user?.role === "university-admin" ? user?.orgId : user?.universityId);
-      if (universityId) {
-        const numericUniversityId = typeof universityId === 'string' ? parseInt(universityId, 10) : universityId;
-        departmentService.getAllDepartments(numericUniversityId)
-          .then((departmentsData) => {
-            setDepartments(departmentsData);
-          })
-          .catch((error) => {
-            console.error("Failed to reload departments:", error);
-            // Don't show error to user since UI is already updated
-          });
-      }
+
+      // Reload list silently to ensure consistency
+      loadDepartments();
     } catch (error) {
       console.error("Failed to delete department:", error);
       showError("Failed to delete department. Please try again.");
       setShowDeleteConfirm(false);
       setDepartmentToDelete(null);
     }
+  };
+
+  /**
+   * Handle department selection - navigate to details page
+   */
+  const handleSelect = (department: DepartmentI) => {
+    if (!department.id) {
+      showError("Invalid department: missing ID");
+      return;
+    }
+    const deptId = typeof department.id === "number" ? department.id.toString() : department.id;
+    router.push(`/university-admin/departments/${deptId}/courses`);
   };
 
   /**
@@ -191,14 +217,6 @@ export default function UniversityAdminDepartments() {
     setFormData({ name: "" });
     setErrors({});
     setIsModalOpen(true);
-  };
-
-  /**
-   * Open details modal
-   */
-  const handleViewDetails = (department: DepartmentI) => {
-    setSelectedDepartment(department);
-    setIsDetailsModalOpen(true);
   };
 
   /**
@@ -240,7 +258,6 @@ export default function UniversityAdminDepartments() {
       showError("Failed to process upload. Please try again.");
     }
   };
-
 
   if (loading) {
     return (
@@ -287,9 +304,10 @@ export default function UniversityAdminDepartments() {
             <DepartmentCard
               key={department.id}
               department={department}
+              programmeCount={programmeCounts[department.id]}
               onEdit={handleEdit}
               onDelete={handleDeleteClick}
-              onViewDetails={handleViewDetails}
+              onSelect={handleSelect}
             />
           ))}
         </div>
@@ -384,18 +402,6 @@ export default function UniversityAdminDepartments() {
         </div>
       </Modal>
 
-      {/* Details Modal */}
-      <DepartmentDetailsModal
-        open={isDetailsModalOpen}
-        onClose={() => {
-          setIsDetailsModalOpen(false);
-          setSelectedDepartment(null);
-        }}
-        department={selectedDepartment}
-        onEdit={handleEdit}
-        onDelete={handleDeleteClick}
-      />
-
       {/* Delete Confirmation */}
       <ConfirmationDialog
         open={showDeleteConfirm}
@@ -418,4 +424,3 @@ export default function UniversityAdminDepartments() {
     </div>
   );
 }
-

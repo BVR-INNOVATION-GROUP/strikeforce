@@ -9,7 +9,9 @@ export interface OrganizationSignupFormData {
   phone: string;
   address: string;
   website: string;
-  description: string;
+  description?: string;
+  password: string;
+  logo?: string;
 }
 
 export interface ValidationErrors {
@@ -18,6 +20,7 @@ export interface ValidationErrors {
   contactName?: string;
   phone?: string;
   address?: string;
+  password?: string;
 }
 
 /**
@@ -25,7 +28,8 @@ export interface ValidationErrors {
  */
 export function validateOrganizationSignup(
   data: OrganizationSignupFormData,
-  isUniversity: boolean = false
+  isUniversity: boolean = false,
+  skipPassword: boolean = false
 ): ValidationErrors {
   const errors: ValidationErrors = {};
 
@@ -50,13 +54,10 @@ export function validateOrganizationSignup(
     errors.address = "Address is required";
   }
 
+  // Password validation (required for both universities and partners, unless skipped for superadmin)
+  if (!skipPassword && (!data.password || data.password.length < 8)) {
+    errors.password = "Password must be at least 8 characters";
+  }
+
   return errors;
 }
-
-
-
-
-
-
-
-

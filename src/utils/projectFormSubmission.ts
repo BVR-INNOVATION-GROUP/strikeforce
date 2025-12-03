@@ -41,6 +41,9 @@ export function buildProjectFromForm(data: ProjectFormData): Omit<
     throw new Error("All required fields must be filled");
   }
 
+  // Filter out "__OTHERS__" marker from skills - it's just a UI marker, not an actual skill
+  const cleanedSkills = data.selectedSkills.filter((skill) => skill !== "__OTHERS__");
+
   return {
     universityId: Number(data.university.value),
     departmentId: Number(data.department.value),
@@ -48,7 +51,7 @@ export function buildProjectFromForm(data: ProjectFormData): Omit<
     title: data.title.trim(),
     description: data.desc.trim(),
     status: "draft",
-    skills: data.selectedSkills,
+    skills: cleanedSkills,
     budget: parseFloat(data.budget) || 0,
     currency: data.currency.value as string,
     deadline: new Date(data.deadline).toISOString(),

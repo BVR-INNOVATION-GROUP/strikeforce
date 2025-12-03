@@ -33,7 +33,7 @@ export function useStudentGroupsData(
       try {
         // Load groups and users in parallel
         const [userGroups, allUsers] = await Promise.all([
-          groupService.getUserGroups(userId),
+          groupService.getUserGroups(),
           userRepository.getAll(),
         ]);
 

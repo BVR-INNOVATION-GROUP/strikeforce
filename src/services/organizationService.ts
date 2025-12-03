@@ -43,6 +43,37 @@ export const organizationService = {
       kycStatus: org.kycStatus,
     };
   },
+
+  /**
+   * Get nested organizations with departments and courses
+   * Optimized for populating select forms
+   * @param type - Optional filter by organization type (e.g., "university")
+   */
+  getNestedOrganizations: async (type?: string): Promise<{
+    id: number;
+    name: string;
+    type: string;
+    departments: {
+      id: number;
+      name: string;
+      courses: {
+        id: number;
+        name: string;
+      }[];
+    }[];
+  }[]> => {
+    return organizationRepository.getNested(type);
+  },
+
+  /**
+   * Update organization
+   */
+  updateOrganization: async (
+    id: string,
+    updates: Partial<OrganizationI>
+  ): Promise<OrganizationI> => {
+    return organizationRepository.update(id, updates);
+  },
 };
 
 

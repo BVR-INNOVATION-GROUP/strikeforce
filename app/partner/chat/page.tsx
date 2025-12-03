@@ -33,17 +33,19 @@ export default function PartnerChat() {
 
   useEffect(() => {
     const loadThreads = async () => {
+      if (!user) return;
+      
       try {
-        if (user) {
-          setLoading(true);
-          const threadsData = await chatService.getUserThreads(user.id.toString());
-          setThreads(threadsData);
-          if (threadsData.length > 0 && !selectedThread) {
-            setSelectedThread(threadsData[0]);
-          }
+        setLoading(true);
+        const threadsData = await chatService.getUserThreads();
+        setThreads(threadsData);
+        if (threadsData.length > 0 && !selectedThread) {
+          setSelectedThread(threadsData[0]);
         }
       } catch (error) {
-        console.error("Failed to load threads:", error);
+        console.warn("Failed to load chat threads, chat may not be available:", error);
+        // Set empty state so UI doesn't break
+        setThreads([]);
       } finally {
         setLoading(false);
       }

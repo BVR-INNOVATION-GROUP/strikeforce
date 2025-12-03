@@ -11,32 +11,40 @@ export interface ProjectFilters {
   universityId?: string;
   departmentId?: string;
   partnerId?: string | number;
+  supervisorId?: string | number;
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedProjects {
+  projects: ProjectI[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 export const projectService = {
   /**
-   * Get all projects with optional filtering
+   * Get all projects with optional filtering and pagination
    * Passes filters to repository for efficient database querying
    */
-  getAllProjects: async (filters?: ProjectFilters): Promise<ProjectI[]> => {
-    // Pass status, partnerId, and universityId to repository for database-level filtering
-    const projects = await projectRepository.getAll({
+  getAllProjects: async (
+    filters?: ProjectFilters
+  ): Promise<PaginatedProjects> => {
+    // Pass status, partnerId, universityId, supervisorId, departmentId, and pagination to repository for database-level filtering
+    const result = await projectRepository.getAll({
       status: filters?.status,
       partnerId: filters?.partnerId,
       universityId: filters?.universityId,
+      supervisorId: filters?.supervisorId,
+      departmentId: filters?.departmentId,
+      page: filters?.page,
+      limit: filters?.limit,
     });
 
-    // Apply client-side filters (search, departmentId) that require text matching
-    let filtered = projects;
-
-    if (filters?.departmentId) {
-      const departmentIdNum = typeof filters.departmentId === 'string'
-        ? Number(filters.departmentId)
-        : filters.departmentId;
-      filtered = filtered.filter(
-        (p) => p.departmentId === departmentIdNum || p.departmentId === Number(departmentIdNum)
-      );
-    }
+    // Apply client-side filters (search only) that require text matching
+    let filtered = result.projects;
 
     if (filters?.search) {
       const searchLower = filters.search.toLowerCase();
@@ -47,7 +55,18 @@ export const projectService = {
       );
     }
 
-    return filtered;
+    // Recalculate pagination if client-side filtering was applied
+    const total = filtered.length;
+    const limit = filters?.limit || result.limit;
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      projects: filtered,
+      total,
+      page: result.page,
+      limit,
+      totalPages,
+    };
   },
 
   /**
@@ -104,17 +123,27 @@ export const projectService = {
   },
 
   /**
+   * Update project status
+   * Used by university admins to approve/disapprove/suspend projects
+   */
+  updateProjectStatus: async (
+    id: string | number,
+    status: string
+  ): Promise<ProjectI> => {
+    return projectRepository.updateStatus(id, status);
+  },
+
+  /**
    * Delete project
    */
   deleteProject: async (id: string | number): Promise<void> => {
     // Business validation: Check if project can be deleted
     const project = await projectRepository.getById(id);
-    
+
     // Business rule: Cannot delete projects with active milestones or assigned applications
     // This check would need to query applications and milestones repositories
     // For now, we'll allow deletion but in production this should check dependencies
-    
+
     return projectRepository.delete(id);
   },
 };
-

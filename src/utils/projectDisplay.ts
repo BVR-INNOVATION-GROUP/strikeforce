@@ -84,12 +84,16 @@ export const transformProjectForDisplay = async (
         let usersData = users
         
         if (!groupsData || !usersData) {
-            const [groupsModule, usersModule] = await Promise.all([
-                import("@/src/data/mockGroups.json"),
-                import("@/src/data/mockUsers.json")
+            const [groupRepo, userRepo] = await Promise.all([
+                import("@/src/repositories/groupRepository"),
+                import("@/src/repositories/userRepository")
             ])
-            groupsData = groupsData || groupsModule.default
-            usersData = usersData || usersModule.default
+            const [groupsList, usersList] = await Promise.all([
+                groupRepo.groupRepository.getAll(),
+                userRepo.userRepository.getAll()
+            ])
+            groupsData = groupsData || groupsList
+            usersData = usersData || usersList
         }
 
         const mappedApplications = transformApplications(applications, groupsData, usersData)
@@ -102,14 +106,30 @@ export const transformProjectForDisplay = async (
             currentUserId
         )
 
+        // Handle budget - extract from Budget object if needed
+        let budgetValue: number = 0;
+        let currencyValue: string = '';
+        
+        if (sourceProject.budget && typeof sourceProject.budget === 'object' && !Array.isArray(sourceProject.budget)) {
+            const budgetObj = sourceProject.budget as any;
+            budgetValue = budgetObj.Value !== undefined ? budgetObj.Value : (budgetObj.value !== undefined ? budgetObj.value : 0);
+            currencyValue = budgetObj.Currency || budgetObj.currency || '';
+        } else if (typeof sourceProject.budget === 'number') {
+            budgetValue = sourceProject.budget;
+            currencyValue = sourceProject.currency || '';
+        } else {
+            budgetValue = typeof sourceProject.budget === 'string' ? parseFloat(sourceProject.budget) || 0 : 0;
+            currencyValue = sourceProject.currency || '';
+        }
+
         return {
             id: sourceProject.id,
             title: sourceProject.title,
             description: sourceProject.description,
             skills: sourceProject.skills,
             status: sourceProject.status,
-            budget: sourceProject.budget,
-            currency: sourceProject.currency,
+            budget: budgetValue,
+            currency: currencyValue,
             deadline: formattedDeadline,
             capacity: sourceProject.capacity,
             university: "Makerere University", // Would come from university lookup

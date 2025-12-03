@@ -1,11 +1,10 @@
 /**
  * Repository for dispute data operations
- * Abstracts data source - can use mock JSON files or real API
+ * Connects to backend API
+ * Note: Backend Dispute module exists but may need additional endpoints
  */
 import { api } from "@/src/api/client";
 import { DisputeI } from "@/src/models/dispute";
-import { getUseMockData } from "@/src/utils/config";
-import { readJsonFile, findById } from "@/src/utils/fileHelpers";
 
 export const disputeRepository = {
   /**
@@ -17,30 +16,11 @@ export const disputeRepository = {
     status?: string;
     raisedBy?: number | string;
   }): Promise<DisputeI[]> => {
-    if (getUseMockData()) {
-      try {
-        let disputes = await readJsonFile<DisputeI>("mockDisputes.json");
-        if (filters?.level) {
-          disputes = disputes.filter((d) => d.level === filters.level);
-        }
-        if (filters?.status) {
-          disputes = disputes.filter((d) => d.status === filters.status);
-        }
-        if (filters?.raisedBy) {
-          const numericRaisedBy = typeof filters.raisedBy === 'string' ? parseInt(filters.raisedBy, 10) : filters.raisedBy;
-          disputes = disputes.filter((d) => d.raisedBy === numericRaisedBy);
-        }
-        return disputes;
-      } catch {
-        // Mock file doesn't exist yet, return empty array
-        return [];
-      }
-    }
     const params = new URLSearchParams();
     if (filters?.level) params.append("level", filters.level);
     if (filters?.status) params.append("status", filters.status);
-    if (filters?.raisedBy) params.append("raisedBy", filters.raisedBy);
-    const url = `/api/disputes?${params.toString()}`;
+    if (filters?.raisedBy) params.append("raisedBy", filters.raisedBy.toString());
+    const url = params.toString() ? `/api/v1/disputes?${params.toString()}` : "/api/v1/disputes";
     return api.get<DisputeI[]>(url);
   },
 
@@ -48,43 +28,28 @@ export const disputeRepository = {
    * Get dispute by ID
    */
   getById: async (id: number): Promise<DisputeI> => {
-    if (getUseMockData()) {
-      try {
-        const disputes = await readJsonFile<DisputeI>("mockDisputes.json");
-        const dispute = findById(disputes, id);
-        if (!dispute) {
-          throw new Error(`Dispute ${id} not found`);
-        }
-        return dispute;
-      } catch {
-        throw new Error(`Dispute ${id} not found`);
-      }
-    }
-    return api.get<DisputeI>(`/api/disputes/${id}`);
+    return api.get<DisputeI>(`/api/v1/disputes/${id}`);
   },
 
   /**
    * Create dispute
    */
   create: async (dispute: Partial<DisputeI>): Promise<DisputeI> => {
-    // Always use API route (even in mock mode) - API routes handle file operations server-side
-    return api.post<DisputeI>("/api/disputes", dispute);
+    return api.post<DisputeI>("/api/v1/disputes", dispute);
   },
 
   /**
    * Update dispute
    */
   update: async (id: number, dispute: Partial<DisputeI>): Promise<DisputeI> => {
-    // Always use API route (even in mock mode) - API routes handle file operations server-side
-    return api.put<DisputeI>(`/api/disputes/${id}`, dispute);
+    return api.put<DisputeI>(`/api/v1/disputes/${id}`, dispute);
   },
 
   /**
    * Delete dispute
    */
   delete: async (id: number): Promise<void> => {
-    // Always use API route (even in mock mode) - API routes handle file operations server-side
-    return api.delete(`/api/disputes/${id}`);
+    return api.delete(`/api/v1/disputes/${id}`);
   },
 };
 

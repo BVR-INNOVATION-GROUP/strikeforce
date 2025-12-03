@@ -10,17 +10,24 @@ import {
   ValidationErrors,
 } from "@/src/utils/inviteAcceptanceValidation";
 import { useToast } from "@/src/hooks/useToast";
+import { useAuthStore } from "@/src/store/useAuthStore";
+import { UserI } from "@/src/models/user";
 
 export interface UseInviteAcceptanceResult {
   invitation: InvitationI | null;
   validating: boolean;
   formData: {
+    name: string;
     password: string;
     confirmPassword: string;
   };
   errors: ValidationErrors;
   submitting: boolean;
-  setFormData: (data: { password: string; confirmPassword: string }) => void;
+  setFormData: (data: {
+    name: string;
+    password: string;
+    confirmPassword: string;
+  }) => void;
   setFieldValue: (field: string, value: string) => void;
   clearError: (field: string) => void;
   validate: () => boolean;
@@ -37,12 +44,14 @@ export function useInviteAcceptance(
   const [invitation, setInvitation] = useState<InvitationI | null>(null);
   const [validating, setValidating] = useState(true);
   const [formData, setFormData] = useState({
+    name: "",
     password: "",
     confirmPassword: "",
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const { showSuccess, showError } = useToast();
+  const { setUser, setAccessToken } = useAuthStore();
 
   useEffect(() => {
     const validateToken = async () => {
@@ -96,17 +105,47 @@ export function useInviteAcceptance(
 
     setSubmitting(true);
     try {
-      const { user } = await invitationService.useInvitation(
+      const { user, token: authToken } = await invitationService.useInvitation(
         token,
-        formData.password
+        formData.password,
+        formData.name
       );
-      showSuccess("Account created successfully! Redirecting to login...");
+
+      // Store auth token
+      if (authToken) {
+        setAccessToken(authToken);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("token", authToken);
+        }
+      }
+
+      // Set user in auth store
+      if (user) {
+        await setUser(user as UserI);
+      }
+
+      showSuccess("Account created successfully! Redirecting...");
+
+      // Redirect based on user role
+      const userRole = (user as UserI)?.role;
+      const redirectPath =
+        userRole === "supervisor"
+          ? "/supervisor"
+          : userRole === "student"
+          ? "/student/find"
+          : userRole === "university-admin"
+          ? "/university-admin"
+          : "/";
+
       setTimeout(() => {
-        router.push("/auth/login");
-      }, 2000);
+        router.push(redirectPath);
+      }, 1500);
     } catch (error: unknown) {
       console.error("Failed to accept invitation:", error);
-      showError(error.message || "Failed to create account. Please try again.");
+      showError(
+        (error as Error)?.message ||
+          "Failed to create account. Please try again."
+      );
     } finally {
       setSubmitting(false);
     }

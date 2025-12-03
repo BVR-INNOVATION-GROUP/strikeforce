@@ -43,12 +43,12 @@ export function getScreeningColumns(
             <>
               <Star size={16} className="text-yellow-500 fill-yellow-500" />
               <span className="font-semibold">{item.score.finalScore}</span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-muted">
                 (Auto: {item.score.autoScore})
               </span>
             </>
           ) : (
-            <span className="text-gray-500">Not scored</span>
+            <span className="text-muted">Not scored</span>
           )}
         </div>
       ),
@@ -67,6 +67,7 @@ export function getScreeningColumns(
     },
   ];
 }
+
 
 
 

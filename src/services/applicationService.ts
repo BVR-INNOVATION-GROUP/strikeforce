@@ -92,13 +92,13 @@ export const applicationService = {
   },
 
   /**
-   * Get user's applications
-   * @param studentId - Student ID
+   * Get authenticated user's applications
+   * Backend uses JWT token's user_id - never pass userId parameter
    * @returns Array of user's applications
    */
-  getUserApplications: async (studentId: string): Promise<ApplicationI[]> => {
+  getUserApplications: async (): Promise<ApplicationI[]> => {
     try {
-      return applicationRepository.getByUserId(studentId);
+      return applicationRepository.getByUserId();
     } catch {
       return [];
     }

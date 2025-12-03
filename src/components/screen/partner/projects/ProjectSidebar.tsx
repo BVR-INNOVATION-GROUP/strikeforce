@@ -16,7 +16,7 @@ export interface ProjectDisplayI {
     university: string
     department: string
     course: string
-    teamMembers: Array<{ 
+    teamMembers: Array<{
         id: string
         name: string
         role: string
@@ -37,11 +37,13 @@ export interface Props {
     onEditProject: () => void
     onExportDetails: () => void
     onShareProject: () => void
-    onReassignProject: () => void
+    onReassignProject?: () => void
     onDeleteProject: () => void
+    onRequestSupervisor?: () => void
     userRole?: string
     isProjectOwner?: boolean
     canEditProject?: boolean
+    canSeeQuickActions?: boolean
 }
 
 const ProjectSidebar = (props: Props) => {
@@ -55,11 +57,13 @@ const ProjectSidebar = (props: Props) => {
         onShareProject,
         onReassignProject,
         onDeleteProject,
-        canEditProject = false
+        onRequestSupervisor,
+        canEditProject = false,
+        canSeeQuickActions = false
     } = props
 
     return (
-        <div className="flex flex-col gap-6 h-full overflow-y-auto pr-2">
+        <div className="flex flex-col gap-6">
             <ProjectDetailsCard
                 budget={project.budget}
                 currencySymbol={currencySymbol}
@@ -74,14 +78,15 @@ const ProjectSidebar = (props: Props) => {
                 course={project.course}
             />
             <TeamMembersCard teamMembers={project.teamMembers} />
-            {/* Only show Quick Actions for super-admins (read-only for all other roles) */}
-            {canEditProject && (
+            {/* Show Quick Actions for project owners (partners) and super-admins */}
+            {canSeeQuickActions && (
                 <QuickActionsCard
-                    onEditProject={onEditProject || (() => {})}
+                    onEditProject={canEditProject ? (onEditProject || (() => { })) : undefined}
                     onExportDetails={onExportDetails}
                     onShareProject={onShareProject}
-                    onReassignProject={onReassignProject || (() => {})}
-                    onDeleteProject={onDeleteProject || (() => {})}
+                    onReassignProject={onReassignProject}
+                    onDeleteProject={canEditProject ? (onDeleteProject || (() => { })) : undefined}
+                    onRequestSupervisor={onRequestSupervisor}
                 />
             )}
         </div>

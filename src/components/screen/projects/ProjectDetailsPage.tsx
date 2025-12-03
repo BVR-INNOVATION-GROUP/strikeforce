@@ -15,11 +15,22 @@ import ProjectDetailSkeleton from "@/src/components/screen/partner/projects/Proj
 import ChatModal from "@/src/components/base/ChatModal";
 import RecommendModal from "@/src/components/screen/partner/projects/RecommendModal";
 import ConfirmationDialog from "@/src/components/base/ConfirmationDialog";
+import RequestSupervisorModal from "@/src/components/screen/student/supervisor-request/RequestSupervisorModal";
+import UniversityAdminProjectActions from "@/src/components/screen/university-admin/UniversityAdminProjectActions";
+import ScreeningApplicationDetailsModal from "@/src/components/screen/university-admin/screening/ScreeningApplicationDetailsModal";
+import ScoreApplicationModal from "@/src/components/screen/university-admin/screening/ScoreApplicationModal";
+import IssueOfferModal from "@/src/components/screen/university-admin/IssueOfferModal";
 import { useAuthStore } from "@/src/store";
+import { UserI } from "@/src/models/user";
+import { GroupI } from "@/src/models/group";
+import { ApplicationI } from "@/src/models/application";
 import { useProjectDetailPage } from "@/src/hooks/useProjectDetailPage";
 import { formatDateLong } from "@/src/utils/dateFormatters";
 import { useToast } from "@/src/hooks/useToast";
 import { notificationService } from "@/src/services/notificationService";
+import { useSupervisorRequestForm } from "@/src/hooks/useSupervisorRequestForm";
+import { useSupervisorRequestData } from "@/src/hooks/useSupervisorRequestData";
+import { projectService } from "@/src/services/projectService";
 
 export interface Props {
   projectId: string;
@@ -30,10 +41,11 @@ export interface Props {
  * Adapts UI and functionality based on user role automatically
  */
 export default function ProjectDetailsPage({ projectId }: Props) {
-  const { user, _hasHydrated } = useAuthStore();
+  const { user, _hasHydrated, organization } = useAuthStore();
   const router = useRouter();
   const toast = useToast();
   const [userLoading, setUserLoading] = useState(true);
+  const [isRequestSupervisorModalOpen, setIsRequestSupervisorModalOpen] = useState(false);
 
   // Wait for hydration before checking user
   useEffect(() => {
@@ -66,6 +78,8 @@ export default function ProjectDetailsPage({ projectId }: Props) {
     projectData,
     applications,
     milestones,
+    setProjectData,
+    setApplications,
     handleAddMilestone,
     handleUpdateMilestone,
     handleDeleteMilestone: handleDeleteMilestoneFromHook,
@@ -85,14 +99,165 @@ export default function ProjectDetailsPage({ projectId }: Props) {
     isDeleting,
   } = useProjectDetailPage(projectId, orgId, userId);
 
-  // Determine if user is project owner (partner who created the project)
-  const isProjectOwner =
-    user?.role === "partner" && user?.id === projectData?.partnerId;
+  // Supervisor request data and form (only for students)
+  // Fetch supervisors by project's department
+  const [projectSupervisors, setProjectSupervisors] = useState<any[]>([]);
+  const [loadingSupervisors, setLoadingSupervisors] = useState(false);
 
-  // Only super-admin can edit/delete projects - all other roles are read-only
-  const canEditProject = user?.role === "super-admin";
-  // Only project owner (partner) can manage applications (accept/reject/recommend)
+  // Load supervisors for the project's department when project is loaded
+  useEffect(() => {
+    const loadProjectSupervisors = async () => {
+      if (!projectData?.departmentId || user?.role !== "student") {
+        return;
+      }
+
+      try {
+        setLoadingSupervisors(true);
+        const { api } = await import("@/src/api/client");
+        const supervisorsData = await api.get<Array<{
+          ID?: number;
+          id?: number;
+          userId?: number;
+          user: any & { ID?: number };
+          departmentId: number;
+        }>>(`/api/v1/supervisors?dept=${projectData.departmentId}`);
+
+        // Map to UserI format
+        const supervisorUsers = supervisorsData.map((s) => {
+          const user = s.user;
+          return {
+            ...user,
+            id: user.ID || user.id,
+          };
+        });
+        setProjectSupervisors(supervisorUsers);
+      } catch (error) {
+        console.error("Failed to load supervisors:", error);
+        setProjectSupervisors([]);
+      } finally {
+        setLoadingSupervisors(false);
+      }
+    };
+
+    loadProjectSupervisors();
+  }, [projectData?.departmentId, user?.role]);
+
+  // Load users and groups for screening (university admin only)
+  useEffect(() => {
+    const loadScreeningData = async () => {
+      if (user?.role !== "university-admin") return;
+
+      try {
+        const [
+          { userRepository },
+          { groupRepository },
+        ] = await Promise.all([
+          import("@/src/repositories/userRepository"),
+          import("@/src/repositories/groupRepository"),
+        ]);
+
+        const [allUsers, allGroups] = await Promise.all([
+          userRepository.getAll(),
+          groupRepository.getAll(),
+        ]);
+
+        const usersMap: Record<string, UserI> = {};
+        allUsers.forEach((user) => {
+          usersMap[user.id.toString()] = user;
+        });
+        setUsers(usersMap);
+
+        const groupsMap: Record<string, GroupI> = {};
+        allGroups.forEach((group) => {
+          groupsMap[group.id.toString()] = group;
+        });
+        setGroups(groupsMap);
+      } catch (error) {
+        console.error("Failed to load screening data:", error);
+      }
+    };
+
+    loadScreeningData();
+  }, [user?.role]);
+
+  const {
+    formData,
+    requestMessage,
+    errors,
+    submitting,
+    setFormData,
+    setRequestMessage,
+    clearError,
+    handleSubmitRequest,
+    reset,
+  } = useSupervisorRequestForm(isRequestSupervisorModalOpen);
+
+  // Set project ID from path when modal opens
+  useEffect(() => {
+    if (isRequestSupervisorModalOpen && projectId) {
+      setFormData({ ...formData, projectId });
+    }
+  }, [isRequestSupervisorModalOpen, projectId]);
+
+  // Handle supervisor request submission
+  const handleSubmitSupervisorRequest = async () => {
+    if (!user) return;
+    try {
+      await handleSubmitRequest(user.id.toString(), async (newRequest) => {
+        setIsRequestSupervisorModalOpen(false);
+        toast.showSuccess("Supervisor request submitted successfully");
+        reset();
+      });
+    } catch (error) {
+      console.error("Failed to submit supervisor request:", error);
+      // Error already shown in hook
+    }
+  };
+
+  // Determine if user is project owner (partner who created the project)
+  // Normalize IDs to strings for comparison
+  const userPartnerId = user?.id !== undefined ? String(user.id) : undefined;
+  const projectPartnerId = projectData?.partnerId !== undefined ? String(projectData.partnerId) : undefined;
+  const isProjectOwner =
+    user?.role === "partner" && userPartnerId === projectPartnerId && projectPartnerId !== undefined;
+
+  // Check if project belongs to university admin's organization
+  const userUniversityId = user?.orgId !== undefined && user.orgId !== null && user.orgId !== 0
+    ? String(user.orgId)
+    : (organization?.id !== undefined && organization.id !== null && organization.id !== 0
+      ? String(organization.id)
+      : undefined);
+  const projectUniversityId = projectData?.universityId !== undefined && projectData.universityId !== null && projectData.universityId !== 0
+    ? String(projectData.universityId)
+    : undefined;
+  const isProjectInUniversity =
+    user?.role === "university-admin" &&
+    userUniversityId &&
+    projectUniversityId &&
+    userUniversityId === projectUniversityId;
+
+  // Project owners (partners) and super-admins can edit projects
+  const canEditProject = (user?.role === "partner" && isProjectOwner) || user?.role === "super-admin";
+  // Project owners (partners) and super-admins can delete projects
+  const canDeleteProject = (user?.role === "partner" && isProjectOwner) || user?.role === "super-admin";
+  // Project owners (partners) and super-admins can see quick actions
+  const canSeeQuickActions =
+    (user?.role === "partner" && isProjectOwner) ||
+    user?.role === "super-admin";
+  // Only project owner (partner) can manage applications
   const canManageApplications = user?.role === "partner" && isProjectOwner;
+  // Only partners who own the project and super-admins can add milestones
+  const canAddMilestone =
+    (user?.role === "partner" && isProjectOwner) ||
+    user?.role === "super-admin";
+
+  // Only partners who own the project and super-admins can edit/delete milestones
+  const canEditDeleteMilestone =
+    (user?.role === "partner" && isProjectOwner) ||
+    user?.role === "super-admin";
+
+  // University admins can only approve/disapprove/suspend projects (for their university's projects)
+  const canManageProjectStatus = user?.role === "university-admin" && isProjectInUniversity;
 
   // Handle edit milestone
   const handleEditMilestone = (milestoneId: string) => {
@@ -103,10 +268,84 @@ export default function ProjectDetailsPage({ projectId }: Props) {
     modals.openDeleteMilestoneConfirm(milestoneId);
   };
 
+  // University admin project status management
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  const handleApproveProject = async () => {
+    if (!projectId || !projectData) return;
+    setIsUpdatingStatus(true);
+    try {
+      const updatedProject = await projectService.updateProjectStatus(projectId, "published");
+      // Update local project data
+      setProjectData(updatedProject);
+      toast.showSuccess("Project approved successfully");
+      // Reload page to refresh all data
+      router.refresh();
+    } catch (error) {
+      console.error("Failed to approve project:", error);
+      toast.showError(error instanceof Error ? error.message : "Failed to approve project");
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleDisapproveProject = async () => {
+    if (!projectId || !projectData) return;
+    setIsUpdatingStatus(true);
+    try {
+      const updatedProject = await projectService.updateProjectStatus(projectId, "draft");
+      // Update local project data
+      setProjectData(updatedProject);
+      toast.showSuccess("Project disapproved successfully");
+      // Reload page to refresh all data
+      router.refresh();
+    } catch (error) {
+      console.error("Failed to disapprove project:", error);
+      toast.showError(error instanceof Error ? error.message : "Failed to disapprove project");
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleSuspendProject = async () => {
+    if (!projectId || !projectData) return;
+    setIsUpdatingStatus(true);
+    try {
+      const updatedProject = await projectService.updateProjectStatus(projectId, "on-hold");
+      // Update local project data
+      setProjectData(updatedProject);
+      toast.showSuccess("Project suspended successfully");
+      // Reload page to refresh all data
+      router.refresh();
+    } catch (error) {
+      console.error("Failed to suspend project:", error);
+      toast.showError(error instanceof Error ? error.message : "Failed to suspend project");
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
   // Handle student actions
   const [withdrawConfirmOpen, setWithdrawConfirmOpen] = useState(false);
   const [terminateConfirmOpen, setTerminateConfirmOpen] = useState(false);
   const [selectedApplicationId, setSelectedApplicationId] = useState<number | null>(null);
+
+  // University admin screening state
+  const [scoringModalOpen, setScoringModalOpen] = useState(false);
+  const [isScreeningDetailsModalOpen, setIsScreeningDetailsModalOpen] = useState(false);
+  const [selectedApplicationForScoring, setSelectedApplicationForScoring] = useState<ApplicationI | null>(null);
+  const [selectedApplicationForDetails, setSelectedApplicationForDetails] = useState<ApplicationI | null>(null);
+  const [users, setUsers] = useState<Record<string, UserI>>({});
+  const [groups, setGroups] = useState<Record<string, GroupI>>({});
+
+  // Confirmation modals for screening actions
+  const [shortlistConfirmOpen, setShortlistConfirmOpen] = useState(false);
+  const [rejectConfirmOpen, setRejectConfirmOpen] = useState(false);
+  const [offerModalOpen, setOfferModalOpen] = useState(false);
+  const [selectedApplicationForAction, setSelectedApplicationForAction] = useState<ApplicationI | null>(null);
+  const [isProcessingAction, setIsProcessingAction] = useState(false);
+  // Store previous status for undo reject
+  const [rejectedApplicationPreviousStatus, setRejectedApplicationPreviousStatus] = useState<Record<number, string>>({});
 
   const handleWithdrawApplication = (applicationId: number) => {
     setSelectedApplicationId(applicationId);
@@ -115,11 +354,11 @@ export default function ProjectDetailsPage({ projectId }: Props) {
 
   const confirmWithdrawApplication = async () => {
     if (!selectedApplicationId) return;
-    
+
     try {
       const { applicationService } = await import("@/src/services/applicationService");
       await applicationService.withdrawApplication(selectedApplicationId);
-      
+
       // Reload applications to reflect the status change
       const numericProjectId = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
       await applicationService.getProjectApplications(numericProjectId);
@@ -134,7 +373,7 @@ export default function ProjectDetailsPage({ projectId }: Props) {
           link: "/partner/projects",
         });
       }
-      
+
       toast.showSuccess("Application withdrawn successfully");
       setWithdrawConfirmOpen(false);
       setSelectedApplicationId(null);
@@ -153,11 +392,11 @@ export default function ProjectDetailsPage({ projectId }: Props) {
 
   const confirmTerminateContract = async () => {
     if (!selectedApplicationId) return;
-    
+
     try {
       const { applicationService } = await import("@/src/services/applicationService");
       await applicationService.terminateContract(selectedApplicationId);
-      
+
       // Reload applications to reflect the status change
       const numericProjectId = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
       await applicationService.getProjectApplications(numericProjectId);
@@ -172,7 +411,7 @@ export default function ProjectDetailsPage({ projectId }: Props) {
           link: "/partner/projects",
         });
       }
-      
+
       toast.showSuccess("Contract terminated successfully");
       setTerminateConfirmOpen(false);
       setSelectedApplicationId(null);
@@ -184,6 +423,273 @@ export default function ProjectDetailsPage({ projectId }: Props) {
     }
   };
 
+  // University admin screening handlers
+  const handleScoreClick = (application: ApplicationI) => {
+    setSelectedApplicationForScoring(application);
+    setScoringModalOpen(true);
+  };
+
+  const handleViewScreeningDetails = (application: ApplicationI) => {
+    setSelectedApplicationForDetails(application);
+    setIsScreeningDetailsModalOpen(true);
+  };
+
+  const getStudentsForApplication = (application: ApplicationI): UserI[] => {
+    if (application.applicantType === "GROUP" && application.groupId) {
+      const group = groups[application.groupId.toString()];
+      if (group) {
+        const memberIds = [...(group.memberIds || []), group.leaderId].filter(Boolean);
+        return memberIds.map((id) => users[id.toString()]).filter(Boolean);
+      }
+    } else {
+      return application.studentIds.map((id) => users[id.toString()]).filter(Boolean);
+    }
+    return [];
+  };
+
+  const getGroupForApplication = (application: ApplicationI): GroupI | undefined => {
+    if (application.applicantType === "GROUP" && application.groupId) {
+      return groups[application.groupId.toString()];
+    }
+    return undefined;
+  };
+
+  const handleScoreSubmit = async (applicationId: string, score: number) => {
+    try {
+      const { applicationRepository } = await import("@/src/repositories/applicationRepository");
+      const numericAppId = typeof applicationId === 'string' ? parseInt(applicationId, 10) : applicationId;
+      if (isNaN(numericAppId)) {
+        toast.showError("Invalid application ID");
+        return;
+      }
+
+      // Find the application - handle both 'id' and 'ID' formats
+      const app = applications.find((a: any) => {
+        const appId = (a as any).ID || a.id;
+        return appId?.toString() === applicationId || appId === numericAppId;
+      });
+
+      if (!app) {
+        toast.showError("Application not found");
+        return;
+      }
+
+      const existingScore = (app as any).score;
+      const appId = (app as any).ID || (app as any).id;
+
+      const updatedApp = await applicationRepository.score(numericAppId, {
+        applicationId: appId,
+        autoScore: existingScore?.autoScore || 70,
+        manualSupervisorScore: score,
+        finalScore: score,
+        skillMatch: existingScore?.skillMatch || 80,
+        portfolioScore: existingScore?.portfolioScore || 75,
+        ratingScore: existingScore?.ratingScore || 80,
+        onTimeRate: existingScore?.onTimeRate || 0.85,
+        reworkRate: existingScore?.reworkRate || 0.1,
+      });
+
+      // Update the application in the local state
+      const updatedApplications = applications.map((a: any) => {
+        const aId = (a as any).ID || a.id;
+        return aId === numericAppId ? updatedApp : a;
+      });
+      setApplications(updatedApplications);
+
+      toast.showSuccess("Application scored successfully");
+      setScoringModalOpen(false);
+      setSelectedApplicationForScoring(null);
+    } catch (error) {
+      console.error("Failed to update application score:", error);
+      toast.showError(error instanceof Error ? error.message : "Failed to update score");
+    }
+  };
+
+  // Show confirmation modals for screening actions
+  const handleShortlist = (application: ApplicationI) => {
+    setSelectedApplicationForAction(application);
+    setShortlistConfirmOpen(true);
+  };
+
+  const handleReject = (application: ApplicationI) => {
+    setSelectedApplicationForAction(application);
+    setRejectConfirmOpen(true);
+  };
+
+  const handleOffer = (application: ApplicationI) => {
+    setSelectedApplicationForAction(application);
+    setOfferModalOpen(true);
+  };
+
+  // Confirmation handlers that make the actual API calls
+  const confirmShortlist = async () => {
+    if (!selectedApplicationForAction) return;
+
+    // Extract ID - handle both 'id' and 'ID' (backend might return either)
+    const applicationId = (selectedApplicationForAction as any).ID || selectedApplicationForAction.id;
+    if (!applicationId) {
+      toast.showError("Invalid application: missing ID");
+      return;
+    }
+
+    setIsProcessingAction(true);
+    try {
+      const { applicationRepository } = await import("@/src/repositories/applicationRepository");
+      // Ensure ID is a number
+      const numericId = typeof applicationId === 'string' ? parseInt(applicationId, 10) : applicationId;
+      if (isNaN(numericId)) {
+        throw new Error("Invalid application ID");
+      }
+      const updatedApp = await applicationRepository.shortlist(numericId);
+
+      // Update the application in the local state
+      const updatedApplications = applications.map((app: any) => {
+        const appId = (app as any).ID || app.id;
+        return appId === numericId ? updatedApp : app;
+      });
+      setApplications(updatedApplications);
+
+      toast.showSuccess("Application shortlisted successfully");
+      setShortlistConfirmOpen(false);
+      setSelectedApplicationForAction(null);
+    } catch (error) {
+      console.error("Failed to shortlist application:", error);
+      toast.showError(error instanceof Error ? error.message : "Failed to shortlist application");
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
+  const confirmReject = async () => {
+    if (!selectedApplicationForAction) return;
+
+    // Extract ID - handle both 'id' and 'ID' (backend might return either)
+    const applicationId = (selectedApplicationForAction as any).ID || selectedApplicationForAction.id;
+    if (!applicationId) {
+      toast.showError("Invalid application: missing ID");
+      return;
+    }
+
+    setIsProcessingAction(true);
+    try {
+      const { applicationRepository } = await import("@/src/repositories/applicationRepository");
+      // Ensure ID is a number
+      const numericId = typeof applicationId === 'string' ? parseInt(applicationId, 10) : applicationId;
+      if (isNaN(numericId)) {
+        throw new Error("Invalid application ID");
+      }
+
+      // Store previous status for undo
+      const previousStatus = selectedApplicationForAction.status;
+      setRejectedApplicationPreviousStatus(prev => ({
+        ...prev,
+        [numericId]: previousStatus
+      }));
+
+      const updatedApp = await applicationRepository.reject(numericId);
+
+      // Update the application in the local state
+      const updatedApplications = applications.map((app: any) => {
+        const appId = (app as any).ID || app.id;
+        return appId === numericId ? updatedApp : app;
+      });
+      setApplications(updatedApplications);
+
+      toast.showSuccess("Application rejected successfully");
+      setRejectConfirmOpen(false);
+      setSelectedApplicationForAction(null);
+    } catch (error) {
+      console.error("Failed to reject application:", error);
+      toast.showError(error instanceof Error ? error.message : "Failed to reject application");
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
+  const handleUndoReject = async (application: ApplicationI) => {
+    // Extract ID - handle both 'id' and 'ID' (backend might return either)
+    const applicationId = (application as any).ID || application.id;
+    if (!applicationId) {
+      toast.showError("Invalid application: missing ID");
+      return;
+    }
+
+    setIsProcessingAction(true);
+    try {
+      const { applicationRepository } = await import("@/src/repositories/applicationRepository");
+      // Ensure ID is a number
+      const numericId = typeof applicationId === 'string' ? parseInt(applicationId, 10) : applicationId;
+      if (isNaN(numericId)) {
+        throw new Error("Invalid application ID");
+      }
+
+      // Get previous status (default to SUBMITTED if not found)
+      const previousStatus = rejectedApplicationPreviousStatus[numericId] || "SUBMITTED";
+
+      const updatedApp = await applicationRepository.undoReject(numericId, previousStatus);
+
+      // Update the application in the local state
+      const updatedApplications = applications.map((app: any) => {
+        const appId = (app as any).ID || app.id;
+        return appId === numericId ? updatedApp : app;
+      });
+      setApplications(updatedApplications);
+
+      // Remove from previous status tracking
+      setRejectedApplicationPreviousStatus(prev => {
+        const newState = { ...prev };
+        delete newState[numericId];
+        return newState;
+      });
+
+      toast.showSuccess("Rejection undone successfully");
+    } catch (error) {
+      console.error("Failed to undo reject:", error);
+      toast.showError(error instanceof Error ? error.message : "Failed to undo reject");
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
+  const handleSendOffer = async () => {
+    if (!selectedApplicationForAction) return;
+
+    // Extract ID - handle both 'id' and 'ID' (backend might return either)
+    const applicationId = (selectedApplicationForAction as any).ID || selectedApplicationForAction.id;
+    if (!applicationId) {
+      toast.showError("Invalid application: missing ID");
+      return;
+    }
+
+    setIsProcessingAction(true);
+    try {
+      const { applicationRepository } = await import("@/src/repositories/applicationRepository");
+      // Ensure ID is a number
+      const numericId = typeof applicationId === 'string' ? parseInt(applicationId, 10) : applicationId;
+      if (isNaN(numericId)) {
+        throw new Error("Invalid application ID");
+      }
+
+      const updatedApp = await applicationRepository.offer(numericId);
+
+      // Update the application in the local state
+      const updatedApplications = applications.map((app: any) => {
+        const appId = (app as any).ID || app.id;
+        return appId === numericId ? updatedApp : app;
+      });
+      setApplications(updatedApplications);
+
+      toast.showSuccess("Group assigned to project successfully!");
+      setOfferModalOpen(false);
+      setSelectedApplicationForAction(null);
+    } catch (error) {
+      console.error("Failed to assign group:", error);
+      toast.showError(error instanceof Error ? error.message : "Failed to assign group");
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
   if (userLoading || loading || !project) {
     return <ProjectDetailSkeleton />;
   }
@@ -192,7 +698,7 @@ export default function ProjectDetailsPage({ projectId }: Props) {
   // This restriction is handled in the application form, not here
 
   return (
-    <div className="w-full flex flex-col h-full overflow-hidden">
+    <div className="w-full flex flex-col h-full">
       <div className="flex-shrink-0 mb-8">
         <ProjectHeader
           title={project.title}
@@ -208,72 +714,103 @@ export default function ProjectDetailsPage({ projectId }: Props) {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0 overflow-hidden">
-        <ProjectContent
-          project={project}
-          applications={applications}
-          milestones={milestones}
-          currencySymbol={currencySymbol}
-          messages={messages}
-          attachments={projectData?.attachments}
-          formatDate={formatDateLong}
-          onViewProfile={actions.handleViewProfile}
-          onMessage={actions.handleMessage}
-          onReassign={(applicationId: number) =>
-            modals.openReassignProjectModal()
-          }
-          onAccept={canManageApplications
-            ? (applicationId: number) =>
-                modals.openAcceptConfirm(applicationId)
-            : undefined}
-          onReject={canManageApplications
-            ? (applicationId: number) =>
-                modals.openRejectConfirm(applicationId)
-            : undefined}
-          onRecommend={canManageApplications
-            ? (applicationId: number) =>
-                modals.openRecommendModal(applicationId)
-            : undefined}
-          onWithdraw={user?.role === "student" ? handleWithdrawApplication : undefined}
-          onTerminate={user?.role === "student" ? handleTerminateContract : undefined}
-          onOpenChat={actions.handleOpenChat}
-          onAddMilestone={canEditProject ? modals.openMilestoneModal : undefined}
-          onEditMilestone={canEditProject ? handleEditMilestone : undefined}
-          onDeleteMilestone={canEditProject ? openDeleteMilestoneConfirm : undefined}
-          onApproveAndRelease={handleApproveAndRelease}
-          onDisapprove={handleDisapprove}
-          onRequestChanges={handleRequestChanges}
-          onMarkAsComplete={handleMarkAsComplete}
-          onUnmarkAsComplete={handleUnmarkAsComplete}
-          userRole={user?.role}
-          isProjectOwner={isProjectOwner}
-          canEditProject={canEditProject}
-          currentUserId={user?.id}
-        />
-
-        <ProjectSidebar
-          project={project}
-          currencySymbol={currencySymbol}
-          daysUntilDeadline={daysUntilDeadline}
-          formatDate={formatDateLong}
-          onEditProject={canEditProject ? modals.openEditModal : undefined}
-          onExportDetails={() =>
-            actions.handleExportDetails(projectData, applications, milestones)
-          }
-          onShareProject={async () => {
-            const result = await actions.handleShareProject();
-            if (result.success) {
-              // Success handled by hook
-            } else {
-              // Error handled by hook
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
+        {/* Main Content - 2 columns */}
+        <div className="lg:col-span-2 overflow-y-auto">
+          <ProjectContent
+            project={project}
+            applications={applications}
+            milestones={milestones}
+            currencySymbol={currencySymbol}
+            messages={messages}
+            attachments={projectData?.attachments}
+            formatDate={formatDateLong}
+            onViewProfile={actions.handleViewProfile}
+            onMessage={actions.handleMessage}
+            onReassign={(applicationId: number) =>
+              modals.openReassignProjectModal()
             }
-          }}
-          onReassignProject={canEditProject ? modals.openReassignProjectModal : undefined}
-          onDeleteProject={canEditProject ? modals.openDeleteConfirm : undefined}
-          userRole={user?.role}
-          isProjectOwner={isProjectOwner}
-          canEditProject={canEditProject}
-        />
+            onAccept={canManageApplications
+              ? (applicationId: number) =>
+                modals.openAcceptConfirm(applicationId)
+              : undefined}
+            onReject={canManageApplications
+              ? (applicationId: number) =>
+                modals.openRejectConfirm(applicationId)
+              : undefined}
+            onRecommend={canManageApplications
+              ? (applicationId: number) =>
+                modals.openRecommendModal(applicationId)
+              : undefined}
+            onWithdraw={user?.role === "student" ? handleWithdrawApplication : undefined}
+            onTerminate={user?.role === "student" ? handleTerminateContract : undefined}
+            onOpenChat={actions.handleOpenChat}
+            onAddMilestone={canAddMilestone ? modals.openMilestoneModal : undefined}
+            onEditMilestone={canEditDeleteMilestone ? handleEditMilestone : undefined}
+            onDeleteMilestone={canEditDeleteMilestone ? openDeleteMilestoneConfirm : undefined}
+            onApproveAndRelease={handleApproveAndRelease}
+            onDisapprove={handleDisapprove}
+            onRequestChanges={handleRequestChanges}
+            onMarkAsComplete={handleMarkAsComplete}
+            onUnmarkAsComplete={handleUnmarkAsComplete}
+            userRole={user?.role}
+            isProjectOwner={isProjectOwner}
+            canEditProject={canEditProject}
+            currentUserId={user?.id}
+            // University admin screening props (partners can view but not act)
+            projectData={projectData}
+            onScore={user?.role === "university-admin" ? handleScoreClick : undefined}
+            onViewScreeningDetails={(user?.role === "university-admin" || user?.role === "partner") ? handleViewScreeningDetails : undefined}
+            onShortlist={user?.role === "university-admin" ? handleShortlist : undefined}
+            onRejectScreening={user?.role === "university-admin" ? handleReject : undefined}
+            onOffer={user?.role === "university-admin" ? handleOffer : undefined}
+            onUndoReject={user?.role === "university-admin" ? handleUndoReject : undefined}
+          />
+        </div>
+
+        {/* Sidebar - 1 column */}
+        <div className="flex flex-col gap-6 overflow-y-auto overflow-x-hidden pr-2" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+          <ProjectSidebar
+            project={project}
+            currencySymbol={currencySymbol}
+            daysUntilDeadline={daysUntilDeadline}
+            formatDate={formatDateLong}
+            onEditProject={canEditProject ? modals.openEditModal : undefined}
+            onExportDetails={() =>
+              actions.handleExportDetails(projectData, applications, milestones)
+            }
+            onShareProject={async () => {
+              const result = await actions.handleShareProject();
+              if (result.success) {
+                // Success handled by hook
+              } else {
+                // Error handled by hook
+              }
+            }}
+            onReassignProject={user?.role === "university-admin" && isProjectInUniversity ? modals.openReassignProjectModal : undefined}
+            onDeleteProject={canDeleteProject ? modals.openDeleteConfirm : undefined}
+            onRequestSupervisor={user?.role === "student" ? () => {
+              // Pre-select the current project
+              setFormData({ ...formData, projectId: projectId });
+              setIsRequestSupervisorModalOpen(true);
+            } : undefined}
+            userRole={user?.role}
+            isProjectOwner={isProjectOwner}
+            canEditProject={canEditProject}
+            canSeeQuickActions={canSeeQuickActions || user?.role === "student"}
+          />
+
+          {/* University Admin Actions */}
+          {canManageProjectStatus && projectData && (
+            <UniversityAdminProjectActions
+              projectStatus={projectData.status || project?.status || "pending"}
+              onApprove={handleApproveProject}
+              onDisapprove={handleDisapproveProject}
+              onSuspend={handleSuspendProject}
+              isProcessing={isUpdatingStatus}
+            />
+          )}
+        </div>
       </div>
 
       {/* Modals */}
@@ -337,8 +874,8 @@ export default function ProjectDetailsPage({ projectId }: Props) {
         applicationName={
           modals.selectedChatApplicationId
             ? project?.applications.find(
-                (app) => app.id === modals.selectedChatApplicationId
-              )?.groupName
+              (app) => app.id === modals.selectedChatApplicationId
+            )?.groupName
             : undefined
         }
         messages={chatMessages}
@@ -367,8 +904,8 @@ export default function ProjectDetailsPage({ projectId }: Props) {
         applicationGroupName={
           modals.selectedRecommendApplicationId
             ? project?.applications.find(
-                (app) => app.id === modals.selectedRecommendApplicationId
-              )?.groupName
+              (app) => app.id === modals.selectedRecommendApplicationId
+            )?.groupName
             : undefined
         }
       />
@@ -390,11 +927,10 @@ export default function ProjectDetailsPage({ projectId }: Props) {
         title="Accept Application"
         message={
           modals.selectedAcceptApplicationId
-            ? `Are you sure you want to accept ${
-                project?.applications.find(
-                  (app) => app.id === modals.selectedAcceptApplicationId
-                )?.groupName || "this application"
-              }?`
+            ? `Are you sure you want to accept ${project?.applications.find(
+              (app) => app.id === modals.selectedAcceptApplicationId
+            )?.groupName || "this application"
+            }?`
             : "Are you sure you want to accept this application?"
         }
         type="success"
@@ -419,11 +955,10 @@ export default function ProjectDetailsPage({ projectId }: Props) {
         title="Reject Application"
         message={
           modals.selectedRejectApplicationId
-            ? `Are you sure you want to reject ${
-                project?.applications.find(
-                  (app) => app.id === modals.selectedRejectApplicationId
-                )?.groupName || "this application"
-              }? This action cannot be undone.`
+            ? `Are you sure you want to reject ${project?.applications.find(
+              (app) => app.id === modals.selectedRejectApplicationId
+            )?.groupName || "this application"
+            }? This action cannot be undone.`
             : "Are you sure you want to reject this application? This action cannot be undone."
         }
         type="danger"
@@ -492,6 +1027,121 @@ export default function ProjectDetailsPage({ projectId }: Props) {
         confirmText="Terminate"
         cancelText="Cancel"
       />
+
+      {/* Shortlist Confirmation */}
+      <ConfirmationDialog
+        open={shortlistConfirmOpen}
+        onClose={() => {
+          setShortlistConfirmOpen(false);
+          setSelectedApplicationForAction(null);
+        }}
+        onConfirm={confirmShortlist}
+        title="Shortlist Application"
+        message={
+          selectedApplicationForAction
+            ? `Are you sure you want to shortlist this application? The applicant will be notified and can receive an offer.`
+            : ""
+        }
+        type="info"
+        confirmText="Shortlist"
+        cancelText="Cancel"
+        loading={isProcessingAction}
+      />
+
+      {/* Reject Confirmation */}
+      <ConfirmationDialog
+        open={rejectConfirmOpen}
+        onClose={() => {
+          setRejectConfirmOpen(false);
+          setSelectedApplicationForAction(null);
+        }}
+        onConfirm={confirmReject}
+        title="Reject Application"
+        message={
+          selectedApplicationForAction
+            ? `Are you sure you want to reject this application? This action cannot be undone and the applicant will be notified.`
+            : ""
+        }
+        type="warning"
+        confirmText="Reject"
+        cancelText="Cancel"
+        loading={isProcessingAction}
+      />
+
+      {/* Issue Offer Modal */}
+      {user?.role === "university-admin" && (
+        <IssueOfferModal
+          open={offerModalOpen}
+          application={selectedApplicationForAction}
+          projects={projectData ? { [projectId]: projectData } : {}}
+          onClose={() => {
+            setOfferModalOpen(false);
+            setSelectedApplicationForAction(null);
+          }}
+          onSubmit={handleSendOffer}
+        />
+      )}
+
+      {/* Request Supervisor Modal (only for students) */}
+      {user?.role === "student" && (
+        <RequestSupervisorModal
+          open={isRequestSupervisorModalOpen}
+          projects={[]} // No project selection needed - using project from path
+          supervisors={projectSupervisors || []}
+          selectedProject={projectId} // Use project ID from path
+          selectedSupervisor={formData.supervisorId}
+          requestMessage={requestMessage}
+          errors={errors}
+          submitting={submitting}
+          onClose={() => {
+            setIsRequestSupervisorModalOpen(false);
+            reset();
+          }}
+          onProjectChange={() => { }} // Disabled - project is from path
+          onSupervisorChange={(supervisorId) => {
+            setFormData({ ...formData, supervisorId });
+            clearError("supervisor");
+          }}
+          onMessageChange={setRequestMessage}
+          onClearError={clearError}
+          onSubmit={handleSubmitSupervisorRequest}
+        />
+      )}
+
+      {/* University Admin Screening Modals */}
+      {user?.role === "university-admin" && (
+        <ScoreApplicationModal
+          open={scoringModalOpen}
+          application={selectedApplicationForScoring}
+          project={projectData}
+          onClose={() => {
+            setScoringModalOpen(false);
+            setSelectedApplicationForScoring(null);
+          }}
+          onSubmit={async (applicationId: string, score: number) => {
+            await handleScoreSubmit(applicationId, score);
+            // Close modal after successful submission
+            setScoringModalOpen(false);
+            setSelectedApplicationForScoring(null);
+          }}
+        />
+      )}
+
+      {/* Screening Details Modal (visible to both university-admin and partner) */}
+      {(user?.role === "university-admin" || user?.role === "partner") && (
+        <ScreeningApplicationDetailsModal
+          open={isScreeningDetailsModalOpen}
+          onClose={() => {
+            setIsScreeningDetailsModalOpen(false);
+            setSelectedApplicationForDetails(null);
+          }}
+          application={selectedApplicationForDetails}
+          project={projectData}
+          students={selectedApplicationForDetails ? getStudentsForApplication(selectedApplicationForDetails) : []}
+          group={selectedApplicationForDetails ? getGroupForApplication(selectedApplicationForDetails) : undefined}
+          onScore={user?.role === "university-admin" ? handleScoreClick : undefined}
+        />
+      )}
     </div>
   );
 }

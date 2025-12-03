@@ -17,6 +17,7 @@ import { useAuthStore } from "@/src/store";
 import { useToast } from "@/src/hooks/useToast";
 import { currenciesArray } from "@/src/constants/currencies";
 import { GroupI } from "@/src/models/group";
+import { stripHtmlTags } from "@/src/utils/htmlUtils";
 
 /**
  * Student Find Projects - Upwork-style layout with Google-like search
@@ -33,9 +34,54 @@ export default function StudentProjects() {
   const [groups, setGroups] = useState<GroupI[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProjects, setTotalProjects] = useState(0);
+  const [pageSize, setPageSize] = useState(10); // Projects per page
+  
+  // Saved projects in local storage
+  const [savedProjects, setSavedProjects] = useState<Set<string>>(new Set());
+  
+  // Load saved projects from local storage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("savedProjects");
+      if (saved) {
+        try {
+          const savedArray = JSON.parse(saved) as string[];
+          setSavedProjects(new Set(savedArray));
+        } catch (error) {
+          console.error("Failed to load saved projects:", error);
+        }
+      }
+    }
+  }, []);
+  
+  // Save project to local storage
+  const saveProjectToStorage = (projectId: string | number) => {
+    const id = projectId.toString();
+    const newSaved = new Set(savedProjects);
+    newSaved.add(id);
+    setSavedProjects(newSaved);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("savedProjects", JSON.stringify(Array.from(newSaved)));
+    }
+  };
+  
+  // Remove project from local storage
+  const removeProjectFromStorage = (projectId: string | number) => {
+    const id = projectId.toString();
+    const newSaved = new Set(savedProjects);
+    newSaved.delete(id);
+    setSavedProjects(newSaved);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("savedProjects", JSON.stringify(Array.from(newSaved)));
+    }
+  };
 
   // Filter states
-  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedSkills, setSelectedSkills] = useState<Set<string>>(new Set());
   const [sortBy] = useState<string>("newest"); // Always sorted by newest, no UI control
   const [minBudget, setMinBudget] = useState("");
@@ -97,16 +143,11 @@ export default function StudentProjects() {
   }, []);
 
   // Check if user has applied to a project
-  const getApplicationStatus = (projectId: string | number): ApplicationI | null => {
+  const getApplicationStatus = (projectId: string | number | undefined): ApplicationI | null => {
+    if (!projectId) return null;
     return userApplications.find(
-      (app) => app.projectId.toString() === projectId.toString()
+      (app) => app.projectId && app.projectId.toString() === projectId.toString()
     ) || null;
-  };
-
-  // Check if student can apply to a project (must be from their university)
-  const canApplyToProject = (project: ProjectI): boolean => {
-    if (!user?.universityId) return false;
-    return project.universityId === user.universityId;
   };
 
   // Get currency symbol from project
@@ -126,24 +167,27 @@ export default function StudentProjects() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch all projects (no status filter) - backend sync handled by repository
-        const [projectsData, applicationsData, usersData, groupsData] = await Promise.all([
-          projectService.getAllProjects(),
-          user?.id ? applicationService.getUserApplications(user.id.toString()) : Promise.resolve([]),
+        // Fetch projects with pagination, applications, and groups
+        const [projectsResult, applicationsData, usersData] = await Promise.all([
+          projectService.getAllProjects({ page: currentPage, limit: pageSize }),
+          applicationService.getUserApplications(),
           import("@/src/data/mockUsers.json"),
-          import("@/src/data/mockGroups.json"),
         ]);
 
-        setProjects(projectsData);
+        setProjects(projectsResult.projects);
+        setTotalPages(projectsResult.totalPages);
+        setTotalProjects(projectsResult.total);
         setUserApplications(applicationsData);
 
-        // Load groups for application form
-        const allGroups = groupsData.default as GroupI[];
-        if (user?.id) {
-          const userGroups = allGroups.filter(
-            (g) => g.leaderId === user.id || g.memberIds.includes(user.id)
-          );
+        // Load groups from backend API for application form
+        try {
+          const { groupService } = await import("@/src/services/groupService");
+          const userGroups = await groupService.getUserGroups();
           setGroups(userGroups);
+        } catch (groupError) {
+          console.error("Failed to load groups:", groupError);
+          // Fallback to empty array if groups fail to load
+          setGroups([]);
         }
 
         // Build organization map from users
@@ -152,7 +196,7 @@ export default function StudentProjects() {
         const orgs = orgsData.default as Array<{ id: number | string; name: string }>;
 
         const orgMap: Record<string, string> = {};
-        projectsData.forEach((project) => {
+        projectsResult.projects.forEach((project) => {
           const user = users.find((u) => u.id.toString() === project.partnerId.toString());
           if (user?.orgId) {
             const org = orgs.find((o) => o.id.toString() === user.orgId?.toString());
@@ -169,7 +213,7 @@ export default function StudentProjects() {
       }
     };
     fetchData();
-  }, [user?.id]);
+  }, [user?.id, currentPage, pageSize]);
 
   // Apply filters and search
   useEffect(() => {
@@ -184,11 +228,6 @@ export default function StudentProjects() {
           p.description.toLowerCase().includes(searchLower) ||
           p.skills.some((skill) => skill.toLowerCase().includes(searchLower))
       );
-    }
-
-    // Status filter
-    if (selectedStatus !== "all") {
-      filtered = filtered.filter((p) => p.status === selectedStatus);
     }
 
     // Skills filter
@@ -218,7 +257,7 @@ export default function StudentProjects() {
     });
 
     setFilteredProjects(filtered);
-  }, [search, projects, selectedStatus, selectedSkills, minBudget, maxBudget]);
+  }, [search, projects, selectedSkills, minBudget, maxBudget]);
 
   const toggleSkill = (skill: string) => {
     setSelectedSkills((prev) => {
@@ -233,7 +272,6 @@ export default function StudentProjects() {
   };
 
   const clearFilters = () => {
-    setSelectedStatus("all");
     setSelectedSkills(new Set());
     setMinBudget("");
     setMaxBudget("");
@@ -241,12 +279,18 @@ export default function StudentProjects() {
     setMaxBudgetDisplay("");
   };
 
-  const hasActiveFilters = selectedStatus !== "all" || selectedSkills.size > 0 ||
+  const hasActiveFilters = selectedSkills.size > 0 ||
     (minBudget !== "" && minBudget !== undefined) || (maxBudget !== "" && maxBudget !== undefined);
 
   const handleSaveProject = (projectId: string | number) => {
-    // TODO: Implement save/bookmark functionality
-    showSuccess("Project saved to your list");
+    const id = projectId.toString();
+    if (savedProjects.has(id)) {
+      removeProjectFromStorage(projectId);
+      showSuccess("Project removed from saved list");
+    } else {
+      saveProjectToStorage(projectId);
+      showSuccess("Project saved to your list");
+    }
   };
 
   const handleShareProject = (project: ProjectI) => {
@@ -266,14 +310,14 @@ export default function StudentProjects() {
   };
 
   const handleOpenApplicationForm = (projectId: string | number) => {
-    // Verify student can apply to this project before opening form
-    const project = projects.find((p) => p.id.toString() === projectId.toString());
-    if (!project) {
-      showError("Project not found");
+    // Verify project exists before opening form
+    if (!projectId) {
+      showError("Invalid project ID");
       return;
     }
-    if (!canApplyToProject(project)) {
-      showError("You can only apply to projects from your university");
+    const project = projects.find((p) => p.id && p.id.toString() === projectId.toString());
+    if (!project) {
+      showError("Project not found");
       return;
     }
     setSelectedProjectId(projectId.toString());
@@ -283,17 +327,12 @@ export default function StudentProjects() {
   const handleApplicationSubmit = async (applicationData: Partial<ApplicationI>) => {
     setSubmittingApplication(true);
     try {
-      // Double-check that student can apply to this project
+      // Verify project exists
       const projectId = applicationData.projectId;
       if (projectId) {
-        const project = projects.find((p) => p.id.toString() === projectId.toString());
+        const project = projects.find((p) => p.id && p.id.toString() === projectId.toString());
         if (!project) {
           showError("Project not found");
-          setSubmittingApplication(false);
-          return;
-        }
-        if (!canApplyToProject(project)) {
-          showError("You can only apply to projects from your university");
           setSubmittingApplication(false);
           return;
         }
@@ -349,7 +388,7 @@ export default function StudentProjects() {
             {/* Results Count */}
             <div className="mb-4">
               <p className="text-sm text-secondary">
-                {filteredProjects.length} {filteredProjects.length === 1 ? "project" : "projects"} found
+                Showing {filteredProjects.length} of {totalProjects} {totalProjects === 1 ? "project" : "projects"}
               </p>
             </div>
 
@@ -357,9 +396,8 @@ export default function StudentProjects() {
             {filteredProjects.map((project) => {
               const application = getApplicationStatus(project.id);
               const hasApplied = !!application;
-              const canApply = canApplyToProject(project);
               const currencySymbol = getCurrencySymbol(project.currency);
-                const companyName = getOrganizationName(project.partnerId.toString());
+              const companyName = getOrganizationName(project.partnerId.toString());
 
               return (
                 <Card key={project.id} className="hover:shadow-md transition-all cursor-pointer border-0 bg-paper">
@@ -378,18 +416,13 @@ export default function StudentProjects() {
                             <span>Applied</span>
                           </div>
                         )}
-                        {!canApply && !hasApplied && (
-                          <div className="flex items-center gap-1 px-2 py-1 bg-pale rounded text-xs text-secondary w-fit">
-                            <span>Not available for your university</span>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
 
                   <Link href={`/student/projects/${project.id}`}>
                     <p className="text-sm text-secondary mb-4 line-clamp-2">
-                      {project.description}
+                      {stripHtmlTags(project.description)}
                     </p>
 
                     <div className="flex flex-wrap gap-2 mb-4">
@@ -425,23 +458,13 @@ export default function StudentProjects() {
 
                   {/* Action Buttons Row */}
                   <div className="flex items-center gap-2 mt-4 pt-4 border-t border-custom">
-                    {!hasApplied && canApply && (
+                    {!hasApplied && project.id && (
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleOpenApplicationForm(project.id);
+                          handleOpenApplicationForm(project.id!);
                         }}
                         className="flex-1 bg-primary text-sm py-2"
-                      >
-                        <Send size={14} className="mr-2" />
-                        Apply
-                      </Button>
-                    )}
-                    {!hasApplied && !canApply && (
-                      <Button
-                        disabled
-                        className="flex-1 bg-pale text-secondary text-sm py-2 cursor-not-allowed opacity-50"
-                        title="This project is not available for your university"
                       >
                         <Send size={14} className="mr-2" />
                         Apply
@@ -452,10 +475,10 @@ export default function StudentProjects() {
                         e.stopPropagation();
                         handleSaveProject(project.id);
                       }}
-                      className={`${hasApplied ? "flex-1" : ""} bg-pale text-primary text-sm py-2`}
+                      className={`${hasApplied ? "flex-1" : ""} ${savedProjects.has(project.id.toString()) ? "bg-primary text-white" : "bg-pale text-primary"} text-sm py-2`}
                     >
-                      <Bookmark size={14} className="mr-2" />
-                      Save
+                      <Bookmark size={14} className="mr-2" fill={savedProjects.has(project.id.toString()) ? "currentColor" : "none"} />
+                      {savedProjects.has(project.id.toString()) ? "Saved" : "Save"}
                     </Button>
                     <Button
                       onClick={(e) => {
@@ -483,8 +506,8 @@ export default function StudentProjects() {
               <Card className="border-0 bg-paper">
                 <div className="text-center py-12">
                   <Search size={48} className="mx-auto mb-4 text-secondary opacity-50" />
-                  <p className="text-gray-500 mb-2 font-medium">No projects found</p>
-                  <p className="text-sm text-gray-400 mb-4">
+                  <p className="text-muted mb-2 font-medium">No projects found</p>
+                  <p className="text-sm text-muted-light mb-4">
                     {search || hasActiveFilters
                       ? "Try adjusting your search or filters"
                       : "Check back later for new projects"}
@@ -499,6 +522,104 @@ export default function StudentProjects() {
                   )}
                 </div>
               </Card>
+            )}
+            
+            {/* Pagination Controls */}
+            {totalProjects > 0 && (
+              <div className="mt-6 space-y-4">
+                {/* Pagination Info and Limit Selector */}
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                  <div className="flex items-center gap-4">
+                    <p className="text-sm text-secondary">
+                      Showing {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalProjects)} of {totalProjects} projects
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm text-secondary">Per page:</label>
+                      <div className="w-20">
+                        <Select
+                          value={pageSize.toString()}
+                          onChange={(option) => {
+                            const value = typeof option === "string" ? option : option.value;
+                            const newPageSize = parseInt(value, 10);
+                            setPageSize(newPageSize);
+                            setCurrentPage(1); // Reset to first page when changing page size
+                          }}
+                          options={[
+                            { value: "10", label: "10" },
+                            { value: "20", label: "20" },
+                            { value: "50", label: "50" },
+                            { value: "100", label: "100" },
+                          ]}
+                          placeHolder="10"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pagination Navigation */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2">
+                    <Button
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      className="bg-pale text-primary text-sm py-2 px-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="First page"
+                    >
+                      ««
+                    </Button>
+                    <Button
+                      onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="bg-pale text-primary text-sm py-2 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Previous
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum: number;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        return (
+                          <Button
+                            key={pageNum}
+                            onClick={() => setCurrentPage(pageNum)}
+                            className={`text-sm py-2 px-3 min-w-[40px] ${
+                              currentPage === pageNum
+                                ? "bg-primary text-white"
+                                : "bg-pale text-primary hover:bg-pale-primary"
+                            }`}
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="bg-pale text-primary text-sm py-2 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </Button>
+                    <Button
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                      className="bg-pale text-primary text-sm py-2 px-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Last page"
+                    >
+                      »»
+                    </Button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -518,24 +639,6 @@ export default function StudentProjects() {
               </div>
 
               <div className="space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
-                {/* Status Filter */}
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-secondary">Status</label>
-                  <Select
-                    value={selectedStatus}
-                    onChange={(option) => {
-                      const value = typeof option === "string" ? option : (option.value as string);
-                      setSelectedStatus(value);
-                    }}
-                    options={[
-                      { value: "all", label: "All Status" },
-                      { value: "published", label: "Published" },
-                      { value: "in-progress", label: "In Progress" },
-                    ]}
-                    placeHolder="Select status"
-                  />
-                </div>
-
                 {/* Budget Range - Min and Max on different rows */}
                 <div>
                   <label className="block text-sm font-medium mb-2 text-secondary">Budget Range</label>

@@ -16,6 +16,8 @@ interface AuthState {
   organization: OrganizationI | null; // University organization for university-admin
   isAuthenticated: boolean;
   _hasHydrated: boolean; // Internal flag for Zustand persist hydration
+  accessToken: string | null;
+  setAccessToken: (token: string | null) => void;
   setUser: (user: UserI | null) => Promise<void>;
   setOrganization: (organization: OrganizationI | null) => void;
   logout: () => void;
@@ -27,41 +29,17 @@ interface AuthState {
 
 /**
  * Get default student user for development
- * Automatically loads student user when store is initialized
+ * Removed - use backend API instead
  */
 const getDefaultStudentUser = async (): Promise<UserI | null> => {
-  // Only in development mode
-  if (process.env.NODE_ENV === "development") {
-    try {
-      const usersData = await import("@/src/data/mockUsers.json");
-      const users = usersData.default as UserI[];
-      const student = users.find((u) => u.role === "student");
-      return student || null;
-    } catch (error) {
-      console.error("Failed to load default student user:", error);
-      return null;
-    }
-  }
   return null;
 };
 
 /**
  * Get default university admin user for development
- * Automatically loads university admin user when store is initialized
+ * Removed - use backend API instead
  */
 const getDefaultUniversityAdminUser = async (): Promise<UserI | null> => {
-  // Only in development mode
-  if (process.env.NODE_ENV === "development") {
-    try {
-      const usersData = await import("@/src/data/mockUsers.json");
-      const users = usersData.default as UserI[];
-      const universityAdmin = users.find((u) => u.role === "university-admin");
-      return universityAdmin || null;
-    } catch (error) {
-      console.error("Failed to load default university admin user:", error);
-      return null;
-    }
-  }
   return null;
 };
 
@@ -86,13 +64,12 @@ function getUserFromCookie(): { role: string; id: number } | null {
 }
 
 /**
- * Load full user data by ID from mock data
+ * Load full user data by ID from backend
  */
 async function loadUserById(id: number): Promise<UserI | null> {
   try {
-    const usersData = await import("@/src/data/mockUsers.json");
-    const users = usersData.default as UserI[];
-    return users.find((u) => u.id === id) || null;
+    const { userRepository } = await import("@/src/repositories/userRepository");
+    return await userRepository.getById(id);
   } catch (error) {
     console.error("Failed to load user data:", error);
     return null;
@@ -118,6 +95,21 @@ export const useAuthStore = create<AuthState>()(
       organization: null,
       isAuthenticated: false,
       _hasHydrated: false,
+      accessToken: null,
+
+      setAccessToken: (token) => {
+        set({ accessToken: token });
+
+        // optional cookie for SSR middleware / debugging
+        if (typeof document !== "undefined") {
+          if (token) {
+            document.cookie = `accessToken=${token}; path=/; max-age=86400`;
+          } else {
+            document.cookie = "accessToken=; path=/; max-age=0";
+          }
+        }
+      },
+
       setHasHydrated: (state) => {
         set({ _hasHydrated: state });
       },
@@ -127,8 +119,8 @@ export const useAuthStore = create<AuthState>()(
       setUser: async (user) => {
         set({ user, isAuthenticated: !!user });
 
-        // If university-admin, fetch and store organization using orgId
-        if (user && user.role === "university-admin" && user.orgId) {
+        // Fetch and store organization for users with orgId (university-admin, partner, student, supervisor)
+        if (user && user.orgId) {
           try {
             const { organizationService } = await import(
               "@/src/services/organizationService"
@@ -345,7 +337,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: "auth-storage", // localStorage key
+      name: "user", // localStorage key
       storage: createJSONStorage(() => localStorage),
       // Only persist user data and organization (not hydration flag)
       partialize: (state) => ({
@@ -439,3 +431,7 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+// ======================
+// V2
+// ======================

@@ -55,11 +55,8 @@ export const sidebarLinks: SideLinkCategory[] = [
         role: "university-admin",
         links: [
             { title: "Dashboard", iconComponent: LayoutPanelTop, path: "/university-admin" },
+            { title: "Partners", iconComponent: Building2, path: "/university-admin/partners" },
             { title: "Departments", iconComponent: Building2, path: "/university-admin/departments" },
-            { title: "Programmes", iconComponent: BookOpen, path: "/university-admin/courses" },
-            { title: "Students", iconComponent: Users, path: "/university-admin/students" },
-            { title: "Supervisors", iconComponent: UserCheck, path: "/university-admin/supervisors" },
-            { title: "Screening", iconComponent: Search, path: "/university-admin/screening" },
             { title: "Offers", iconComponent: Briefcase, path: "/university-admin/offers" },
             { title: "Analytics", iconComponent: BarChart3, path: "/university-admin/analytics" },
             { title: "Disputes", iconComponent: AlertCircle, path: "/university-admin/disputes" },

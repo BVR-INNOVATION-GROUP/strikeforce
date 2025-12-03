@@ -2,7 +2,7 @@
  * Dispute Service - business logic for dispute operations
  * PRD Reference: Section 12 - Compliance, Disputes, and Audit
  */
-import { DisputeI, DisputeSubjectType } from '@/src/models/dispute';
+import { DisputeI, DisputeSubjectType } from "@/src/models/dispute";
 
 /**
  * Business logic layer for dispute operations
@@ -27,7 +27,10 @@ export const disputeService = {
       throw new Error("Reason is required");
     }
 
-    if (!disputeData.description || disputeData.description.trim().length < 20) {
+    if (
+      !disputeData.description ||
+      disputeData.description.trim().length < 20
+    ) {
       throw new Error("Description must be at least 20 characters");
     }
 
@@ -74,11 +77,3 @@ export const disputeService = {
     }
   },
 };
-
-
-
-
-
-
-
-

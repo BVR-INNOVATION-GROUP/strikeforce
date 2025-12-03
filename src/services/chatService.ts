@@ -7,10 +7,11 @@ import { ChatThreadI, ChatMessageI } from "@/src/models/chat";
 
 export const chatService = {
   /**
-   * Get all threads for a user, sorted by most recent message
+   * Get all threads for the authenticated user, sorted by most recent message
+   * Backend uses JWT token's user_id - never pass userId parameter
    */
-  getUserThreads: async (userId: string): Promise<ChatThreadI[]> => {
-    return chatRepository.getThreadsByUserId(userId);
+  getUserThreads: async (): Promise<ChatThreadI[]> => {
+    return chatRepository.getThreadsByUserId();
   },
 
   /**
@@ -27,6 +28,8 @@ export const chatService = {
 
   /**
    * Send a message with validation
+   * Note: threadId can be a thread ID or a group ID (backend uses group IDs)
+   * Note: senderId parameter is kept for API compatibility but backend gets it from JWT token
    */
   sendMessage: async (
     threadId: string,
@@ -45,7 +48,14 @@ export const chatService = {
       throw new Error("Message body cannot exceed 5000 characters");
     }
 
-    return chatRepository.sendMessage(threadId, senderId, body.trim(), type, attachments, proposalId);
+    // Backend expects group_id, so threadId is used as groupId
+    // Note: senderId is not passed to repository - backend gets it from JWT token
+    return chatRepository.sendMessage(
+      threadId,
+      body.trim(),
+      type,
+      attachments,
+      proposalId ? parseInt(proposalId, 10) : undefined
+    );
   },
 };
-

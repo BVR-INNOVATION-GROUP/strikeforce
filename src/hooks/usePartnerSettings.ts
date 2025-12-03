@@ -57,7 +57,7 @@ export function usePartnerSettings(userId: string | undefined): UsePartnerSettin
   const loadSettings = async (userId: string) => {
     setLoading(true);
     try {
-      const settings = await userSettingsService.getUserSettings(userId);
+      const settings = await userSettingsService.getUserSettings();
       setNotifications(settings.notifications);
       setAccountSettings(settings.accountSettings);
       setSecurity(settings.security);
@@ -92,7 +92,7 @@ export function usePartnerSettings(userId: string | undefined): UsePartnerSettin
     const timeout = parseInt(security.sessionTimeout);
     setSaving(true);
     try {
-      await userSettingsService.updateSettings(userId, {
+      await userSettingsService.updateSettings({
         notifications,
         accountSettings,
         security: {
@@ -124,6 +124,7 @@ export function usePartnerSettings(userId: string | undefined): UsePartnerSettin
     loadSettings,
   };
 }
+
 
 
 

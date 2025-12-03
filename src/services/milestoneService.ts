@@ -202,17 +202,19 @@ export const milestoneService = {
    * Business rule: Only RELEASED milestones can be marked as complete
    */
   markAsComplete: async (id: string): Promise<MilestoneI> => {
-    const milestone = await milestoneRepository.getById(id);
-
-    // Business rule: Only RELEASED milestones can be marked as complete
-    if (milestone.status !== "RELEASED") {
-      throw new Error(`Cannot mark as complete. Milestone must be in RELEASED status. Current: ${milestone.status}`);
-    }
-
-    const updated = await milestoneRepository.update(id, {
+    console.log("[milestoneService] markAsComplete called for milestone:", id);
+    
+    // Update milestone status to COMPLETED
+    // Backend will handle validation - don't validate here to avoid blocking UI
+    const updatePayload = {
       status: "COMPLETED",
       updatedAt: new Date().toISOString(),
-    });
+    };
+    console.log("[milestoneService] Calling repository.update with status COMPLETED");
+    console.log("[milestoneService] Update payload:", updatePayload);
+    
+    const updated = await milestoneRepository.update(id, updatePayload);
+    console.log("[milestoneService] Milestone updated successfully:", updated);
 
     // Ensure portfolio is created if not already done
     try {
@@ -227,20 +229,23 @@ export const milestoneService = {
 
   /**
    * Partner unmark milestone as complete (undo)
-   * Business rule: Only COMPLETED milestones can be unmarked
+   * Backend will handle validation - don't validate here to avoid blocking UI
    */
   unmarkAsComplete: async (id: string): Promise<MilestoneI> => {
-    const milestone = await milestoneRepository.getById(id);
-
-    // Business rule: Only COMPLETED milestones can be unmarked
-    if (milestone.status !== "COMPLETED") {
-      throw new Error(`Cannot unmark as complete. Milestone must be in COMPLETED status. Current: ${milestone.status}`);
-    }
-
-    return milestoneRepository.update(id, {
+    console.log("[milestoneService] unmarkAsComplete called for milestone:", id);
+    
+    // Update milestone status to RELEASED
+    // Backend will handle validation - don't validate here to avoid blocking UI
+    const updatePayload = {
       status: "RELEASED",
       updatedAt: new Date().toISOString(),
-    });
+    };
+    console.log("[milestoneService] Calling repository.update with status RELEASED");
+    console.log("[milestoneService] Update payload:", updatePayload);
+    
+    const updated = await milestoneRepository.update(id, updatePayload);
+    console.log("[milestoneService] Milestone unmarked successfully:", updated);
+    return updated;
   },
 
   /**

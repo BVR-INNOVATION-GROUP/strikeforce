@@ -15,6 +15,7 @@ import Badge from '@/src/components/core/Badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChatMessageI } from '@/src/models/chat';
 import { UserI } from '@/src/models/user';
+import { useToast } from '@/src/hooks/useToast';
 
 export interface Props {
   open: boolean;
@@ -49,6 +50,7 @@ const ChatModal = ({
   const [isSending, setIsSending] = useState(false);
   const [mounted, setMounted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const toast = useToast();
 
   // Ensure component is mounted (for portal)
   useEffect(() => {
@@ -75,6 +77,9 @@ const ChatModal = ({
       setMessageText('');
     } catch (error) {
       console.error('Failed to send message:', error);
+      // Show error to user
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send message. Please try again.';
+      toast.showError(errorMessage);
     } finally {
       setIsSending(false);
     }
@@ -176,20 +181,18 @@ const ChatModal = ({
                           </span>
                         </div>
                         <div
-                          className={`rounded-lg px-6 py-4 ${
-                            isOwn
+                          className={`rounded-lg px-6 py-4 ${isOwn
                               ? 'bg-primary text-white'
                               : 'bg-pale'
-                          }`}
+                            }`}
                         >
                           <p className="text-[0.875rem] leading-relaxed whitespace-pre-wrap">
                             {message.body}
                           </p>
                           {message.type === 'PROPOSAL' && (
                             <div
-                              className={`mt-3 pt-3 ${
-                                isOwn ? 'border-white/20' : 'border-custom'
-                              } border-t`}
+                              className={`mt-3 pt-3 ${isOwn ? 'border-white/20' : 'border-custom'
+                                } border-t`}
                             >
                               <span className="text-[0.8125rem] opacity-90">
                                 Proposal attached

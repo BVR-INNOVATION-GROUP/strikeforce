@@ -113,27 +113,38 @@ const RequestSupervisorModal = ({
       ]}
     >
       <div className="space-y-4">
-        <Select
-          title="Select Project *"
-          options={projects.map((p) => ({
-            value: String(p.id),
-            label: p.title,
-          }))}
-          value={selectedProject || null}
-          onChange={(option) => {
-            const projectId =
-              typeof option === "string" ? option : String(option.value);
-            onProjectChange(projectId);
-            onClearError("project");
-          }}
-          placeHolder={projects.length === 0 ? "No assigned projects available" : "Choose a project"}
-          error={errors.project}
-          disabled={submitting || projects.length === 0}
-        />
-        {projects.length === 0 && (
-          <p className="text-xs text-secondary mt-1">
-            You must be assigned to a project before requesting a supervisor
-          </p>
+        {/* Project selection - hidden if project is pre-selected from path */}
+        {projects.length > 0 && (
+          <>
+            <Select
+              title="Select Project *"
+              options={projects.map((p) => ({
+                value: String(p.id),
+                label: p.title,
+              }))}
+              value={selectedProject || null}
+              onChange={(option) => {
+                const projectId =
+                  typeof option === "string" ? option : String(option.value);
+                onProjectChange(projectId);
+                onClearError("project");
+              }}
+              placeHolder={projects.length === 0 ? "No assigned projects available" : "Choose a project"}
+              error={errors.project}
+              disabled={submitting || projects.length === 0 || (projects.length === 1 && selectedProject)}
+            />
+            {projects.length === 0 && (
+              <p className="text-xs text-secondary mt-1">
+                You must be assigned to a project before requesting a supervisor
+              </p>
+            )}
+          </>
+        )}
+        {projects.length === 0 && selectedProject && (
+          <div className="p-3 bg-pale rounded-lg">
+            <p className="text-sm font-semibold mb-1">Project</p>
+            <p className="text-sm text-secondary">Project ID: {selectedProject}</p>
+          </div>
         )}
         <Select
           title="Select Supervisor *"

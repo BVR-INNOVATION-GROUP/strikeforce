@@ -28,19 +28,47 @@ export default function StudentAnalytics() {
     const fetchData = async () => {
       try {
         if (user?.id) {
-          // Use API route for analytics stats
-          const statsResponse = await fetch(`/api/analytics/student?studentId=${user.id}`);
-          if (!statsResponse.ok) {
-            throw new Error("Failed to fetch analytics stats");
-          }
-          const dashboardStats = await statsResponse.json();
+          // Use backend API for analytics stats
+          const { api } = await import("@/src/api/client");
+          const backendResponse = await api.get<{
+            totalApplications: number;
+            activeApplications: number;
+            completedProjects: number;
+            activeProjects: number;
+            totalBudget: number;
+            totalEarnings: number;
+            activeProjectsChange: number;
+            totalBudgetChange: number;
+          }>("/api/v1/analytics/student");
+          
+          // Map backend response to DashboardStats
+          const dashboardStats: DashboardStats = {
+            totalApplications: backendResponse.totalApplications,
+            activeApplications: backendResponse.activeApplications,
+            activeProjects: backendResponse.activeProjects,
+            totalBudget: backendResponse.totalBudget,
+            totalEarnings: backendResponse.totalEarnings,
+            completedProjects: backendResponse.completedProjects,
+            activeProjectsChange: backendResponse.activeProjectsChange,
+            totalBudgetChange: backendResponse.totalBudgetChange,
+          };
 
-          const [projectsData, applicationsData] = await Promise.all([
-            projectService.getAllProjects(),
-            applicationService.getUserApplications(user.id.toString()),
+          // Get user's applications and projects
+          const [applicationsData] = await Promise.all([
+            applicationService.getUserApplications(),
           ]);
+
+          // Get projects from applications
+          const projectIds = applicationsData
+            .map((app) => app.projectId)
+            .filter((id, index, self) => self.indexOf(id) === index);
+          
+          // Fetch all projects (with high limit to get all student's projects)
+          const allProjectsResult = await projectService.getAllProjects({ limit: 1000 });
+          const studentProjects = allProjectsResult.projects.filter((p) => projectIds.includes(p.id));
+
           setStats(dashboardStats);
-          setProjects(projectsData);
+          setProjects(studentProjects);
           setApplications(applicationsData);
         }
       } catch (error) {
@@ -97,10 +125,8 @@ export default function StudentAnalytics() {
    * Shows student's projects grouped by status
    */
   const projectPerformanceData = useMemo(() => {
-    // Filter projects where student is assigned (in production, filter by studentId)
-    const studentProjects = projects.slice(0, 10); // Mock: take first 10 as student projects
-    
-    const statusMap = studentProjects.reduce((acc, project) => {
+    // Use actual student projects from applications
+    const statusMap = projects.reduce((acc, project) => {
       const status = project.status === "in-progress" ? "In Progress" :
         project.status === "completed" ? "Completed" :
         project.status === "on-hold" ? "On Hold" : "Published";
@@ -120,16 +146,35 @@ export default function StudentAnalytics() {
    */
   const earningsTrendData = useMemo(() => {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+    const currentMonth = new Date().getMonth();
+    
     return months.map((month, index) => {
-      // Mock earnings data - in production, calculate from actual payouts
-      const baseEarnings = 500 + (index * 200);
+      // Calculate earnings from completed projects up to this month
+      const monthIndex = (currentMonth - (5 - index) + 12) % 12;
+      const monthProjects = projects.filter((project) => {
+        if (project.status !== "completed") return false;
+        const projectDate = new Date(project.createdAt || project.updatedAt);
+        return projectDate.getMonth() <= monthIndex;
+      });
+      
+      const earnings = monthProjects.reduce((sum, project) => {
+        return sum + (project.budget || 0);
+      }, 0);
+      
+      const budget = projects.filter((project) => {
+        const projectDate = new Date(project.createdAt || project.updatedAt);
+        return projectDate.getMonth() <= monthIndex;
+      }).reduce((sum, project) => {
+        return sum + (project.budget || 0);
+      }, 0);
+      
       return {
         name: month,
-        "Earnings": baseEarnings,
-        "Budget": baseEarnings * 1.2,
+        "Earnings": earnings,
+        "Budget": budget,
       };
     });
-  }, []);
+  }, [projects, stats]);
 
   if (loading || !stats) {
     return <div className="p-4">Loading...</div>;
@@ -140,7 +185,7 @@ export default function StudentAnalytics() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold mb-2">Analytics</h1>
-        <p className="text-gray-600">Track your performance, applications, and earnings</p>
+        <p className="text-secondary">Track your performance, applications, and earnings</p>
       </div>
 
       {/* Statistics Cards */}
@@ -164,7 +209,7 @@ export default function StudentAnalytics() {
         <StatCard
           icon={<DollarSign size={20} />}
           title="Total Earnings"
-          value={`$${stats.totalBudget.toLocaleString()}`}
+          value={`$${Math.round(stats.totalEarnings || stats.totalBudget || 0).toLocaleString()}`}
           change={stats.totalBudgetChange}
         />
       </div>

@@ -18,8 +18,8 @@ export default function SuperAdminSettings() {
   useEffect(() => {
     // Only check after hydration is complete
     if (_hasHydrated) {
-      if (!user) {
-        // No user after hydration - redirect to login
+      if (!user || !user.id) {
+        // No user or incomplete user after hydration - redirect to login
         router.push("/auth/login");
       } else {
         setLoading(false);
@@ -27,7 +27,7 @@ export default function SuperAdminSettings() {
     }
   }, [user, _hasHydrated, router]);
 
-  if (loading || !user) {
+  if (loading || !user || !user.id) {
     return (
       <div className="w-full flex flex-col h-full overflow-hidden p-4">
         Loading...

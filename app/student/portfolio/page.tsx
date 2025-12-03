@@ -24,17 +24,8 @@ export default function StudentPortfolio() {
       try {
         if (!user?.id) return;
 
-        // Load portfolio items
-        let userPortfolio: PortfolioItemI[] = [];
-        try {
-          const portfolioData = await import("@/src/data/mockPortfolio.json");
-          userPortfolio = (portfolioData.default as PortfolioItemI[]).filter(
-            (item) => item.userId.toString() === user.id.toString()
-          );
-        } catch {
-          // If mock file doesn't exist, fetch from service
-          userPortfolio = await portfolioService.getUserPortfolio(user.id.toString());
-        }
+        // Load portfolio items (backend uses JWT token to get authenticated user's portfolio)
+        const userPortfolio = await portfolioService.getUserPortfolio();
         setPortfolioItems(userPortfolio);
 
         // Calculate reputation score
@@ -57,7 +48,7 @@ export default function StudentPortfolio() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold mb-2">Portfolio</h1>
-        <p className="text-gray-600">Your verified work and achievements</p>
+        <p className="text-secondary">Your verified work and achievements</p>
       </div>
 
       {/* Reputation Score */}
@@ -70,7 +61,7 @@ export default function StudentPortfolio() {
             <div className="flex items-start justify-between mb-3">
               <div>
                 <h3 className="font-semibold text-lg">{item.role}</h3>
-                <p className="text-sm text-gray-600">Complexity: {item.complexity}</p>
+                <p className="text-sm text-secondary">Complexity: {item.complexity}</p>
               </div>
               {item.rating && (
                 <div className="flex items-center gap-1">
@@ -80,15 +71,15 @@ export default function StudentPortfolio() {
               )}
             </div>
 
-            <p className="text-sm text-gray-700 mb-4">{item.scope}</p>
+            <p className="text-sm text-default mb-4">{item.scope}</p>
 
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-xs text-gray-600">Amount Delivered</p>
+                <p className="text-xs text-secondary">Amount Delivered</p>
                 <p className="font-semibold">${item.amountDelivered.toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-600">Verified</p>
+                <p className="text-xs text-secondary">Verified</p>
                 <p className="font-semibold text-sm">
                   {new Date(item.verifiedAt).toLocaleDateString()}
                 </p>
@@ -118,9 +109,9 @@ export default function StudentPortfolio() {
       {portfolioItems.length === 0 && (
         <Card>
           <div className="text-center py-12">
-            <Award size={48} className="mx-auto mb-4 text-gray-400" />
-            <p className="text-gray-500 mb-2">No portfolio items yet</p>
-            <p className="text-sm text-gray-400">
+            <Award size={48} className="mx-auto mb-4 text-muted-light" />
+            <p className="text-muted mb-2">No portfolio items yet</p>
+            <p className="text-sm text-muted-light">
               Complete projects and milestones to build your portfolio
             </p>
           </div>

@@ -33,12 +33,12 @@ const page = () => {
                 setLoading(true)
                 // Fetch projects filtered by partnerId (efficient database query)
                 const partnerId = typeof user.id === 'string' ? Number(user.id) : user.id
-                const partnerProjects = await projectService.getAllProjects({
+                const result = await projectService.getAllProjects({
                     partnerId: partnerId
                 })
 
                 // Convert model projects to UI format
-                const uiProjects = partnerProjects.map((p) => convertModelToUIProject(p))
+                const uiProjects = result.projects.map((p) => convertModelToUIProject(p))
                 setProjects(uiProjects)
             } catch (error) {
                 console.error("Failed to load projects:", error)
@@ -73,13 +73,13 @@ const page = () => {
 
             // Reload projects from server to ensure we have the latest data
             const partnerId = typeof user.id === 'string' ? Number(user.id) : user.id
-            const updatedProjects = await projectService.getAllProjects({
+            const result = await projectService.getAllProjects({
                 partnerId: partnerId
             })
 
             // Convert to UI format and update list
-            const uiProjects = updatedProjects.map((p) => convertModelToUIProject(p))
-            setProjects(uiProjects)
+            const uiProjects = result.projects.map((p) => convertModelToUIProject(p))
+                setProjects(uiProjects)
 
             showSuccess("Project created successfully!")
             setOpen(false)

@@ -13,21 +13,21 @@ function getStatusBadge(status: InvitationStatus) {
   switch (status) {
     case "PENDING":
       return (
-        <span className="flex items-center gap-1 text-yellow-600">
+        <span className="flex items-center gap-1 text-warning">
           <Clock size={14} />
           Pending
         </span>
       );
     case "USED":
       return (
-        <span className="flex items-center gap-1 text-green-600">
+        <span className="flex items-center gap-1 text-success">
           <CheckCircle size={14} />
           Used
         </span>
       );
     case "EXPIRED":
       return (
-        <span className="flex items-center gap-1 text-red-600">
+        <span className="flex items-center gap-1 text-error">
           <X size={14} />
           Expired
         </span>
@@ -63,7 +63,7 @@ export function getInvitationColumns(): Column<InvitationI>[] {
       key: "expiresAt",
       header: "Expires",
       render: (item) => (
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-secondary">
           {new Date(item.expiresAt).toLocaleDateString()}
         </span>
       ),
@@ -72,13 +72,14 @@ export function getInvitationColumns(): Column<InvitationI>[] {
       key: "createdAt",
       header: "Created",
       render: (item) => (
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-secondary">
           {new Date(item.createdAt).toLocaleDateString()}
         </span>
       ),
     },
   ];
 }
+
 
 
 

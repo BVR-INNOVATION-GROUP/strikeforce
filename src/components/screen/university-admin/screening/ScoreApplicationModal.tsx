@@ -71,8 +71,13 @@ const ScoreApplicationModal = ({
     }
 
     const scoreNum = parseInt(score, 10);
-    onSubmit(application.id.toString(), scoreNum);
-    onClose();
+    // Extract ID - handle both 'id' and 'ID' (backend might return either)
+    const applicationId = (application as any).ID || application.id;
+    if (!applicationId) {
+      return;
+    }
+    onSubmit(applicationId.toString(), scoreNum);
+    // Don't close immediately - let the parent handle closing after async operation
   };
 
   if (!application) {

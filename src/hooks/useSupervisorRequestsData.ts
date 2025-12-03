@@ -6,6 +6,8 @@ import { SupervisorRequestI } from "@/src/models/supervisor";
 import { ProjectI } from "@/src/models/project";
 import { UserI } from "@/src/models/user";
 import { projectService } from "@/src/services/projectService";
+import { supervisorService } from "@/src/services/supervisorService";
+import { userRepository } from "@/src/repositories/userRepository";
 
 export interface UseSupervisorRequestsDataResult {
   requests: SupervisorRequestI[];
@@ -27,17 +29,19 @@ export function useSupervisorRequestsData(
 
   useEffect(() => {
     const loadData = async () => {
+      if (!supervisorId) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const [requestsData, projectsData, usersData] = await Promise.all([
-          import("@/src/data/mockSupervisorRequests.json"),
+          supervisorService.getRequests(supervisorId),
           projectService.getAllProjects(),
-          import("@/src/data/mockUsers.json"),
+          userRepository.getAll(),
         ]);
 
-        const supervisorRequests = (
-          requestsData.default as SupervisorRequestI[]
-        ).filter((req) => req.supervisorId === supervisorId);
-        setRequests(supervisorRequests);
+        setRequests(requestsData);
 
         const projectsMap: Record<string, ProjectI> = {};
         projectsData.forEach((p) => {
@@ -46,7 +50,7 @@ export function useSupervisorRequestsData(
         setProjects(projectsMap);
 
         const usersMap: Record<string, UserI> = {};
-        (usersData.default as UserI[]).forEach((u) => {
+        usersData.forEach((u) => {
           usersMap[u.id] = u;
         });
         setStudents(usersMap);
@@ -61,6 +65,7 @@ export function useSupervisorRequestsData(
 
   return { requests, projects, students, loading };
 }
+
 
 
 

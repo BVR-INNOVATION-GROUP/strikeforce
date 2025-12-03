@@ -18,6 +18,8 @@ export interface Props {
     onChange?: (value: OptionI[]) => void
     placeHolder?: string
     error?: string
+    onSearch?: (query: string) => void
+    loading?: boolean
 }
 
 /**
@@ -96,6 +98,7 @@ const MultiSelect = (props: Props) => {
     const triggerRef = useRef<HTMLDivElement>(null)
     const dropdownRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLInputElement>(null)
+    const optionsListRef = useRef<HTMLDivElement>(null)
     const [position, setPosition] = useState<DropdownPosition>({
         position: 'below',
         left: 0,
@@ -108,6 +111,43 @@ const MultiSelect = (props: Props) => {
     const selectedValueSet = useMemo(() => {
         return new Set(selectedValues.map(v => v.value))
     }, [selectedValues])
+
+    /**
+     * Full list A - all available options (reference list)
+     */
+    const fullOptionsList = useMemo(() => {
+        return props.options || []
+    }, [props.options])
+
+    /**
+     * Filtered list B - filtered options based on search query
+     * Maps to full list A for complete data
+     * STRICT: Only returns options that actually match the search query
+     */
+    const filteredOptionsList = useMemo(() => {
+        if (!fullOptionsList || fullOptionsList.length === 0) return []
+        
+        // Get trimmed search query
+        const trimmedQuery = (searchQuery || '').trim()
+        
+        // If no search query, return all options
+        if (!trimmedQuery || trimmedQuery.length === 0) {
+            return fullOptionsList
+        }
+
+        // STRICT FILTERING: Only return options that contain the search query
+        const query = trimmedQuery.toLowerCase()
+        const filtered = fullOptionsList.filter(option => {
+            if (!option || !option.label) return false
+            const label = String(option.label).toLowerCase().trim()
+            // Only include if label contains the query - strict matching
+            const matches = label.includes(query)
+            return matches
+        })
+        
+        // Return filtered results - empty array if no matches
+        return filtered
+    }, [fullOptionsList, searchQuery])
 
     /**
      * Calculates optimal dropdown position based on viewport and trigger element position
@@ -175,24 +215,24 @@ const MultiSelect = (props: Props) => {
     }, [])
 
     /**
-     * Filters options based on search query
+     * Reset scroll position when search query changes
      */
-    const filteredOptions = useMemo(() => {
-        if (!props.options) return []
-        if (!searchQuery.trim()) return props.options
-
-        const query = searchQuery.toLowerCase()
-        return props.options.filter(option =>
-            option.label.toLowerCase().includes(query)
-        )
-    }, [props.options, searchQuery])
+    useEffect(() => {
+        if (optionsListRef.current && searchQuery) {
+            optionsListRef.current.scrollTop = 0
+        }
+    }, [searchQuery, filteredOptionsList.length])
 
     /**
      * Updates dropdown position when open state or viewport changes
      * Also handles closing dropdown when clicking outside
      */
     useEffect(() => {
-        if (!open) return
+        if (!open) {
+            // Clear search when closing
+            setSearchQuery('')
+            return
+        }
 
         // Calculate initial position
         const updatePosition = () => {
@@ -201,6 +241,11 @@ const MultiSelect = (props: Props) => {
 
         // Update position on mount and when open
         updatePosition()
+
+        // Reset scroll position when opening
+        if (optionsListRef.current) {
+            optionsListRef.current.scrollTop = 0
+        }
 
         // Handle window resize and scroll
         window.addEventListener('resize', updatePosition)
@@ -297,6 +342,9 @@ const MultiSelect = (props: Props) => {
                     setOpen(!open)
                     if (!open) {
                         setTimeout(() => inputRef.current?.focus(), 0)
+                    } else {
+                        // Clear search when closing
+                        setSearchQuery('')
                     }
                 }}
                 className={`border relative border-custom rounded-lg min-h-[48px] p-2 flex items-center gap-2 ${props.error ? 'border-red-500' : ''
@@ -307,7 +355,19 @@ const MultiSelect = (props: Props) => {
                     ref={inputRef}
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                        const newQuery = e.target.value
+                        // Immediately update search query for real-time filtering
+                        setSearchQuery(newQuery)
+                        // Call onSearch callback if provided (for server-side search)
+                        if (props.onSearch) {
+                            props.onSearch(newQuery)
+                        }
+                        // Ensure dropdown is open when typing
+                        if (!open) {
+                            setOpen(true)
+                        }
+                    }}
                     onKeyDown={handleKeyDown}
                     onClick={(e) => {
                         e.stopPropagation()
@@ -315,7 +375,9 @@ const MultiSelect = (props: Props) => {
                             setOpen(true)
                         }
                     }}
-                    onFocus={() => setOpen(true)}
+                    onFocus={() => {
+                        setOpen(true)
+                    }}
                     className="flex-1 min-w-[120px] outline-none bg-transparent text-sm"
                     placeholder={selectedValues.length === 0 ? (props?.placeHolder || 'Search options...') : 'Search options...'}
                 />
@@ -359,26 +421,105 @@ const MultiSelect = (props: Props) => {
                                 className="bg-paper rounded-lg flex flex-col shadow-custom-lg border border-custom"
                             >
                                 {/* Options list */}
-                                <div className="overflow-y-auto flex flex-col p-2">
-                                    {filteredOptions.length === 0 ? (
-                                        <div className="flex flex-col text-center items-center justify-center py-8">
-                                            <p className="text-lg mt-2">No options found</p>
-                                            <p className='text-[12px] opacity-50 mt-2 max-w-[80%]'>
-                                                {searchQuery
-                                                    ? `No results for "${searchQuery}"`
-                                                    : 'No options available'}
-                                            </p>
-                                        </div>
-                                    ) : (
-                                        filteredOptions.map((option) => (
+                                <div 
+                                    ref={optionsListRef} 
+                                    key={`options-list-${searchQuery || 'empty'}`}
+                                    className="overflow-y-auto flex flex-col p-2"
+                                >
+                                    {/* CRITICAL: Only show filtered options - never show all options when there's a search query */}
+                                    {(() => {
+                                        // Show loading state first if provided
+                                        if (props.loading) {
+                                            return (
+                                                <div className="flex flex-col text-center items-center justify-center py-8 px-4">
+                                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mb-2"></div>
+                                                    <p className="text-sm font-medium text-default mt-2">Searching...</p>
+                                                </div>
+                                            )
+                                        }
+                                        
+                                        const trimmedQuery = (searchQuery || '').trim()
+                                        const hasSearchQuery = trimmedQuery.length > 0
+                                        
+                                        // When searching, ONLY show filtered results (list B) - nothing else
+                                        if (hasSearchQuery) {
+                                            // If no matches, show ONLY "no results" message - no options should appear
+                                            if (filteredOptionsList.length === 0) {
+                                                return (
+                                                    <div className="flex flex-col text-center items-center justify-center py-8 px-4">
+                                                        <p className="text-sm font-medium text-default mt-2">No options found</p>
+                                                        <p className='text-xs text-secondary mt-1'>
+                                                            No results for "{trimmedQuery}"
+                                                        </p>
+                                                    </div>
+                                                )
+                                            }
+                                            
+                                            // Show ONLY filtered results (list B) with count
+                                            // Each option references fullOptionsList (A) for complete data
+                                            return (
+                                                <>
+                                                    <div className="px-2 py-1 text-xs text-secondary border-b border-custom mb-1">
+                                                        {filteredOptionsList.length} result{filteredOptionsList.length !== 1 ? 's' : ''} found
+                                                    </div>
+                                                    {filteredOptionsList.map((option) => {
+                                                        // Get full option from list A using value as reference
+                                                        const fullOption = fullOptionsList.find(opt => opt.value === option.value) || option
+                                                        return (
+                                                            <Option
+                                                                key={`search-${fullOption.value}-${trimmedQuery}`}
+                                                                option={fullOption}
+                                                                isSelected={selectedValueSet.has(fullOption.value)}
+                                                                onToggle={() => toggleOption(fullOption)}
+                                                            />
+                                                        )
+                                                    })}
+                                                </>
+                                            )
+                                        }
+                                        
+                                        // No options found
+                                        if (filteredOptionsList.length === 0) {
+                                            const trimmedQuery = (searchQuery || '').trim();
+                                            return (
+                                                <div className="flex flex-col text-center items-center justify-center py-8 px-4">
+                                                    {trimmedQuery.length === 0 ? (
+                                                        <>
+                                                            <p className="text-sm font-medium text-default mt-2">Start typing to search</p>
+                                                            <p className='text-xs text-secondary mt-1'>
+                                                                Type a name or email to find members
+                                                            </p>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <p className="text-sm font-medium text-default mt-2">No options found</p>
+                                                            <p className='text-xs text-secondary mt-1'>
+                                                                Try a different search term
+                                                            </p>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            )
+                                        }
+                                        
+                                        // Show all options from full list (A) when not searching
+                                        return (
+                                            <>
+                                                {filteredOptionsList.map((option) => {
+                                                    // Use full option from list A
+                                                    const fullOption = fullOptionsList.find(opt => opt.value === option.value) || option
+                                                    return (
                                             <Option
-                                                key={option.value}
-                                                option={option}
-                                                isSelected={selectedValueSet.has(option.value)}
-                                                onToggle={() => toggleOption(option)}
-                                            />
-                                        ))
-                                    )}
+                                                            key={`all-${fullOption.value}`}
+                                                            option={fullOption}
+                                                            isSelected={selectedValueSet.has(fullOption.value)}
+                                                            onToggle={() => toggleOption(fullOption)}
+                                                        />
+                                                    )
+                                                })}
+                                            </>
+                                        )
+                                    })()}
                                 </div>
                             </motion.div>
                         )}

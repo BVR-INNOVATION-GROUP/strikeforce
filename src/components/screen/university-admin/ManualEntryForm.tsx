@@ -3,7 +3,7 @@
  */
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Modal from "@/src/components/base/Modal";
 import Button from "@/src/components/core/Button";
 import ManualEntryFormFields from "./ManualEntryFormFields";
@@ -24,19 +24,43 @@ export interface Props {
   courses?: CourseI[]; // Courses for student selection (department is derived from course)
   departments?: DepartmentI[]; // Departments for supervisor selection
   isSubmitting?: boolean; // Loading state for submit button
+  lockDepartmentId?: string | number;
+  hideDepartmentField?: boolean;
 }
 
 /**
  * Form modal for manual entry
  */
-const ManualEntryForm = ({ open, uploadType, onClose, onSubmit, courses = [], departments = [], isSubmitting = false }: Props) => {
-  const [formData, setFormData] = useState({
+const ManualEntryForm = ({
+  open,
+  uploadType,
+  onClose,
+  onSubmit,
+  courses = [],
+  departments = [],
+  isSubmitting = false,
+  lockDepartmentId,
+  hideDepartmentField = false,
+}: Props) => {
+  const lockedDepartmentValue = useMemo(() => {
+    if (lockDepartmentId === undefined || lockDepartmentId === null) return "";
+    return typeof lockDepartmentId === "string" ? lockDepartmentId : lockDepartmentId.toString();
+  }, [lockDepartmentId]);
+
+  const buildInitialFormState = () => ({
     name: "",
     email: "",
-    department: "",
+    department: lockedDepartmentValue,
     course: "",
   });
+  const [formData, setFormData] = useState(buildInitialFormState);
   const [errors, setErrors] = useState<ValidationErrors>({});
+
+  useEffect(() => {
+    if (lockedDepartmentValue) {
+      setFormData((prev) => ({ ...prev, department: lockedDepartmentValue }));
+    }
+  }, [lockedDepartmentValue]);
 
   const validate = (): boolean => {
     const validationErrors = validateManualEntry(formData, uploadType);
@@ -52,6 +76,11 @@ const ManualEntryForm = ({ open, uploadType, onClose, onSubmit, courses = [], de
     });
   };
 
+  const resetForm = () => {
+    setFormData(buildInitialFormState());
+    setErrors({});
+  };
+
   const handleSubmit = () => {
     if (!validate()) return;
 
@@ -59,18 +88,18 @@ const ManualEntryForm = ({ open, uploadType, onClose, onSubmit, courses = [], de
       name: formData.name,
       email: uploadType === "student" || uploadType === "supervisor" ? formData.email : undefined,
       course: uploadType === "student" ? formData.course : undefined,
-      department: uploadType === "supervisor" ? formData.department : undefined,
+      department:
+        uploadType === "supervisor"
+          ? lockedDepartmentValue || formData.department
+          : undefined,
     });
 
-    // Reset form
-    setFormData({ name: "", email: "", department: "", course: "" });
-    setErrors({});
+    resetForm();
   };
 
   const handleClose = () => {
     onClose();
-    setFormData({ name: "", email: "", department: "", course: "" });
-    setErrors({});
+    resetForm();
   };
 
   return (
@@ -97,6 +126,7 @@ const ManualEntryForm = ({ open, uploadType, onClose, onSubmit, courses = [], de
         onClearError={(field) => clearError(field as keyof ValidationErrors)}
         courses={courses}
         departments={departments}
+        hideDepartmentField={hideDepartmentField || Boolean(lockedDepartmentValue)}
       />
     </Modal>
   );

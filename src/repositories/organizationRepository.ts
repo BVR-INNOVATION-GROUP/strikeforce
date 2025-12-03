@@ -1,64 +1,103 @@
 /**
  * Repository for organization data operations
- * Abstracts data source - can use mock JSON files or real API
+ * Connects to backend API
  */
 import { api } from "@/src/api/client";
-import { OrganizationI } from "@/src/models/organization";
-import { getUseMockData } from "@/src/utils/config";
-import { readJsonFile, findById } from "@/src/utils/fileHelpers";
+import { OrganizationI, OrganizationDashboardStats } from "@/src/models/organization";
 
 export const organizationRepository = {
   /**
-   * Get organization by ID
+   * Get organizations by type
+   * Backend endpoint: GET /api/v1/org?type=university|company
    */
-  getById: async (id: string | number): Promise<OrganizationI> => {
-    if (getUseMockData()) {
-      const organizations = await readJsonFile<OrganizationI>(
-        "mockOrganizations.json"
-      );
-      const org = findById(organizations, id);
-      if (!org) {
-        throw new Error(`Organization ${id} not found`);
-      }
-      return org;
-    }
-    return api.get<OrganizationI>(`/api/organizations/${id}`);
+  getByType: async (type: string): Promise<OrganizationI[]> => {
+    return api.get<OrganizationI[]>(`/api/v1/org?type=${type}`);
   },
 
   /**
    * Get all organizations
+   * Backend endpoint: GET /api/v1/org
    */
   getAll: async (): Promise<OrganizationI[]> => {
-    if (getUseMockData()) {
-      return await readJsonFile<OrganizationI>("mockOrganizations.json");
-    }
-    return api.get<OrganizationI[]>("/api/organizations");
+    return api.get<OrganizationI[]>("/api/v1/org");
+  },
+
+  /**
+   * Get organization by ID
+   * Note: Backend may need to add this endpoint if not available
+   */
+  getById: async (id: string | number): Promise<OrganizationI> => {
+    return api.get<OrganizationI>(`/api/v1/org/${id}`);
+  },
+
+  /**
+   * Create organization
+   * Backend endpoint: POST /api/v1/org
+   */
+  create: async (org: Partial<OrganizationI>): Promise<OrganizationI> => {
+    return api.post<OrganizationI>("/api/v1/org", org);
   },
 
   /**
    * Update organization
+   * Note: Backend may need to add this endpoint if not available
    */
   update: async (
     id: string | number,
     data: Partial<OrganizationI>
   ): Promise<OrganizationI> => {
-    // Always use API route (even in mock mode) - API routes handle file operations server-side
-    return api.put<OrganizationI>(`/api/organizations/${id}`, data);
-  },
-
-  /**
-   * Create organization
-   */
-  create: async (org: Partial<OrganizationI>): Promise<OrganizationI> => {
-    // Always use API route (even in mock mode) - API routes handle file operations server-side
-    return api.post<OrganizationI>("/api/organizations", org);
+    return api.put<OrganizationI>(`/api/v1/org/${id}`, data);
   },
 
   /**
    * Delete organization
+   * Note: Backend may need to add this endpoint if not available
    */
   delete: async (id: string | number): Promise<void> => {
-    // Always use API route (even in mock mode) - API routes handle file operations server-side
-    return api.delete(`/api/organizations/${id}`);
+    return api.delete(`/api/v1/org/${id}`);
+  },
+
+  /**
+   * Get aggregated dashboard stats for an organization
+   * Backend endpoint: GET /api/v1/org/:id/dashboard
+   */
+  getDashboardStats: async (id: string | number): Promise<OrganizationDashboardStats> => {
+    return api.get<OrganizationDashboardStats>(`/api/v1/org/${id}/dashboard`);
+  },
+
+  /**
+   * Get nested organizations with departments and courses
+   * Backend endpoint: GET /api/v1/org/nested?type=university (optional)
+   */
+  getNested: async (type?: string): Promise<{
+    id: number;
+    name: string;
+    type: string;
+    departments: {
+      id: number;
+      name: string;
+      courses: {
+        id: number;
+        name: string;
+      }[];
+    }[];
+  }[]> => {
+    const url = type 
+      ? `/api/v1/org/nested?type=${type}` 
+      : "/api/v1/org/nested";
+    return api.get(url);
+  },
+
+  /**
+   * Get partner dashboard statistics
+   * Backend endpoint: GET /api/v1/org/partner/dashboard
+   */
+  getPartnerDashboardStats: async (): Promise<{
+    totalProjects: number;
+    activeProjects: number;
+    completedProjects: number;
+    totalBudget: number;
+  }> => {
+    return api.get("/api/v1/org/partner/dashboard");
   },
 };

@@ -8,7 +8,7 @@ import Avatar from '@/src/components/core/Avatar'
 import { Crown, GraduationCap, User } from 'lucide-react'
 
 export interface Props {
-    teamMembers: Array<{ 
+    teamMembers: Array<{
         id: string
         name: string
         role: string
@@ -44,7 +44,11 @@ const TeamMembersCard = (props: Props) => {
                     return (
                         <div key={member.id} className="flex items-center gap-3">
                             <div className="relative">
-                                <Avatar src={member.avatar} alt={member.name} />
+                                <Avatar
+                                    src={member.avatar || undefined}
+                                    alt={member.name}
+                                    name={member.name}
+                                />
                                 {activeBadges.length > 0 && (
                                     <div className="absolute -bottom-1 -right-1 flex gap-0.5">
                                         {activeBadges.map((badge, idx) => {

@@ -6,18 +6,12 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import Button from "@/src/components/core/Button";
-import { UserPlus, Users } from "lucide-react";
-
-export interface Props {
-  onCreateRequest: () => void;
-}
+import { Users } from "lucide-react";
 
 /**
  * Display empty state when no supervisor requests exist
- * Provides clear call-to-action for creating first request
  */
-const RequestsEmptyState = ({ onCreateRequest }: Props) => {
+const RequestsEmptyState = () => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -34,17 +28,14 @@ const RequestsEmptyState = ({ onCreateRequest }: Props) => {
       </motion.div>
       <h3 className="text-xl font-semibold mb-2">No supervisor requests yet</h3>
       <p className="text-[0.875rem] opacity-60 mb-6 max-w-md mx-auto">
-        Request a supervisor to get guidance and support for your project
+        You haven't made any supervisor requests yet. Request a supervisor from the project details page.
       </p>
-      <Button onClick={onCreateRequest} className="bg-primary">
-        <UserPlus size={16} className="mr-2" />
-        Create Your First Request
-      </Button>
     </motion.div>
   );
 };
 
 export default RequestsEmptyState;
+
 
 
 

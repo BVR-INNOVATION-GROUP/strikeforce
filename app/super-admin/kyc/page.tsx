@@ -106,7 +106,7 @@ export default function SuperAdminKYC() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold mb-2">KYC Approvals</h1>
-        <p className="text-gray-600">Review and approve organization KYC documents</p>
+        <p className="text-secondary">Review and approve organization KYC documents</p>
       </div>
 
       {/* Statistics */}

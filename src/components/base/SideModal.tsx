@@ -24,10 +24,10 @@ export interface Props {
 const SideModal = ({ open, onClose, title, children, width = "500px" }: Props) => {
   const [mounted, setMounted] = useState(false);
 
-  // useEffect(() => {
-  //   setMounted(true);
-  //   return () => setMounted(false);
-  // }, []);
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   // Prevent body scroll when modal is open
   useEffect(() => {

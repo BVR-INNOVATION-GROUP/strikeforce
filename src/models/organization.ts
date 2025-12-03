@@ -11,9 +11,40 @@ export interface OrganizationI {
   name: string;
   email: string;
   kycStatus: KycStatus;
+  logo?: string;
+  website?: string;
+  brandColor?: string;
+  address?: string;
   billingProfile?: BillingProfileI;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface DepartmentStatI {
+  departmentId: number;
+  departmentName: string;
+  activeProjects: number;
+  completedProjects: number;
+  pendingProjects: number;
+}
+
+export interface RecentProjectStatI {
+  id: number;
+  title: string;
+  status: string;
+  departmentName: string;
+}
+
+export interface OrganizationDashboardStats {
+  totalStudents: number;
+  activeProjects: number;
+  pendingReviews: number;
+  departmentStats: DepartmentStatI[];
+  recentProjects: RecentProjectStatI[];
+  studentTrend?: {
+    month: string;
+    count: number;
+  }[];
 }
 
 export interface BillingProfileI {

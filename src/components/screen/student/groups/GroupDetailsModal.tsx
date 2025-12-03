@@ -57,13 +57,17 @@ const GroupDetailsModal = ({
      */
     const groupMembers = useMemo(() => {
         if (!group) return [];
+        // Safety check: ensure memberIds is an array
+        if (!group.memberIds || !Array.isArray(group.memberIds)) {
+            return [];
+        }
         const members = group.memberIds
-            .map((id) => users[id])
+            .map((id) => users[String(id)])
             .filter((user): user is UserI => user !== undefined);
 
         return members.sort((a, b) => {
-            if (a.id === group.leaderId) return -1;
-            if (b.id === group.leaderId) return 1;
+            if (a.id === group.leaderId || String(a.id) === String(group.leaderId)) return -1;
+            if (b.id === group.leaderId || String(b.id) === String(group.leaderId)) return 1;
             return 0;
         });
     }, [group, users]);
@@ -71,12 +75,13 @@ const GroupDetailsModal = ({
     /**
      * Check if current user is leader
      */
-    const isLeader = group?.leaderId === currentUserId;
+    const isLeader = group?.leaderId !== undefined && 
+        (String(group.leaderId) === currentUserId || group.leaderId === Number(currentUserId));
 
     /**
      * Check if group is full
      */
-    const isFull = group ? group.memberIds.length >= group.capacity : false;
+    const isFull = group ? (group.memberIds?.length || 0) >= group.capacity : false;
 
     /**
      * Handle image load error
@@ -189,12 +194,20 @@ const GroupDetailsModal = ({
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b border-custom flex-shrink-0">
                             <div className="flex-1">
-                                <h2 className="text-[1.125rem] font-[600] mb-1">{group.name}</h2>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <h2 className="text-[1.125rem] font-[600]">{group.name}</h2>
+                                    {isLeader && (
+                                        <span className="px-2 py-0.5 bg-primary text-white rounded-full text-[0.75rem] flex items-center gap-1">
+                                            <Crown size={10} />
+                                            Leader
+                                        </span>
+                                    )}
+                                </div>
                                 <div className="flex items-center gap-4 text-[0.8125rem] opacity-60">
                                     <div className="flex items-center gap-1">
                                         <Users size={14} />
                                         <span>
-                                            {group.memberIds.length} of {group.capacity} members
+                                            {group.memberIds?.length || 0} of {group.capacity} members
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-1">
@@ -212,6 +225,29 @@ const GroupDetailsModal = ({
 
                         {/* Content - scrollable */}
                         <div className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0">
+                            {/* Leader Information - Prominent Display */}
+                            {group && group.leaderId && users[String(group.leaderId)] && (
+                                <div className="bg-pale-primary rounded-lg p-4 border border-primary/20">
+                                    <div className="flex items-center gap-3">
+                                        {renderAvatar(users[String(group.leaderId)], 0)}
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-[0.875rem] font-[600]">
+                                                    {users[String(group.leaderId)].name}
+                                                </span>
+                                                <span className="px-2 py-0.5 bg-primary text-white rounded-full text-[0.75rem] flex items-center gap-1">
+                                                    <Crown size={10} />
+                                                    Group Leader
+                                                </span>
+                                            </div>
+                                            <p className="text-[0.75rem] opacity-70">
+                                                {users[String(group.leaderId)].email}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Member Avatars */}
                             <div>
                                 <h3 className="text-[0.875rem] font-[600] mb-3">Members</h3>
@@ -225,7 +261,7 @@ const GroupDetailsModal = ({
                                         className={`h-2 rounded-full bg-primary`}
                                         style={{
                                             width: `${Math.round(
-                                                (group.memberIds.length / group.capacity) * 100
+                                                ((group.memberIds?.length || 0) / group.capacity) * 100
                                             )}%`,
                                         }}
                                     />
@@ -252,11 +288,12 @@ const GroupDetailsModal = ({
                                 </div>
                                 <div className="space-y-2">
                                     {groupMembers.map((member) => {
-                                        const isMemberLeader = member.id === group.leaderId;
+                                        const isMemberLeader = member.id === group.leaderId || 
+                                            String(member.id) === String(group.leaderId);
                                         const canRemove =
                                             isLeader &&
                                             !isMemberLeader &&
-                                            member.id !== currentUserId;
+                                            String(member.id) !== currentUserId;
 
                                         return (
                                             <div

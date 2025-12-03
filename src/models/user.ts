@@ -1,7 +1,12 @@
 /**
  * User model - represents all user types in the system
  */
-export type UserRole = "partner" | "student" | "supervisor" | "university-admin" | "super-admin";
+export type UserRole =
+  | "partner"
+  | "student"
+  | "supervisor"
+  | "university-admin"
+  | "super-admin";
 
 export interface UserI {
   id: number;
@@ -34,8 +39,3 @@ export interface PayoutMethodI {
   details: Record<string, string>;
   isVerified: boolean;
 }
-
-
-
-
-

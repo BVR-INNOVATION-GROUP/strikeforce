@@ -7,7 +7,7 @@ import React from "react";
 import Input from "@/src/components/core/Input";
 import RichTextEditor from "@/src/components/core/RichTextEditor";
 import DatePicker from "@/src/components/base/DatePicker";
-import CurrencyInput from "@/src/components/base/CurrencyInput";
+import MergedCurrencyInput from "@/src/components/base/MergedCurrencyInput";
 import { OptionI } from "@/src/components/core/Select";
 import { ValidationErrors } from "@/src/utils/milestoneFormValidation";
 
@@ -82,7 +82,7 @@ const AddMilestoneFormFields = ({
         placeholder="Select due date"
         onClearError={() => onClearError("dueDate" as keyof ValidationErrors)}
       />
-      <CurrencyInput
+      <MergedCurrencyInput
         title="Amount *"
         currency={currency}
         amount={amount}
@@ -96,7 +96,7 @@ const AddMilestoneFormFields = ({
         }}
         currencyError={errors.currency}
         amountError={errors.amount}
-        // onClearError={onClearError}
+        onClearError={(field) => onClearError(field as keyof ValidationErrors)}
         placeholder="0.00"
       />
     </div>

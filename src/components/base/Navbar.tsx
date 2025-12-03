@@ -80,7 +80,7 @@ const getUserAvatar = (user: UserI | null): string => {
 }
 
 const Navbar = () => {
-    const { user, setUser, logout } = useAuthStore()
+    const { user, setUser, logout, organization } = useAuthStore()
     const router = useRouter()
     const [notificationsOpen, setNotificationsOpen] = useState(false)
     const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -101,7 +101,7 @@ const Navbar = () => {
 
             setLoadingNotifications(true)
             try {
-                const userNotifications = await notificationService.getUserNotifications(user.id)
+                const userNotifications = await notificationService.getUserNotifications()
                 setNotifications(userNotifications)
 
                 // Calculate unread count
@@ -197,9 +197,27 @@ const Navbar = () => {
     }
 
     return (
-        <div className="fixed top-0 left-0 right-0 h-[8vh] bg-paper flex items-center z-[1] border-b border-custom">
+        <div className="fixed top-0 left-0 right-0 h-[8vh] bg-paper flex items-center z-[1] border-b border-slate-200">
             <div className="w-full px-4 flex items-center justify-between">
-                <Logo />
+                {/* Show organization logo if available, otherwise show default logo */}
+                {organization?.logo ? (
+                    <div className="flex ml-[1vw] items-center justify-center">
+                        <img 
+                            src={organization.logo.startsWith("http") 
+                                ? organization.logo 
+                                : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/${organization.logo}`}
+                            alt={organization.name || "Organization Logo"} 
+                            className="h-12 w-auto object-contain max-w-[200px]"
+                            onError={(e) => {
+                                // Fallback to default logo if image fails to load
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                            }}
+                        />
+                    </div>
+                ) : (
+                    <Logo />
+                )}
                 <div className="flex items-center gap-4 justify-end">
                     {/* Notifications Popover */}
                     <Popover
@@ -209,53 +227,79 @@ const Navbar = () => {
                         className="w-[320px] max-h-[400px] overflow-y-auto"
                         content={
                             <div className="p-2">
-                                <div className="px-3 py-2 border-b border-custom flex items-center justify-between">
-                                    <h3 className="text-sm font-semibold">Notifications</h3>
+                                <div className="px-3 py-2 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                                    <h3 className="text-sm font-semibold text-slate-800">Notifications</h3>
                                     {unreadCount > 0 && (
-                                        <span className="text-xs bg-primary text-white px-2 py-0.5 rounded-full">
+                                        <span className="text-xs bg-slate-700 text-white px-2 py-0.5 rounded-full">
                                             {unreadCount} new
                                         </span>
                                     )}
                                 </div>
-                                <div className="py-2">
+                                <div className="py-2 max-h-[350px] overflow-y-auto">
                                     {loadingNotifications ? (
-                                        <div className="px-3 py-8 text-center text-sm opacity-60">
+                                        <div className="px-3 py-8 text-center text-sm text-slate-500">
                                             Loading notifications...
                                         </div>
                                     ) : notifications.length === 0 ? (
-                                        <div className="px-3 py-8 text-center text-sm opacity-60">
+                                        <div className="px-3 py-8 text-center text-sm text-slate-500">
                                             No notifications
                                         </div>
                                     ) : (
-                                        notifications.map((notification) => (
-                                            <div
-                                                key={notification.id}
-                                                className={`px-3 py-3 hover:bg-pale cursor-pointer border-b border-custom last:border-b-0 ${!notification.read ? 'bg-pale-primary' : ''
-                                                    }`}
-                                                onClick={() => handleNotificationClick(notification)}
-                                            >
-                                                <div className="flex items-start gap-3">
-                                                    <div className="flex-shrink-0 mt-0.5">
-                                                        {getNotificationIcon(notification.type)}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-medium mb-1">
-                                                            {notification.title}
-                                                        </p>
-                                                        <p className="text-xs opacity-60 overflow-hidden" style={{
-                                                            display: '-webkit-box',
-                                                            WebkitLineClamp: 2,
-                                                            WebkitBoxOrient: 'vertical',
-                                                        }}>
-                                                            {notification.message}
-                                                        </p>
-                                                        <p className="text-xs opacity-40 mt-1">
-                                                            {formatTimeAgo(notification.createdAt)}
-                                                        </p>
+                                        notifications.map((notification) => {
+                                            // Categorize notification by title/keywords
+                                            const getCategoryLabel = (title: string, message: string): string => {
+                                                const lowerTitle = title.toLowerCase();
+                                                const lowerMessage = message.toLowerCase();
+                                                if (lowerTitle.includes('partner') || lowerMessage.includes('partner added')) {
+                                                    return 'New Partner Added';
+                                                }
+                                                if (lowerTitle.includes('project') && (lowerTitle.includes('posted') || lowerTitle.includes('new'))) {
+                                                    return 'New Project Posted';
+                                                }
+                                                if (lowerTitle.includes('application') || lowerMessage.includes('application received')) {
+                                                    return 'Student Application Received';
+                                                }
+                                                if (lowerTitle.includes('approved') || lowerTitle.includes('approval')) {
+                                                    return 'Project Approved';
+                                                }
+                                                return 'System Notification';
+                                            };
+
+                                            const category = getCategoryLabel(notification.title, notification.message);
+
+                                            return (
+                                                <div
+                                                    key={notification.id}
+                                                    className={`px-3 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-b-0 transition-colors ${!notification.read ? 'bg-blue-50' : ''
+                                                        }`}
+                                                    onClick={() => handleNotificationClick(notification)}
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="flex-shrink-0 mt-0.5">
+                                                            {getNotificationIcon(notification.type)}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">
+                                                                {category}
+                                                            </p>
+                                                            <p className="text-sm font-medium text-slate-800 mb-1">
+                                                                {notification.title}
+                                                            </p>
+                                                            <p className="text-xs text-slate-600 overflow-hidden" style={{
+                                                                display: '-webkit-box',
+                                                                WebkitLineClamp: 2,
+                                                                WebkitBoxOrient: 'vertical',
+                                                            }}>
+                                                                {notification.message}
+                                                            </p>
+                                                            <p className="text-xs text-slate-400 mt-1">
+                                                                {formatTimeAgo(notification.createdAt)}
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))
+                                            );
+                                        })
                                     )}
                                 </div>
                             </div>

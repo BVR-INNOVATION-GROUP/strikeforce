@@ -12,6 +12,7 @@ import { ValidationErrors } from "@/src/utils/inviteAcceptanceValidation";
 export interface Props {
   invitation: InvitationI;
   formData: {
+    name: string;
     password: string;
     confirmPassword: string;
   };
@@ -36,6 +37,18 @@ const InviteAcceptanceForm = ({
 }: Props) => {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      <Input
+        title="Full Name *"
+        type="text"
+        value={formData.name}
+        onChange={(e) => {
+          onFieldChange("name", e.target.value);
+          onClearError("name");
+        }}
+        error={errors.name}
+        placeholder="Enter your full name"
+      />
+
       <Input
         title="Password *"
         type="password"

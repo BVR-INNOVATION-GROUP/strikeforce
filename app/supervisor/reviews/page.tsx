@@ -48,7 +48,7 @@ function SupervisorReviewsContent() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold mb-2">Milestone Reviews</h1>
-        <p className="text-gray-600">Review submitted milestones and approve for partner review</p>
+        <p className="text-secondary">Review submitted milestones and approve for partner review</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

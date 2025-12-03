@@ -40,7 +40,7 @@ function InviteAcceptanceInner() {
         <Card className="max-w-md w-full">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Invalid Invitation</h1>
-            <p className="text-gray-600 mb-4">
+            <p className="text-secondary mb-4">
               This invitation link is invalid or has expired.
             </p>
             <Button onClick={() => router.push("/")} className="bg-primary">
@@ -57,7 +57,7 @@ function InviteAcceptanceInner() {
       <Card className="max-w-md w-full">
         <div className="mb-6">
           <h1 className="text-2xl font-bold mb-2">Accept Invitation</h1>
-          <p className="text-gray-600">
+          <p className="text-secondary">
             Complete your profile to join StrikeForce as a{" "}
             <span className="capitalize font-medium">{invitation.role}</span>
           </p>

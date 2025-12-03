@@ -10,7 +10,6 @@ import { projectService } from '@/src/services/projectService'
 import { milestoneService } from '@/src/services/milestoneService'
 import { applicationService } from '@/src/services/applicationService'
 import { useProjectStore } from '@/src/store/useProjectStore'
-import { getUseMockData } from '@/src/utils/config'
 
 export const useProjectData = (projectId: string) => {
     const { getProjectById } = useProjectStore()
@@ -36,30 +35,14 @@ export const useProjectData = (projectId: string) => {
                     setProjectData(fetchedProject)
                 }
 
-                // Load applications for this project - use API to get all applications
+                // Load applications for this project (non-critical - continue if it fails)
                 try {
-                    // Convert projectId to number (URL params come as strings)
                     const numericProjectId = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId
-                    
-                    if (getUseMockData()) {
-                        // Mock mode: Load from JSON file
-                        const appsData = await import("@/src/data/mockApplications.json")
-                        const allApps = appsData.default as ApplicationI[]
-                        // Handle both string and number projectId in mock data
-                        const projectApps = allApps.filter(app => {
-                            const appProjectId = typeof app.projectId === 'string' 
-                                ? parseInt(app.projectId, 10) 
-                                : app.projectId;
-                            return appProjectId === numericProjectId;
-                        })
-                        setApplications(projectApps)
-                    } else {
-                        // Production mode: Fetch from API
-                        const projectApps = await applicationService.getProjectApplications(numericProjectId)
-                        setApplications(projectApps)
-                    }
-                } catch (error) {
-                    console.error("Failed to load applications:", error)
+                    const projectApps = await applicationService.getProjectApplications(numericProjectId)
+                    setApplications(projectApps)
+                } catch (error: any) {
+                    // Log warning but don't block UI - applications are optional for project display
+                    console.warn("Failed to load applications (non-critical):", error?.message || error)
                     setApplications([])
                 }
 

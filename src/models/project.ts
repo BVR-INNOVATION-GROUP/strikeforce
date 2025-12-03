@@ -15,7 +15,7 @@ export interface ProjectI {
   description: string;
   status: ProjectStatus;
   skills: string[];
-  budget: number;
+  budget: number | { Currency?: string; Value?: number; currency?: string; value?: number }; // Backend returns Budget object
   currency: string;
   deadline: string;
   capacity: number; // Max number of students/groups

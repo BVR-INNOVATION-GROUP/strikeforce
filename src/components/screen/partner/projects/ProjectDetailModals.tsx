@@ -94,9 +94,31 @@ const ProjectDetailModals = ({
   const assignedAppId = assignedApp?.id || currentAssignedApplicationId
 
   // Find milestone to edit
+  // Handle both string and number ID comparisons
   const milestoneToEdit = selectedMilestoneId 
-    ? milestones.find(m => String(m.id) === selectedMilestoneId) 
+    ? milestones.find(m => {
+        if (!m || m.id === undefined || m.id === null) return false;
+        const mId = typeof m.id === 'number' ? m.id.toString() : String(m.id);
+        const selectedId = String(selectedMilestoneId);
+        return mId === selectedId;
+      }) 
     : null
+  
+  // If milestone not found but we have selectedMilestoneId, create a minimal milestone object
+  // This ensures the modal can still work with just the ID
+  // Convert selectedMilestoneId to number for MilestoneI.id (which is number)
+  const milestoneForEdit = milestoneToEdit || (selectedMilestoneId ? {
+    id: typeof selectedMilestoneId === 'string' ? parseInt(selectedMilestoneId, 10) : selectedMilestoneId,
+  } as MilestoneI : null);
+  
+  // Debug logging
+  if (selectedMilestoneId && !milestoneToEdit) {
+    console.warn('Milestone not found in array for edit, using ID directly:', {
+      selectedMilestoneId,
+      availableMilestoneIds: milestones.map(m => m?.id),
+      milestoneForEdit
+    });
+  }
 
   // Find application to show in detail modal
   const applicationDetail = selectedApplicationDetailId
@@ -119,7 +141,7 @@ const ProjectDetailModals = ({
         onClose={onCloseEditMilestoneModal}
         onCreate={onCreateMilestone}
         onUpdate={onUpdateMilestone}
-        milestone={milestoneToEdit || null}
+        milestone={milestoneForEdit}
         defaultCurrency={projectData?.currency}
       />
       {isEditModalOpen && (
