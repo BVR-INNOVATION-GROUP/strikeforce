@@ -74,20 +74,13 @@ export const portfolioService = {
 
   /**
    * Get portfolio items for a user
-   * @param userId - User ID
+   * @param userId - User ID (optional, backend uses JWT token if not provided)
    * @returns Array of portfolio items
    */
-  getUserPortfolio: async (userId: string): Promise<PortfolioItemI[]> => {
-    // Try to load from mock data first
-    try {
-      const mockData = await import("@/src/data/mockPortfolio.json");
-      const allPortfolio = mockData.default as PortfolioItemI[];
-      return allPortfolio.filter(item => item.userId === userId);
-    } catch {
-      // If mock file doesn't exist, return empty array
-      // In production, would fetch from repository/API
-      return [];
-    }
+  getUserPortfolio: async (userId?: string): Promise<PortfolioItemI[]> => {
+    // Use repository to fetch from backend API
+    const { portfolioRepository } = await import("@/src/repositories/portfolioRepository");
+    return portfolioRepository.getAll();
   },
 
   /**

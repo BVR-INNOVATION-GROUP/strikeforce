@@ -1,74 +1,58 @@
 /**
  * Repository for course data operations
- * Abstracts data source - can use mock JSON files or real API
+ * Connects to backend API
  */
 import { api } from "@/src/api/client";
 import { CourseI } from "@/src/models/project";
-import { getUseMockData } from "@/src/utils/config";
-import { readJsonFile, findById } from "@/src/utils/fileHelpers";
 
 export const courseRepository = {
   /**
-   * Get all courses
-   * @param departmentId - Optional filter by department
+   * Get all courses by department
+   * Backend endpoint: GET /api/v1/courses?department=...
    */
   getAll: async (departmentId?: number | string): Promise<CourseI[]> => {
-    if (getUseMockData()) {
-      const courses = await readJsonFile<CourseI>("mockCourses.json");
-      if (departmentId) {
-        const numericDepartmentId = typeof departmentId === 'string' ? parseInt(departmentId, 10) : departmentId;
-        return courses.filter((c) => c.departmentId === numericDepartmentId);
-      }
-      return courses;
-    }
     const url = departmentId
-      ? `/api/courses?departmentId=${departmentId}`
-      : "/api/courses";
+      ? `/api/v1/courses?department=${departmentId}`
+      : "/api/v1/courses";
     return api.get<CourseI[]>(url);
   },
 
   /**
    * Get course by ID
+   * Note: Backend may need to add this endpoint if not available
    */
   getById: async (id: string | number): Promise<CourseI> => {
-    if (getUseMockData()) {
-      const courses = await readJsonFile<CourseI>("mockCourses.json");
-      const course = findById(courses, id);
-      if (!course) {
-        throw new Error(`Course ${id} not found`);
-      }
-      return course;
-    }
-    return api.get<CourseI>(`/api/courses/${id}`);
+    return api.get<CourseI>(`/api/v1/courses/${id}`);
   },
 
   /**
    * Create new course
+   * Backend endpoint: POST /api/v1/courses
    */
   create: async (course: Partial<CourseI>): Promise<CourseI> => {
-    // Always use API route (even in mock mode) - API routes handle file operations server-side
-    return api.post<CourseI>("/api/courses", course);
+    return api.post<CourseI>("/api/v1/courses", course);
   },
 
   /**
    * Update existing course
+   * Note: Backend may need to add this endpoint if not available
    */
   update: async (
     id: string | number,
     course: Partial<CourseI>
   ): Promise<CourseI> => {
-    // Always use API route (even in mock mode) - API routes handle file operations server-side
-    return api.put<CourseI>(`/api/courses/${id}`, course);
+    return api.put<CourseI>(`/api/v1/courses/${id}`, course);
   },
 
   /**
    * Delete course
+   * Note: Backend may need to add this endpoint if not available
    */
   delete: async (id: string | number): Promise<void> => {
-    // Always use API route (even in mock mode) - API routes handle file operations server-side
-    return api.delete(`/api/courses/${id}`);
+    return api.delete(`/api/v1/courses/${id}`);
   },
 };
+
 
 
 

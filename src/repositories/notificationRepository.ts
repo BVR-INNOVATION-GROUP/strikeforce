@@ -1,78 +1,61 @@
 /**
  * Repository for notification data operations
- * Abstracts data source - can use mock JSON files or real API
+ * Connects to backend API
  */
 import { api } from "@/src/api/client";
 import { NotificationI } from "@/src/models/notification";
-import { getUseMockData } from "@/src/utils/config";
-import { readJsonFile, findById } from "@/src/utils/fileHelpers";
 
 export const notificationRepository = {
   /**
-   * Get all notifications for a specific user
-   * @param userId - User ID to fetch notifications for
-   * @returns Array of notifications for the user
+   * Get all notifications for current user
+   * Backend endpoint: GET /api/v1/notifications
    */
-  getByUserId: async (userId: string | number): Promise<NotificationI[]> => {
-    if (getUseMockData()) {
-      const notifications = await readJsonFile<NotificationI>("mockNotifications.json");
-      // Filter notifications for the specific user
-      const numericUserId = typeof userId === "string" ? parseInt(userId, 10) : userId;
-      return notifications.filter((n) => n.userId === numericUserId);
-    }
-    return api.get<NotificationI[]>(`/api/notifications?userId=${userId}`);
+  getAll: async (): Promise<NotificationI[]> => {
+    return api.get<NotificationI[]>("/api/v1/notifications");
+  },
+
+  /**
+   * Get all notifications for the authenticated user
+   * Backend uses JWT token's user_id - never pass userId parameter
+   * @returns Array of notifications for the current user
+   */
+  getByUserId: async (): Promise<NotificationI[]> => {
+    return api.get<NotificationI[]>("/api/v1/notifications");
   },
 
   /**
    * Get notification by ID
-   * @param id - Notification ID
-   * @returns Notification if found
+   * Note: Backend may need to add this endpoint if not available
    */
   getById: async (id: string | number): Promise<NotificationI> => {
-    if (getUseMockData()) {
-      const notifications = await readJsonFile<NotificationI>("mockNotifications.json");
-      const notification = findById(notifications, id);
-      if (!notification) {
-        throw new Error(`Notification ${id} not found`);
-      }
-      return notification;
-    }
-    return api.get<NotificationI>(`/api/notifications/${id}`);
+    return api.get<NotificationI>(`/api/v1/notifications/${id}`);
   },
 
   /**
-   * Mark notification as read
-   * @param id - Notification ID
-   * @returns Updated notification
+   * Mark notification as seen
+   * Backend endpoint: PUT /api/v1/notifications/:notification
    */
   markAsRead: async (id: string | number): Promise<NotificationI> => {
-    if (getUseMockData()) {
-      // Always use API route for updates (even in mock mode) - API routes handle file operations server-side
-      return api.patch<NotificationI>(`/api/notifications/${id}`, { read: true });
-    }
-    return api.patch<NotificationI>(`/api/notifications/${id}`, { read: true });
+    return api.put<NotificationI>(`/api/v1/notifications/${id}`, {});
   },
 
   /**
-   * Mark all notifications as read for a user
-   * @param userId - User ID
-   * @returns Updated notifications count
+   * Mark all notifications as read for the authenticated user
+   * Backend uses JWT token's user_id - never pass userId parameter
    */
-  markAllAsRead: async (userId: string | number): Promise<void> => {
-    // Always use API route for updates
-    return api.patch(`/api/notifications/mark-all-read`, { userId });
+  markAllAsRead: async (): Promise<void> => {
+    return api.patch(`/api/v1/notifications/mark-all-read`, {});
   },
 
   /**
    * Create new notification
-   * @param notification - Notification data
-   * @returns Created notification
+   * Backend endpoint: POST /api/v1/notifications
    */
   create: async (notification: Partial<NotificationI>): Promise<NotificationI> => {
-    // Always use API route (even in mock mode) - API routes handle file operations server-side
-    return api.post<NotificationI>("/api/notifications", notification);
+    return api.post<NotificationI>("/api/v1/notifications", notification);
   },
 };
+
 
 
 

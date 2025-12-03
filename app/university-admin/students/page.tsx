@@ -16,7 +16,7 @@ import StudentDetailsModal from "@/src/components/screen/university-admin/studen
 import { downloadStudentsTemplate } from "@/src/utils/csvTemplateDownload";
 import { Download } from "lucide-react";
 import { getInitials, hasAvatar } from "@/src/utils/avatarUtils";
-import { userRepository } from "@/src/repositories/userRepository";
+import { studentRepository } from "@/src/repositories/studentRepository";
 import { departmentService } from "@/src/services/departmentService";
 import { courseService } from "@/src/services/courseService";
 import { useAuthStore } from "@/src/store";
@@ -88,7 +88,7 @@ const StudentCard = ({ student, department, course, onEdit, onDelete, onViewDeta
             </Button>
           )}
           {onDelete && (
-            <Button onClick={(e) => { e.stopPropagation(); onDelete?.(student.id.toString()); }} className="bg-pale text-primary flex-1 text-[0.875rem] py-2.5">
+            <Button onClick={(e) => { e.stopPropagation(); onDelete?.(student.id.toString()); }} className="bg-primary text-[0.875rem] py-2.5 flex-1">
               Delete
             </Button>
           )}
@@ -159,16 +159,9 @@ export default function UniversityAdminStudents() {
       );
       setCourses(universityCourses);
 
-      // Load all students from mockUsers.json, then filter by role and university ID from session
-      const allStudents = await userRepository.getByRole("student");
-      const universityStudents = allStudents.filter(
-        (s) => {
-          // Match students that belong to this university
-          const studentUniId = typeof s.universityId === 'string' ? parseInt(s.universityId, 10) : s.universityId;
-          return studentUniId === numericUniversityId;
-        }
-      );
-      setStudents(universityStudents);
+      // Load students directly from backend
+      const backendStudents = await studentRepository.getByUniversity(numericUniversityId);
+      setStudents(backendStudents);
     } catch (error) {
       console.error("Failed to load data:", error);
       showError("Failed to load students");
@@ -212,35 +205,18 @@ export default function UniversityAdminStudents() {
 
       setIsCreating(true);
       try {
-        // Call API route that handles invitation creation, user creation, and email sending server-side
-        const response = await fetch("/api/students", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: data.name,
-            email: data.email,
-            courseId: numericCourseId,
-            departmentId: numericDepartmentId,
-            universityId: numericUniversityId,
-            organizationName: organizationName,
-          }),
+        // Create student directly via backend API - this will also send the password email
+        const { api } = await import("@/src/api/client");
+        await api.post(`/api/v1/students/${numericCourseId}`, {
+          email: data.email.toLowerCase().trim(),
+          name: data.name.trim(),
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to create student");
-        }
-
-        const result = await response.json();
-        const newUser = result.user;
-
-        // Add new student to the list immediately
-        setStudents((prev) => [...prev, newUser]);
+        // Reload students list
+        await loadData();
 
         showSuccess(
-          `Student created successfully! Welcome email with invitation link has been sent to ${data.email}`
+          `Student created successfully! Login credentials have been sent to ${data.email}`
         );
         setIsModalOpen(false);
       } catch (invError) {
@@ -277,7 +253,7 @@ export default function UniversityAdminStudents() {
       // Parse CSV, create accounts, generate invitations, send emails
       console.log("Bulk upload students:", selectedFiles);
       showSuccess(
-        `Processing ${selectedFiles.length} file(s)... Students will receive welcome emails with invitation links once processing is complete.`
+        `Processing ${selectedFiles.length} file(s)... Students will receive welcome emails with login credentials once processing is complete.`
       );
       setSelectedFiles([]);
       setIsBulkUploadModalOpen(false);
@@ -294,6 +270,17 @@ export default function UniversityAdminStudents() {
   const handleViewDetails = (student: UserI) => {
     setSelectedStudent(student);
     setIsDetailsModalOpen(true);
+  };
+
+  const handleSuspend = async (studentId: string) => {
+    try {
+      // TODO: Implement suspend endpoint
+      // For now, just show a message
+      showError("Suspend functionality not yet implemented");
+    } catch (error) {
+      console.error("Failed to suspend student:", error);
+      showError("Failed to suspend student. Please try again.");
+    }
   };
 
   /**
@@ -368,7 +355,7 @@ export default function UniversityAdminStudents() {
           <div>
             <h1 className="text-[1rem] font-[600] mb-2">Students</h1>
             <p className="text-[0.875rem] opacity-60">
-              Manage university students. When students are created, a welcome email with an invitation link is automatically sent to their email address.
+              Manage university students. When students are created, a welcome email with login credentials is automatically sent to their email address.
             </p>
           </div>
           <div className="flex gap-2">
@@ -469,7 +456,7 @@ export default function UniversityAdminStudents() {
               Example: John Doe,john@university.edu,1
             </p>
             <p className="text-[0.75rem] opacity-60 mt-2">
-              <strong>Note:</strong> Department is automatically derived from the selected course. All students will receive welcome emails with invitation links once processing is complete.
+              <strong>Note:</strong> Department is automatically derived from the selected course. All students will receive welcome emails with login credentials once processing is complete.
             </p>
           </div>
         </div>
@@ -486,6 +473,7 @@ export default function UniversityAdminStudents() {
         department={selectedStudent ? getDepartment(selectedStudent.departmentId) : undefined}
         programme={selectedStudent ? getCourse(selectedStudent.courseId) : undefined}
         onDelete={handleDeleteClick}
+        onSuspend={handleSuspend}
       />
 
       {/* Delete Confirmation */}

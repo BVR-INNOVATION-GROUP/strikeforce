@@ -8,6 +8,8 @@ import React from "react";
 import PasswordUpdateSection from "./PasswordUpdateSection";
 import LogoutSection from "./LogoutSection";
 import AccountDeletionSection from "./AccountDeletionSection";
+import OrganizationLogoUpload from "./OrganizationLogoUpload";
+import BrandColorPicker from "./BrandColorPicker";
 
 export interface Props {
   user: { id: string; email: string };
@@ -29,6 +31,12 @@ const UnifiedSettings = ({ user }: Props) => {
           </p>
         </div>
       </div>
+
+      {/* Organization Logo Upload (for org owners only) */}
+      <OrganizationLogoUpload />
+
+      {/* Brand Color Picker (for org owners only) */}
+      <BrandColorPicker />
 
       {/* Password Update */}
       <PasswordUpdateSection userId={user.id} />

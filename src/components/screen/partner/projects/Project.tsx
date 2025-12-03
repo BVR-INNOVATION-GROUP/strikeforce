@@ -9,6 +9,7 @@ import { currenciesArray } from '@/src/constants/currencies'
 import { formatDateShort } from '@/src/utils/dateFormatters'
 import { transformApplications } from '@/src/utils/projectTransformers'
 import { getInitials, hasAvatar } from '@/src/utils/avatarUtils'
+import { stripHtmlTags, safeRender } from '@/src/utils/htmlUtils'
 
 export interface UserI {
     avatar: string
@@ -55,10 +56,26 @@ const convertProjectToDisplay = async (
     project: ModelProjectI,
     applications?: ApplicationI[]
 ): Promise<ProjectI> => {
+    // Handle budget - extract from Budget object if needed
+    let budgetValue: number = 0;
+    let currencyValue: string = '';
+    
+    if (project.budget && typeof project.budget === 'object' && !Array.isArray(project.budget)) {
+        const budgetObj = project.budget as any;
+        budgetValue = budgetObj.Value !== undefined ? budgetObj.Value : (budgetObj.value !== undefined ? budgetObj.value : 0);
+        currencyValue = budgetObj.Currency || budgetObj.currency || '';
+    } else if (typeof project.budget === 'number') {
+        budgetValue = project.budget;
+        currencyValue = project.currency || '';
+    } else {
+        budgetValue = typeof project.budget === 'string' ? parseFloat(project.budget) || 0 : 0;
+        currencyValue = project.currency || '';
+    }
+    
     // Format currency
-    const currencyInfo = currenciesArray.find((c) => c.code === project.currency)
-    const currencySymbol = currencyInfo?.symbol || project.currency
-    const formattedCost = `${currencySymbol}${project.budget.toLocaleString()}`
+    const currencyInfo = currenciesArray.find((c) => c.code === currencyValue)
+    const currencySymbol = currencyInfo?.symbol || currencyValue
+    const formattedCost = `${currencySymbol}${budgetValue.toLocaleString()}`
 
     // Format deadline date (same format as detail page)
     const formattedDeadline = formatDateShort(project.deadline)
@@ -303,8 +320,8 @@ const Project = (props: ProjectCardProps | ProjectI & { index?: number }) => {
             className={`rounded-lg p-8 bg-paper border border-custom shadow-custom hover:shadow-lg cursor-pointer transition-all duration-200 ${isDragging ? 'ring-2 ring-primary ring-opacity-50' : ''
                 } ${!canDrag ? 'opacity-90' : ''}`}
         >
-            <h3 className="text-[1rem] font-[600] hover:text-primary transition-colors">{p.title}</h3>
-            <p className='my-3 mb-6 opacity-60 line-clamp-2'>{p.description}</p>
+            <h3 className="text-[1rem] font-[600] hover:text-primary transition-colors">{safeRender(p.title)}</h3>
+            <p className='my-3 mb-6 opacity-60 line-clamp-2'>{stripHtmlTags(safeRender(p.description))}</p>
             <div className="flex flex-wrap gap-3 items-center">
                 {
                     p?.skills?.map((s, i) => (
@@ -313,7 +330,7 @@ const Project = (props: ProjectCardProps | ProjectI & { index?: number }) => {
                             className='rounded-full bg-very-pale px-4 py-2 text-xs'
                             whileHover={{ scale: 1.05 }}
                         >
-                            {s}
+                            {safeRender(s)}
                         </motion.div>
                     ))
                 }
@@ -326,16 +343,16 @@ const Project = (props: ProjectCardProps | ProjectI & { index?: number }) => {
                     </div>
                     {p.group.name && p.group.name !== "Not Assigned" && (
                         <span className="text-[0.8125rem] opacity-60 ml-2">
-                            {p.group.name}
+                            {safeRender(p.group.name)}
                         </span>
                     )}
                 </div>
             )}
 
             <div className="flex mt-8 items-center justify-between">
-                <p className='underline font-semibold'>{p?.cost}</p>
+                <p className='underline font-semibold'>{safeRender(p?.cost)}</p>
                 <p className='font-[500] opacity-50 flex items-center gap-2'>
-                    <Clock size={14} /> {p?.expiryDate}
+                    <Clock size={14} /> {safeRender(p?.expiryDate)}
                 </p>
             </div>
         </motion.div>

@@ -44,7 +44,7 @@ export default function PendingApprovalScreen({ organization, userRole }: Props)
             </div>
           </div>
           <h1 className="text-3xl font-bold mb-2">Pending Approval</h1>
-          <p className="text-gray-600">
+          <p className="text-secondary">
             Your account is awaiting Super Admin approval
           </p>
         </div>
@@ -56,10 +56,10 @@ export default function PendingApprovalScreen({ organization, userRole }: Props)
               <ShieldAlert size={24} className="text-yellow-600 mt-1" />
               <div className="flex-1">
                 <h3 className="font-semibold text-lg mb-2">KYC Under Review</h3>
-                <p className="text-gray-700 mb-2">
+                <p className="text-default mb-2">
                   <strong>{orgName}</strong> is currently being reviewed by our Super Admin team.
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-secondary">
                   Status: <span className="font-semibold capitalize">{kycStatus.toLowerCase()}</span>
                 </p>
               </div>
@@ -70,7 +70,7 @@ export default function PendingApprovalScreen({ organization, userRole }: Props)
           <div className="space-y-4">
             <div>
               <h3 className="font-semibold mb-2">What happens next?</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
+              <ul className="space-y-2 text-sm text-secondary">
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-1">•</span>
                   <span>Our team will review your KYC documents and organization details</span>
@@ -88,7 +88,7 @@ export default function PendingApprovalScreen({ organization, userRole }: Props)
 
             {userRole === "partner" && (
               <div className="p-4 bg-pale rounded-lg">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-secondary">
                   <strong>Partner organizations:</strong> After approval, you&apos;ll be able to submit projects,
                   negotiate milestones, and fund escrow accounts.
                 </p>
@@ -97,7 +97,7 @@ export default function PendingApprovalScreen({ organization, userRole }: Props)
 
             {userRole === "university-admin" && (
               <div className="p-4 bg-pale rounded-lg">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-secondary">
                   <strong>University admins:</strong> After approval, you&apos;ll be able to onboard supervisors
                   and students, screen applications, and manage project assignments.
                 </p>

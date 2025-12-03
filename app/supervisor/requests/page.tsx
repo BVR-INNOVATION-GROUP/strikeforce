@@ -143,7 +143,7 @@ export default function SupervisorRequests() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold mb-2">Supervisor Requests</h1>
-        <p className="text-gray-600">Review and respond to student supervisor requests</p>
+        <p className="text-secondary">Review and respond to student supervisor requests</p>
       </div>
 
       {/* Statistics */}
@@ -214,7 +214,7 @@ export default function SupervisorRequests() {
             />
           ))}
           {pendingRequests.length === 0 && (
-            <p className="text-center text-gray-500 py-8">No pending requests</p>
+            <p className="text-center text-muted py-8">No pending requests</p>
           )}
         </div>
       </Card>

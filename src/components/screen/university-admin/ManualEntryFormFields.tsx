@@ -22,6 +22,7 @@ export interface Props {
   onClearError: (field: string) => void;
   courses?: CourseI[]; // Courses for student selection (department is derived from course)
   departments?: DepartmentI[]; // Departments for supervisor selection
+  hideDepartmentField?: boolean;
 }
 
 /**
@@ -35,6 +36,7 @@ const ManualEntryFormFields = ({
   onClearError,
   courses = [],
   departments = [],
+  hideDepartmentField = false,
 }: Props) => {
   return (
     <div className="space-y-4">
@@ -84,13 +86,15 @@ const ManualEntryFormFields = ({
         />
       )}
 
-      {uploadType === "supervisor" && (
+      {uploadType === "supervisor" && !hideDepartmentField && (
         <Select
           title="Department *"
-          options={departments.map((department) => ({
-            value: department.id.toString(),
-            label: department.name,
-          }))}
+          options={departments
+            .filter((department) => department && department.id !== undefined && department.id !== null)
+            .map((department) => ({
+              value: department.id !== undefined && department.id !== null ? String(department.id) : "",
+              label: department.name,
+            }))}
           value={formData.department}
           onChange={(option) => {
             const value =

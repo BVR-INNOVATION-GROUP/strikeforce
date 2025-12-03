@@ -16,6 +16,7 @@ const roleRoutes: Record<string, string[]> = {
 
 // Public routes that don't require authentication
 const publicRoutes = [
+  "/", // Landing page
   "/auth/login",
   "/auth/signup",
   "/auth/forgot-password",
@@ -29,6 +30,11 @@ const publicRoutes = [
  * Check if a route is public (no auth required)
  */
 function isPublicRoute(pathname: string): boolean {
+  // Exact match for root path
+  if (pathname === "/") {
+    return true;
+  }
+  // Check if pathname starts with any public route
   return publicRoutes.some((route) => pathname.startsWith(route));
 }
 
@@ -104,6 +110,7 @@ export const config = {
     "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
+
 
 
 

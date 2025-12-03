@@ -25,7 +25,7 @@ const OfferStatsCards = ({ applications }: Props) => {
     (a) => a.offerExpiresAt && new Date(a.offerExpiresAt) < new Date()
   );
   const acceptedOffers = applications.filter(
-    (a) => a.status === "ACCEPTED"
+    (a) => a.status === "ASSIGNED" || a.status === "ACCEPTED"
   );
 
   return (

@@ -9,7 +9,10 @@ import { GroupI } from "@/src/models/group";
 import ScreeningApplicationCard from "@/src/components/screen/university-admin/screening/ScreeningApplicationCard";
 import ScreeningApplicationDetailsModal from "@/src/components/screen/university-admin/screening/ScreeningApplicationDetailsModal";
 import ScoreApplicationModal from "@/src/components/screen/university-admin/screening/ScoreApplicationModal";
+import IssueOfferModal from "@/src/components/screen/university-admin/IssueOfferModal";
+import ConfirmationDialog from "@/src/components/base/ConfirmationDialog";
 import { useAuthStore } from "@/src/store";
+import { useToast } from "@/src/hooks/useToast";
 
 /**
  * University Admin Screening - screen and score project applications
@@ -26,6 +29,16 @@ export default function UniversityAdminScreening() {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<ApplicationI | null>(null);
   const [selectedApplicationForDetails, setSelectedApplicationForDetails] = useState<ApplicationI | null>(null);
+
+  // Confirmation modals for screening actions
+  const [shortlistConfirmOpen, setShortlistConfirmOpen] = useState(false);
+  const [rejectConfirmOpen, setRejectConfirmOpen] = useState(false);
+  const [offerModalOpen, setOfferModalOpen] = useState(false);
+  const [selectedApplicationForAction, setSelectedApplicationForAction] = useState<ApplicationI | null>(null);
+  const [isProcessingAction, setIsProcessingAction] = useState(false);
+  // Store previous status for undo reject
+  const [rejectedApplicationPreviousStatus, setRejectedApplicationPreviousStatus] = useState<Record<number, string>>({});
+  const toast = useToast();
 
   /**
    * Load data from backend
@@ -68,14 +81,14 @@ export default function UniversityAdminScreening() {
           return projectUniId === numericUniversityId;
         }
       );
-      
+
       // Filter applications for university projects
       const universityProjectIds = new Set(universityProjects.map((p) => p.id.toString()));
       const universityApplications = allApplications.filter(
         (a) => universityProjectIds.has(a.projectId.toString())
       );
       setApplications(universityApplications);
-      
+
       const projectsMap: Record<string, ProjectI> = {};
       universityProjects.forEach((p) => {
         projectsMap[p.id.toString()] = p;
@@ -156,95 +169,185 @@ export default function UniversityAdminScreening() {
 
   /**
    * Handle scoring submission - update application score (advisory)
-   * Note: Scoring is advisory for supervisors/partners. Core actions are shortlist/reject/waitlist.
+   * Note: Scoring is advisory for supervisors/partners. Core actions are shortlist/reject/offer.
    */
   const handleScoreSubmit = async (applicationId: string, score: number) => {
     try {
       const { applicationRepository } = await import("@/src/repositories/applicationRepository");
       const numericAppId = typeof applicationId === 'string' ? parseInt(applicationId, 10) : applicationId;
-      const app = applications.find(a => a.id.toString() === applicationId);
-      if (!app) return;
+      if (isNaN(numericAppId)) {
+        toast.showError("Invalid application ID");
+        return;
+      }
+
+      // Find the application - handle both 'id' and 'ID' formats
+      const app = applications.find((a: any) => {
+        const appId = (a as any).ID || a.id;
+        return appId?.toString() === applicationId || appId === numericAppId;
+      });
+
+      if (!app) {
+        toast.showError("Application not found");
+        return;
+      }
 
       // Preserve existing score data or create new score structure
-      const existingScore = app.score;
-      const updatedApp = await applicationRepository.update(numericAppId, {
-        score: {
-          applicationId: app.id,
-          autoScore: existingScore?.autoScore || 70,
-          manualSupervisorScore: score,
-          finalScore: score,
-          skillMatch: existingScore?.skillMatch || 80,
-          portfolioScore: existingScore?.portfolioScore || 75,
-          ratingScore: existingScore?.ratingScore || 80,
-          onTimeRate: existingScore?.onTimeRate || 0.85,
-          reworkRate: existingScore?.reworkRate || 0.1,
-        },
+      const existingScore = (app as any).score;
+      const appId = (app as any).ID || (app as any).id;
+
+      const updatedApp = await applicationRepository.score(numericAppId, {
+        applicationId: appId,
+        autoScore: existingScore?.autoScore || 70,
+        manualSupervisorScore: score,
+        finalScore: score,
+        skillMatch: existingScore?.skillMatch || 80,
+        portfolioScore: existingScore?.portfolioScore || 75,
+        ratingScore: existingScore?.ratingScore || 80,
+        onTimeRate: existingScore?.onTimeRate || 0.85,
+        reworkRate: existingScore?.reworkRate || 0.1,
       });
 
       setApplications(
-        applications.map((a) => (a.id === numericAppId ? updatedApp : a))
+        applications.map((a: any) => {
+          const aId = (a as any).ID || a.id;
+          return aId === numericAppId ? updatedApp : a;
+        })
       );
+      toast.showSuccess("Application scored successfully");
       setScoringModalOpen(false);
       setSelectedApplication(null);
     } catch (error) {
       console.error("Failed to update application score:", error);
+      toast.showError(error instanceof Error ? error.message : "Failed to update score");
     }
   };
 
   /**
-   * Handle shortlist action - move application to SHORTLISTED status
+   * Show confirmation modals for screening actions
    */
-  const handleShortlist = async (applicationId: string) => {
+  const handleShortlist = (application: ApplicationI) => {
+    setSelectedApplicationForAction(application);
+    setShortlistConfirmOpen(true);
+  };
+
+  const handleReject = (application: ApplicationI) => {
+    setSelectedApplicationForAction(application);
+    setRejectConfirmOpen(true);
+  };
+
+  const handleOffer = (application: ApplicationI) => {
+    setSelectedApplicationForAction(application);
+    setOfferModalOpen(true);
+  };
+
+  /**
+   * Confirmation handlers that make the actual API calls
+   */
+  const confirmShortlist = async () => {
+    if (!selectedApplicationForAction) return;
+
+    setIsProcessingAction(true);
     try {
       const { applicationRepository } = await import("@/src/repositories/applicationRepository");
-      const numericAppId = typeof applicationId === 'string' ? parseInt(applicationId, 10) : applicationId;
-      const updatedApp = await applicationRepository.update(numericAppId, {
-        status: "SHORTLISTED",
-        updatedAt: new Date().toISOString(),
-      });
+      const updatedApp = await applicationRepository.shortlist(selectedApplicationForAction.id);
       setApplications(
-        applications.map((a) => (a.id === numericAppId ? updatedApp : a))
+        applications.map((a) => (a.id === selectedApplicationForAction.id ? updatedApp : a))
       );
+      toast.showSuccess("Application shortlisted successfully");
+      setShortlistConfirmOpen(false);
+      setSelectedApplicationForAction(null);
     } catch (error) {
       console.error("Failed to shortlist application:", error);
+      toast.showError(error instanceof Error ? error.message : "Failed to shortlist application");
+    } finally {
+      setIsProcessingAction(false);
     }
   };
 
-  /**
-   * Handle reject action - move application to REJECTED status
-   */
-  const handleReject = async (applicationId: string) => {
+  const confirmReject = async () => {
+    if (!selectedApplicationForAction) return;
+
+    setIsProcessingAction(true);
     try {
       const { applicationRepository } = await import("@/src/repositories/applicationRepository");
-      const numericAppId = typeof applicationId === 'string' ? parseInt(applicationId, 10) : applicationId;
-      const updatedApp = await applicationRepository.update(numericAppId, {
-        status: "REJECTED",
-        updatedAt: new Date().toISOString(),
-      });
+
+      // Store previous status for undo
+      const previousStatus = selectedApplicationForAction.status;
+      const appId = selectedApplicationForAction.id;
+      setRejectedApplicationPreviousStatus(prev => ({
+        ...prev,
+        [appId]: previousStatus
+      }));
+
+      const updatedApp = await applicationRepository.reject(appId);
       setApplications(
-        applications.map((a) => (a.id === numericAppId ? updatedApp : a))
+        applications.map((a) => (a.id === appId ? updatedApp : a))
       );
+      toast.showSuccess("Application rejected successfully");
+      setRejectConfirmOpen(false);
+      setSelectedApplicationForAction(null);
     } catch (error) {
       console.error("Failed to reject application:", error);
+      toast.showError(error instanceof Error ? error.message : "Failed to reject application");
+    } finally {
+      setIsProcessingAction(false);
     }
   };
 
-  /**
-   * Handle waitlist action - move application to WAITLIST status
-   */
-  const handleWaitlist = async (applicationId: string) => {
+  const handleUndoReject = async (application: ApplicationI) => {
+    setIsProcessingAction(true);
     try {
       const { applicationRepository } = await import("@/src/repositories/applicationRepository");
-      const numericAppId = typeof applicationId === 'string' ? parseInt(applicationId, 10) : applicationId;
-      const updatedApp = await applicationRepository.update(numericAppId, {
-        status: "WAITLIST",
-        updatedAt: new Date().toISOString(),
-      });
+      const appId = application.id;
+
+      // Get previous status (default to SUBMITTED if not found)
+      const previousStatus = rejectedApplicationPreviousStatus[appId] || "SUBMITTED";
+
+      const updatedApp = await applicationRepository.undoReject(appId, previousStatus);
       setApplications(
-        applications.map((a) => (a.id === numericAppId ? updatedApp : a))
+        applications.map((a) => (a.id === appId ? updatedApp : a))
       );
+
+      // Remove from previous status tracking
+      setRejectedApplicationPreviousStatus(prev => {
+        const newState = { ...prev };
+        delete newState[appId];
+        return newState;
+      });
+
+      toast.showSuccess("Rejection undone successfully");
     } catch (error) {
-      console.error("Failed to waitlist application:", error);
+      console.error("Failed to undo reject:", error);
+      toast.showError(error instanceof Error ? error.message : "Failed to undo reject");
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
+  const confirmOffer = async () => {
+    if (!selectedApplicationForAction) {
+      return;
+    }
+
+    setIsProcessingAction(true);
+    try {
+      const { applicationRepository } = await import("@/src/repositories/applicationRepository");
+      const appId = selectedApplicationForAction.id;
+
+      const updatedApp = await applicationRepository.offer(appId);
+
+      setApplications(
+        applications.map((a) => (a.id === appId ? updatedApp : a))
+      );
+
+      toast.showSuccess("Group assigned to project successfully!");
+      setOfferModalOpen(false);
+      setSelectedApplicationForAction(null);
+    } catch (error) {
+      console.error("Failed to assign group:", error);
+      toast.showError(error instanceof Error ? error.message : "Failed to assign group");
+    } finally {
+      setIsProcessingAction(false);
     }
   };
 
@@ -257,7 +360,7 @@ export default function UniversityAdminScreening() {
     all: applications.length,
     SUBMITTED: applications.filter((a) => a.status === "SUBMITTED").length,
     SHORTLISTED: applications.filter((a) => a.status === "SHORTLISTED").length,
-    WAITLIST: applications.filter((a) => a.status === "WAITLIST").length,
+    OFFERED: applications.filter((a) => a.status === "OFFERED").length,
     REJECTED: applications.filter((a) => a.status === "REJECTED").length,
   };
 
@@ -284,11 +387,10 @@ export default function UniversityAdminScreening() {
             <button
               key={bucket}
               onClick={() => setSelectedBucket(bucket)}
-              className={`pb-2 px-4 whitespace-nowrap ${
-                selectedBucket === bucket
+              className={`pb-2 px-4 whitespace-nowrap ${selectedBucket === bucket
                   ? "border-b-2 border-primary text-primary font-[600]"
                   : "text-[0.875rem] opacity-60"
-              }`}
+                }`}
             >
               {bucket.charAt(0).toUpperCase() + bucket.slice(1)} ({count})
             </button>
@@ -311,9 +413,10 @@ export default function UniversityAdminScreening() {
                 project={projects[application.projectId.toString()]}
                 onScore={handleScoreClick}
                 onViewDetails={handleViewDetails}
-                onShortlist={(app) => handleShortlist(app.id.toString())}
-                onReject={(app) => handleReject(app.id.toString())}
-                onWaitlist={(app) => handleWaitlist(app.id.toString())}
+                onShortlist={handleShortlist}
+                onReject={handleReject}
+                onOffer={handleOffer}
+                onUndoReject={handleUndoReject}
               />
             ))}
           </div>
@@ -329,7 +432,12 @@ export default function UniversityAdminScreening() {
           setScoringModalOpen(false);
           setSelectedApplication(null);
         }}
-        onSubmit={handleScoreSubmit}
+        onSubmit={async (applicationId: string, score: number) => {
+          await handleScoreSubmit(applicationId, score);
+          // Close modal after successful submission
+          setScoringModalOpen(false);
+          setSelectedApplication(null);
+        }}
       />
 
       {/* Details Modal */}
@@ -344,6 +452,58 @@ export default function UniversityAdminScreening() {
         students={selectedApplicationForDetails ? getStudentsForApplication(selectedApplicationForDetails) : []}
         group={selectedApplicationForDetails ? getGroupForApplication(selectedApplicationForDetails) : undefined}
         onScore={handleScoreClick}
+      />
+
+      {/* Shortlist Confirmation */}
+      <ConfirmationDialog
+        open={shortlistConfirmOpen}
+        onClose={() => {
+          setShortlistConfirmOpen(false);
+          setSelectedApplicationForAction(null);
+        }}
+        onConfirm={confirmShortlist}
+        title="Shortlist Application"
+        message={
+          selectedApplicationForAction
+            ? `Are you sure you want to shortlist this application? The applicant will be notified and can receive an offer.`
+            : ""
+        }
+        type="info"
+        confirmText="Shortlist"
+        cancelText="Cancel"
+        loading={isProcessingAction}
+      />
+
+      {/* Reject Confirmation */}
+      <ConfirmationDialog
+        open={rejectConfirmOpen}
+        onClose={() => {
+          setRejectConfirmOpen(false);
+          setSelectedApplicationForAction(null);
+        }}
+        onConfirm={confirmReject}
+        title="Reject Application"
+        message={
+          selectedApplicationForAction
+            ? `Are you sure you want to reject this application? This action cannot be undone and the applicant will be notified.`
+            : ""
+        }
+        type="warning"
+        confirmText="Reject"
+        cancelText="Cancel"
+        loading={isProcessingAction}
+      />
+
+      {/* Assign Group Modal */}
+      <IssueOfferModal
+        open={offerModalOpen}
+        application={selectedApplicationForAction}
+        projects={projects}
+        onClose={() => {
+          setOfferModalOpen(false);
+          setSelectedApplicationForAction(null);
+        }}
+        onSubmit={confirmOffer}
       />
     </div>
   );

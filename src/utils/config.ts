@@ -1,11 +1,15 @@
 /**
  * Configuration utilities for data access
- * Handles switching between mock data and real API
+ * 
+ * @deprecated This file is deprecated. All repositories now connect directly to the backend API.
+ * This function is kept only for backward compatibility with Next.js API routes that may still use it.
+ * All frontend code should use repositories which call the backend directly.
  */
 
 /**
  * Determines whether to use mock data or real API
- * Checks environment variables: DEBUG or NEXT_PUBLIC_USE_MOCK (true = use mock data)
+ * 
+ * @deprecated All repositories now connect directly to backend. This is only used by legacy Next.js API routes.
  * @returns true if DEBUG=true or NEXT_PUBLIC_USE_MOCK=true, false otherwise
  */
 export function getUseMockData(): boolean {
@@ -18,5 +22,16 @@ export function getUseMockData(): boolean {
     process.env.DEBUG === 'true';
   
   return useMock;
+}
+
+/**
+ * Gets the authentication token from localStorage
+ * @returns The JWT token or null if not found
+ */
+export function getAuthToken(): string | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  return localStorage.getItem('authToken');
 }
 

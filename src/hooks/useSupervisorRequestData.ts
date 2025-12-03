@@ -41,7 +41,7 @@ export function useSupervisorRequestData(
         // PRD: Students can only request supervisors for projects they're assigned to
         let userApplications;
         try {
-          userApplications = await applicationService.getUserApplications(userId);
+          userApplications = await applicationService.getUserApplications();
         } catch (error) {
           console.error("Failed to load user applications:", error);
           userApplications = [];
@@ -55,14 +55,14 @@ export function useSupervisorRequestData(
         );
 
         // Load all data in parallel
-        const [allProjects, allUsers, userRequests] = await Promise.all([
-          projectService.getAllProjects(),
+        const [allProjectsResult, allUsers, userRequests] = await Promise.all([
+          projectService.getAllProjects({ limit: 1000 }),
           userRepository.getAll(),
           supervisorRepository.getRequests(undefined, undefined, userId),
         ]);
 
         // Filter projects to only those where student is assigned
-        const eligibleProjects = allProjects.filter((p) =>
+        const eligibleProjects = allProjectsResult.projects.filter((p) =>
           assignedProjectIds.has(p.id.toString())
         );
 

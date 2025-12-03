@@ -12,6 +12,7 @@ import { useAuthStore } from '@/src/store';
 import { useToast } from '@/src/hooks/useToast';
 import MilestoneProposalFormFields from './MilestoneProposalFormFields';
 import { useMilestoneProposal } from '@/src/hooks/useMilestoneProposal';
+import { OptionI } from '@/src/components/core/Select';
 
 export interface Props {
     open: boolean;
@@ -29,6 +30,14 @@ const MilestoneProposalForm = (props: Props) => {
     const { user } = useAuthStore();
     const { showSuccess, showError } = useToast();
     const [submitting, setSubmitting] = useState(false);
+    
+    // Default currency to UGX
+    const defaultCurrency: OptionI = {
+        value: "UGX",
+        label: "UGX - Ugandan Shilling",
+        icon: "🇺🇬",
+    };
+    const [currency, setCurrency] = useState<OptionI | null>(defaultCurrency);
     
     const {
         title,
@@ -82,7 +91,6 @@ const MilestoneProposalForm = (props: Props) => {
             open={open}
             handleClose={() => {
                 onClose();
-                setErrors({});
             }}
             actions={[
                 <Button key="cancel" onClick={onClose} className="bg-pale text-primary">
@@ -104,12 +112,17 @@ const MilestoneProposalForm = (props: Props) => {
                 acceptanceCriteria={acceptanceCriteria}
                 dueDate={dueDate}
                 amount={amount}
+                currency={currency}
                 errors={errors}
                 onTitleChange={setTitle}
                 onScopeChange={setScope}
                 onAcceptanceCriteriaChange={setAcceptanceCriteria}
                 onDueDateChange={setDueDate}
                 onAmountChange={setAmount}
+                onCurrencyChange={(value) => {
+                    setCurrency(typeof value === 'string' ? null : value);
+                    clearError("currency");
+                }}
                 onClearError={clearError}
             />
         </Modal>

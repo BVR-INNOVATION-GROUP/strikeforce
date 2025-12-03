@@ -1,11 +1,10 @@
 /**
  * Repository for KYC document data operations
- * Abstracts data source - can use mock JSON files or real API
+ * Connects to backend API
+ * Note: Backend KYC module may need to be implemented
  */
 import { api } from "@/src/api/client";
 import { KycDocumentI } from "@/src/models/kyc";
-import { getUseMockData } from "@/src/utils/config";
-import { readJsonFile, findById } from "@/src/utils/fileHelpers";
 
 export const kycRepository = {
   /**
@@ -13,20 +12,7 @@ export const kycRepository = {
    * @param orgId - Optional filter by organization
    */
   getAll: async (orgId?: number | string): Promise<KycDocumentI[]> => {
-    if (getUseMockData()) {
-      try {
-        let documents = await readJsonFile<KycDocumentI>("mockKycDocuments.json");
-        if (orgId) {
-          const numericOrgId = typeof orgId === 'string' ? parseInt(orgId, 10) : orgId;
-          documents = documents.filter((d) => d.orgId === numericOrgId);
-        }
-        return documents;
-      } catch {
-        // Mock file doesn't exist yet, return empty array
-        return [];
-      }
-    }
-    const url = orgId ? `/api/kyc?orgId=${orgId}` : "/api/kyc";
+    const url = orgId ? `/api/v1/kyc?orgId=${orgId}` : "/api/v1/kyc";
     return api.get<KycDocumentI[]>(url);
   },
 
@@ -34,27 +20,14 @@ export const kycRepository = {
    * Get KYC document by ID
    */
   getById: async (id: number): Promise<KycDocumentI> => {
-    if (getUseMockData()) {
-      try {
-        const documents = await readJsonFile<KycDocumentI>("mockKycDocuments.json");
-        const document = findById(documents, id);
-        if (!document) {
-          throw new Error(`KYC document ${id} not found`);
-        }
-        return document;
-      } catch {
-        throw new Error(`KYC document ${id} not found`);
-      }
-    }
-    return api.get<KycDocumentI>(`/api/kyc/${id}`);
+    return api.get<KycDocumentI>(`/api/v1/kyc/${id}`);
   },
 
   /**
    * Create KYC document
    */
   create: async (document: Partial<KycDocumentI>): Promise<KycDocumentI> => {
-    // Always use API route (even in mock mode) - API routes handle file operations server-side
-    return api.post<KycDocumentI>("/api/kyc", document);
+    return api.post<KycDocumentI>("/api/v1/kyc", document);
   },
 
   /**
@@ -64,16 +37,14 @@ export const kycRepository = {
     id: number,
     document: Partial<KycDocumentI>
   ): Promise<KycDocumentI> => {
-    // Always use API route (even in mock mode) - API routes handle file operations server-side
-    return api.put<KycDocumentI>(`/api/kyc/${id}`, document);
+    return api.put<KycDocumentI>(`/api/v1/kyc/${id}`, document);
   },
 
   /**
    * Delete KYC document
    */
   delete: async (id: number): Promise<void> => {
-    // Always use API route (even in mock mode) - API routes handle file operations server-side
-    return api.delete(`/api/kyc/${id}`);
+    return api.delete(`/api/v1/kyc/${id}`);
   },
 };
 

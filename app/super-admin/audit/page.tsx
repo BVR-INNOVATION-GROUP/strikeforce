@@ -54,7 +54,7 @@ export default function SuperAdminAudit() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-2xl font-bold mb-2">Global Audit</h1>
-                <p className="text-gray-600">Platform-wide audit logs and activity tracking</p>
+                <p className="text-secondary">Platform-wide audit logs and activity tracking</p>
             </div>
 
             {/* Statistics */}

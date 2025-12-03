@@ -6,12 +6,12 @@
 import React, { useMemo, useEffect, useState } from "react";
 import Select, { OptionI } from "@/src/components/core/Select";
 import MultiSelect, { OptionI as MultiSelectOptionI } from "@/src/components/base/MultiSelect";
-import { commonSkills } from "@/src/constants/universities";
+import Input from "@/src/components/core/Input";
+import Button from "@/src/components/core/Button";
+import { allSkills } from "@/src/constants/universities";
 import { organizationService } from "@/src/services/organizationService";
-import { departmentService } from "@/src/services/departmentService";
-import { courseService } from "@/src/services/courseService";
 import { OrganizationI } from "@/src/models/organization";
-import { DepartmentI, CourseI } from "@/src/models/project";
+import { Plus, X } from "lucide-react";
 
 export interface Props {
   university: OptionI | undefined;
@@ -43,99 +43,104 @@ const ProjectFormStep1 = ({
   onSkillsChange,
   onClearError,
 }: Props) => {
-  const [universities, setUniversities] = useState<OrganizationI[]>([]);
-  const [departments, setDepartments] = useState<DepartmentI[]>([]);
-  const [courses, setCourses] = useState<CourseI[]>([]);
-  const [/* loadingUniversities */, setLoadingUniversities] = useState(false);
-  const [/* loadingDepartments */, setLoadingDepartments] = useState(false);
-  const [/* loadingCourses */, setLoadingCourses] = useState(false);
+  // Store nested data structure: organizations -> departments -> courses
+  const [nestedData, setNestedData] = useState<{
+    id: number;
+    name: string;
+    type: string;
+    departments: {
+      id: number;
+      name: string;
+      courses: {
+        id: number;
+        name: string;
+      }[];
+    }[];
+  }[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showCustomSkillInput, setShowCustomSkillInput] = useState(false);
+  const [customSkillInput, setCustomSkillInput] = useState("");
+  const [customSkills, setCustomSkills] = useState<string[]>([]);
 
   /**
-   * Load all universities (organizations with type UNIVERSITY)
+   * Initialize custom skills from selectedSkills
+   * Custom skills are those that are not in the predefined allSkills list
+   * Only run once on mount to avoid conflicts with user interactions
    */
   useEffect(() => {
-    const loadUniversities = async () => {
+    const custom = selectedSkills.filter(
+      (skill) => skill !== "__OTHERS__" && !allSkills.includes(skill)
+    );
+    if (custom.length > 0) {
+      setCustomSkills(custom);
+      setShowCustomSkillInput(true);
+    }
+  }, []); // Only run on mount
+
+  /**
+   * Load nested organizations with departments and courses in a single call
+   */
+  useEffect(() => {
+    const loadNestedData = async () => {
       try {
-        setLoadingUniversities(true);
-        const allOrgs = await organizationService.getAllOrganizations();
-        // Filter for universities only
-        const universityOrgs = allOrgs.filter((org) => org.type === "UNIVERSITY");
-        setUniversities(universityOrgs);
+        setLoading(true);
+        // Fetch nested data filtered by university type
+        const nested = await organizationService.getNestedOrganizations("university");
+        setNestedData(nested);
       } catch (error) {
-        console.error("Failed to load universities:", error);
+        console.error("Failed to load nested organizations:", error);
+        setNestedData([]);
       } finally {
-        setLoadingUniversities(false);
+        setLoading(false);
       }
     };
-    loadUniversities();
+    loadNestedData();
   }, []);
 
   /**
-   * Load departments when university is selected
+   * Get departments for the selected university from nested data
    */
-  useEffect(() => {
-    const loadDepartments = async () => {
-      if (!university?.value) {
-        setDepartments([]);
-        return;
-      }
-      try {
-        setLoadingDepartments(true);
-        const depts = await departmentService.getAllDepartments(university.value);
-        setDepartments(depts);
-      } catch (error) {
-        console.error("Failed to load departments:", error);
-        setDepartments([]);
-      } finally {
-        setLoadingDepartments(false);
-      }
-    };
-    loadDepartments();
-  }, [university?.value]);
+  const getDepartmentsForUniversity = () => {
+    if (!university?.value) return [];
+    const selectedOrg = nestedData.find(
+      (org) => org.id.toString() === university.value
+    );
+    return selectedOrg?.departments || [];
+  };
 
   /**
-   * Load courses when department is selected
+   * Get courses for the selected department from nested data
    */
-  useEffect(() => {
-    const loadCourses = async () => {
-      if (!department?.value) {
-        setCourses([]);
-        return;
-      }
-      try {
-        setLoadingCourses(true);
-        const courseList = await courseService.getAllCourses(department.value);
-        setCourses(courseList);
-      } catch (error) {
-        console.error("Failed to load courses:", error);
-        setCourses([]);
-      } finally {
-        setLoadingCourses(false);
-      }
-    };
-    loadCourses();
-  }, [department?.value]);
+  const getCoursesForDepartment = () => {
+    if (!department?.value || !university?.value) return [];
+    const selectedOrg = nestedData.find(
+      (org) => org.id.toString() === university.value
+    );
+    if (!selectedOrg) return [];
+    const selectedDept = selectedOrg.departments.find(
+      (dept) => dept.id.toString() === department.value
+    );
+    return selectedDept?.courses || [];
+  };
 
   /**
    * Convert universities to Select options
    */
   const getUniversities = (): OptionI[] => {
-    return universities
-      .filter((u) => u.id != university?.value)
-      .map((u) => ({
-        label: u.name,
-        value: u.id.toString(),
-        isSelected: university?.value === u.id.toString(),
-      }));
+    return nestedData.map((org) => ({
+      label: org.name,
+      value: org.id.toString(),
+      isSelected: university?.value === org.id.toString(),
+    }));
   };
 
   /**
    * Convert departments to Select options
    */
   const getDepartments = (): OptionI[] => {
-    return departments.map((d) => ({
-      label: d.name,
-      value: d.id.toString(),
+    return getDepartmentsForUniversity().map((dept) => ({
+      label: dept.name,
+      value: dept.id.toString(),
     }));
   };
 
@@ -143,44 +148,102 @@ const ProjectFormStep1 = ({
    * Convert courses to Select options
    */
   const getCourses = (): OptionI[] => {
-    return courses.map((c) => ({
-      label: c.name,
-      value: c.id.toString(),
+    return getCoursesForDepartment().map((course) => ({
+      label: course.name,
+      value: course.id.toString(),
     }));
   };
 
   /**
    * Convert skills array to MultiSelect OptionI format
+   * Includes "Others" option for custom skills
    */
   const skillOptions: MultiSelectOptionI[] = useMemo(() => {
-    return commonSkills.map((skill) => ({
+    const predefinedSkills = allSkills.map((skill) => ({
       label: skill,
       value: skill,
     }));
+    
+    // Add "Others" option at the end
+    return [
+      ...predefinedSkills,
+      {
+        label: "Others (Add Custom Skill)",
+        value: "__OTHERS__",
+      },
+    ];
   }, []);
 
   /**
    * Convert selected skills (string[]) to MultiSelect OptionI[] format
+   * Excludes custom skills and "__OTHERS__" from the selected options display
    */
   const selectedSkillOptions: MultiSelectOptionI[] = useMemo(() => {
-    return selectedSkills
+    // Filter out custom skills and "__OTHERS__" from selectedSkills
+    const predefinedSelected = selectedSkills.filter(
+      (skill) => skill !== "__OTHERS__" && !customSkills.includes(skill)
+    );
+    
+    return predefinedSelected
       .map((skill) => skillOptions.find((opt) => opt.value === skill))
       .filter((opt): opt is MultiSelectOptionI => opt !== undefined);
-  }, [selectedSkills, skillOptions]);
+  }, [selectedSkills, skillOptions, customSkills]);
+
+  /**
+   * Check if "Others" option is selected
+   */
+  const isOthersSelected = useMemo(() => {
+    return selectedSkills.includes("__OTHERS__");
+  }, [selectedSkills]);
 
   /**
    * Handle skills change from MultiSelect
    * Converts OptionI[] back to string[]
+   * Handles "Others" option separately
    */
   const handleSkillsChange = (selectedOptions: MultiSelectOptionI[]) => {
+    const selectedValues = selectedOptions.map((opt) => opt.value as string);
+    const othersWasSelected = selectedSkills.includes("__OTHERS__");
+    const othersIsSelected = selectedValues.includes("__OTHERS__");
+
+    // Show/hide custom skill input based on "Others" selection
+    if (othersIsSelected && !othersWasSelected) {
+      setShowCustomSkillInput(true);
+    } else if (!othersIsSelected && othersWasSelected) {
+      setShowCustomSkillInput(false);
+      setCustomSkillInput("");
+      // Remove custom skills when "Others" is deselected
+      const skillsWithoutCustom = selectedSkills.filter(
+        (skill) => !customSkills.includes(skill)
+      );
+      if (onSkillsChange) {
+        onSkillsChange(skillsWithoutCustom);
+      } else {
+        customSkills.forEach((skill) => {
+          if (selectedSkills.includes(skill)) {
+            onSkillToggle(skill);
+          }
+        });
+      }
+      setCustomSkills([]);
+    }
+
+    // Combine predefined skills with custom skills
+    // Only include custom skills that aren't already in selectedValues to avoid duplicates
+    const predefinedSelected = selectedValues.filter((v) => v !== "__OTHERS__");
+    const customSkillsToAdd = customSkills.filter((skill) => !predefinedSelected.includes(skill));
+    
+    const allSelectedSkills = [
+      ...predefinedSelected,
+      ...customSkillsToAdd,
+      ...(othersIsSelected ? ["__OTHERS__"] : []),
+    ];
+
     if (onSkillsChange) {
-      // Use the new handler if provided
-      const skillStrings = selectedOptions.map((opt) => opt.value as string);
-      onSkillsChange(skillStrings);
+      onSkillsChange(allSelectedSkills);
     } else {
-      // Fallback: use toggle for each skill to maintain compatibility
-      // This is less efficient but maintains backward compatibility
-      const newSkillSet = new Set(selectedOptions.map((opt) => opt.value as string));
+      // Fallback: use toggle for each skill
+      const newSkillSet = new Set(allSelectedSkills);
       const currentSkillSet = new Set(selectedSkills);
 
       // Add newly selected skills
@@ -198,6 +261,76 @@ const ProjectFormStep1 = ({
       });
     }
     onClearError("skills");
+  };
+
+  /**
+   * Handle adding a custom skill
+   */
+  const handleAddCustomSkill = () => {
+    const trimmedSkill = customSkillInput.trim();
+    if (!trimmedSkill) return;
+
+    // Check if skill already exists (predefined or custom)
+    if (
+      allSkills.includes(trimmedSkill) ||
+      customSkills.includes(trimmedSkill) ||
+      selectedSkills.includes(trimmedSkill)
+    ) {
+      return;
+    }
+
+    // Add custom skill to state
+    const newCustomSkills = [...customSkills, trimmedSkill];
+    setCustomSkills(newCustomSkills);
+
+    // Update selected skills - include all existing skills (excluding __OTHERS__), add new custom skill, and keep __OTHERS__ if it was selected
+    const existingSkills = selectedSkills.filter((s) => s !== "__OTHERS__" && !customSkills.includes(s));
+    const updatedSkills = [
+      ...existingSkills,
+      trimmedSkill, // Add the new custom skill
+      ...(selectedSkills.includes("__OTHERS__") || newCustomSkills.length > 0 ? ["__OTHERS__"] : []),
+    ];
+
+    if (onSkillsChange) {
+      onSkillsChange(updatedSkills);
+    } else {
+      onSkillToggle(trimmedSkill);
+      // Ensure __OTHERS__ is selected if not already
+      if (!selectedSkills.includes("__OTHERS__")) {
+        onSkillToggle("__OTHERS__");
+      }
+    }
+
+    // Clear input
+    setCustomSkillInput("");
+    onClearError("skills");
+  };
+
+  /**
+   * Handle removing a custom skill
+   */
+  const handleRemoveCustomSkill = (skillToRemove: string) => {
+    const newCustomSkills = customSkills.filter((s) => s !== skillToRemove);
+    setCustomSkills(newCustomSkills);
+
+    // Update selected skills
+    const updatedSkills = [
+      ...selectedSkills.filter((s) => s !== skillToRemove && s !== "__OTHERS__"),
+      ...newCustomSkills,
+      ...(newCustomSkills.length > 0 || isOthersSelected ? ["__OTHERS__"] : []),
+    ];
+
+    if (onSkillsChange) {
+      onSkillsChange(updatedSkills);
+    } else {
+      onSkillToggle(skillToRemove);
+    }
+
+    // Hide input if no custom skills left
+    if (newCustomSkills.length === 0) {
+      setShowCustomSkillInput(false);
+      setCustomSkillInput("");
+    }
   };
 
   return (
@@ -243,6 +376,58 @@ const ProjectFormStep1 = ({
         placeHolder="Select skills..."
         error={errors.skills}
       />
+
+      {/* Custom Skills Input - shown when "Others" is selected */}
+      {(showCustomSkillInput || isOthersSelected) && (
+        <div className="space-y-2">
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <Input
+                title="Add Custom Skill"
+                value={customSkillInput}
+                onChange={(e) => setCustomSkillInput(e.target.value)}
+                placeholder="Type a custom skill..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddCustomSkill();
+                  }
+                }}
+              />
+            </div>
+            <Button
+              type="button"
+              onClick={handleAddCustomSkill}
+              disabled={!customSkillInput.trim()}
+              className="px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 mb-[3px]"
+            >
+              <Plus size={16} />
+              Add
+            </Button>
+          </div>
+
+          {/* Display custom skills as chips */}
+          {customSkills.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {customSkills.map((skill) => (
+                <div
+                  key={skill}
+                  className="flex items-center gap-2 bg-pale-primary text-primary rounded-full px-3 py-1 text-sm"
+                >
+                  <span>{skill}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveCustomSkill(skill)}
+                    className="hover:bg-primary rounded-full p-0.5 transition-colors"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 };

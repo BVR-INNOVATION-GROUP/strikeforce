@@ -3,6 +3,7 @@
  */
 import StatusIndicator from '@/src/components/core/StatusIndicator'
 import Button from '@/src/components/core/Button'
+import Checkbox from '@/src/components/core/Checkbox'
 import { Calendar, CheckCircle2, AlertTriangle, Edit, RotateCcw, AlertCircle } from 'lucide-react'
 import { currenciesArray } from '@/src/constants/currencies'
 
@@ -38,10 +39,13 @@ export interface Props {
     canUnmarkAsComplete?: boolean // Whether user can unmark as complete
     onDispute?: () => void // Callback for raising dispute
     canDispute?: boolean // Whether user can raise dispute for this milestone
+    selected?: boolean // Whether this milestone is selected
+    onSelect?: (selected: boolean) => void // Callback for selection change
+    showCheckbox?: boolean // Whether to show checkbox for selection
 }
 
 const MilestoneCard = (props: Props) => {
-    const { milestone, currencySymbol, formatDate, supervisorGate, actualStatus, onApproveAndRelease, onDisapprove, onRequestChanges, onMarkAsComplete, onUnmarkAsComplete, onEdit, canEdit, onDelete, canDelete, canDisapprove, onDispute, canDispute } = props
+    const { milestone, currencySymbol, formatDate, supervisorGate, actualStatus, onApproveAndRelease, onDisapprove, onRequestChanges, onMarkAsComplete, onUnmarkAsComplete, onEdit, canEdit, onDelete, canDelete, canDisapprove, onDispute, canDispute, selected = false, onSelect, showCheckbox = false } = props
 
     // Get currency symbol from milestone currency or fallback to prop
     const getCurrencySymbol = (): string => {
@@ -115,30 +119,38 @@ const MilestoneCard = (props: Props) => {
     const showMarkAsCompleteButton = onMarkAsComplete && isReleased && !showDisapproveButton;
 
     return (
-        <div className="rounded-lg p-6 bg-pale">
+        <div className={`rounded-lg p-6 bg-pale ${selected ? 'border border-primary' : 'border border-transparent'}`}>
             {/* Title row with actions on the right */}
             <div className="flex items-center justify-between mb-4">
-                <h4 className="text-[0.9375rem] font-[600] flex-1">{milestone.title}</h4>
-                <div className="flex items-center gap-2 ml-4">
-                    {/* Edit Button */}
-                    {showEditButton && (
-                        <Button
-                            onClick={onEdit}
-                            className="bg-pale text-[0.8125rem] px-3 py-1.5 flex items-center gap-1.5"
-                        >
-                            <Edit size={14} />
-                            Edit
-                        </Button>
+                <div className="flex items-center gap-3 flex-1">
+                    {showCheckbox && onSelect && (
+                        <Checkbox
+                            checked={selected}
+                            onChange={(e) => onSelect(e.target.checked)}
+                        />
                     )}
-                    {/* Delete Button */}
-                    {showDeleteButton && (
-                        <Button
-                            onClick={onDelete}
-                            className="bg-red-500 text-white text-[0.8125rem] px-3 py-1.5 flex items-center gap-1.5"
+                    <h4 className="text-[0.9375rem] font-[600] flex-1">{milestone.title}</h4>
+                </div>
+                <div className="flex items-center gap-2 ml-4">
+                    {/* Edit Button - Icon only */}
+                    {showEditButton && (
+                        <button
+                            onClick={onEdit}
+                            className="p-2 rounded hover:bg-very-pale transition-colors"
+                            title="Edit milestone"
                         >
-                            <AlertTriangle size={14} />
-                            Delete
-                        </Button>
+                            <Edit size={16} className="text-primary" />
+                        </button>
+                    )}
+                    {/* Delete Button - Icon only */}
+                    {showDeleteButton && (
+                        <button
+                            onClick={onDelete}
+                            className="p-2 rounded hover:bg-red-50 transition-colors"
+                            title="Delete milestone"
+                        >
+                            <AlertTriangle size={16} className="text-red-500" />
+                        </button>
                     )}
                     {/* Approve and Release Button */}
                     {showApproveButton && (

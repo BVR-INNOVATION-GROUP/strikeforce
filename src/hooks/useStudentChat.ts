@@ -54,36 +54,60 @@ export function useStudentChat(
       if (!userId) return;
 
       try {
-        const [threadsData, usersData] = await Promise.all([
-          chatService.getUserThreads(userId),
-          userRepository.getAll(),
-        ]);
+        // Load threads and users separately to handle errors gracefully
+        let threadsData: ChatThreadI[] = [];
+        let usersMap: Record<string, UserI> = {};
 
-        setThreads(threadsData);
+        try {
+          threadsData = await chatService.getUserThreads();
+          setThreads(threadsData);
+        } catch (threadError) {
+          console.warn("Failed to load chat threads:", threadError);
+          setThreads([]);
+          // Continue - user can still use chat if threads load later
+        }
 
-        const usersMap: Record<string, UserI> = {};
-        usersData.forEach((u) => {
-          usersMap[u.id] = u;
-        });
-        setUsers(usersMap);
+        try {
+          const usersData = await userRepository.getAll();
+          usersData.forEach((u) => {
+            usersMap[u.id] = u;
+          });
+          setUsers(usersMap);
+        } catch (userError) {
+          console.warn("Failed to load users for chat:", userError);
+          setUsers({});
+          // Continue - messages will show IDs instead of names
+        }
 
         if (threadsData.length > 0) {
           const firstThread = threadsData[0];
           setSelectedThread(firstThread);
-          const [threadMessages, proposalsData] = await Promise.all([
-            chatService.getThreadMessages(firstThread.id),
-            proposalRepository.getAll(firstThread.projectId),
-          ]);
-          setMessages(threadMessages);
+          try {
+            const [threadMessages, proposalsData] = await Promise.all([
+              chatService.getThreadMessages(firstThread.id),
+              proposalRepository.getAll(firstThread.projectId),
+            ]);
+            setMessages(threadMessages);
 
-          const proposalsMap: Record<string, MilestoneProposalI> = {};
-          proposalsData.forEach((p) => {
-            proposalsMap[p.id] = p;
-          });
-          setProposals(proposalsMap);
+            const proposalsMap: Record<string, MilestoneProposalI> = {};
+            proposalsData.forEach((p) => {
+              proposalsMap[p.id] = p;
+            });
+            setProposals(proposalsMap);
+          } catch (messageError) {
+            console.warn("Failed to load messages or proposals:", messageError);
+            setMessages([]);
+            setProposals({});
+            // Continue - user can still select thread
+          }
         }
       } catch (error) {
-        console.error("Failed to load chat data:", error);
+        console.error("Unexpected error loading chat data:", error);
+        // Set empty states so UI doesn't break
+        setThreads([]);
+        setUsers({});
+        setMessages([]);
+        setProposals({});
       } finally {
         setLoading(false);
       }
@@ -108,7 +132,10 @@ export function useStudentChat(
         });
         setProposals(proposalsMap);
       } catch (error) {
-        console.error("Failed to load messages:", error);
+        console.warn("Failed to load messages:", error);
+        setMessages([]);
+        setProposals({});
+        // Don't show error to user - they can retry by selecting thread again
       }
     };
     loadMessages();

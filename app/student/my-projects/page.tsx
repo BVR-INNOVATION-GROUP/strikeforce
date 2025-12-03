@@ -38,10 +38,13 @@ export default function StudentMyProjects() {
 
       try {
         // Get all projects and user's applications
-        const [allProjects, userApplications] = await Promise.all([
-          projectService.getAllProjects(),
-          applicationService.getUserApplications(user.id.toString()),
+        // Fetch with high limit to get all projects student has applied to
+        const [allProjectsResult, userApplications] = await Promise.all([
+          projectService.getAllProjects({ limit: 1000 }),
+          applicationService.getUserApplications(),
         ]);
+        
+        const allProjects = allProjectsResult.projects;
 
         // Load groups and users data for member information
         const [groupsModule, usersModule] = await Promise.all([

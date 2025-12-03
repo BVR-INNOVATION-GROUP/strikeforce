@@ -10,7 +10,9 @@ export const departmentService = {
    * Get all departments with optional filtering
    * @param universityId - Optional filter by university
    */
-  getAllDepartments: async (universityId?: number | string): Promise<DepartmentI[]> => {
+  getAllDepartments: async (
+    universityId?: number | string
+  ): Promise<DepartmentI[]> => {
     return departmentRepository.getAll(universityId);
   },
 
@@ -24,7 +26,9 @@ export const departmentService = {
   /**
    * Create a new department with validation
    */
-  createDepartment: async (departmentData: Partial<DepartmentI>): Promise<DepartmentI> => {
+  createDepartment: async (
+    departmentData: Partial<DepartmentI>
+  ): Promise<DepartmentI> => {
     // Business validation
     if (!departmentData.name || departmentData.name.trim().length === 0) {
       throw new Error("Department name is required");
@@ -69,11 +73,7 @@ export const departmentService = {
     // Business validation: Check if department has courses
     // This check would need to query courses repository
     // For now, we'll allow deletion but in production this should check dependencies
-    
+
     return departmentRepository.delete(id);
   },
 };
-
-
-
-

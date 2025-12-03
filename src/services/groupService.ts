@@ -9,12 +9,12 @@ import { userRepository } from "@/src/repositories/userRepository";
 
 export const groupService = {
   /**
-   * Get all groups for a user (where user is leader or member)
-   * @param userId - User ID
+   * Get all groups for the authenticated user (where user is leader or member)
+   * Backend uses JWT token's user_id - never pass userId parameter
    * @returns Array of groups
    */
-  getUserGroups: async (userId: string | number): Promise<GroupI[]> => {
-    return groupRepository.getByUserId(userId);
+  getUserGroups: async (): Promise<GroupI[]> => {
+    return groupRepository.getByUserId();
   },
 
   /**
@@ -23,7 +23,7 @@ export const groupService = {
    * @returns Group or throws error if not found
    */
   getGroupById: async (id: number | string): Promise<GroupI> => {
-    const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
+    const numericId = typeof id === "string" ? parseInt(id, 10) : id;
     return groupRepository.getById(numericId);
   },
 
@@ -38,7 +38,12 @@ export const groupService = {
    * @throws Error if validation fails
    */
   createGroup: async (groupData: Partial<GroupI>): Promise<GroupI> => {
-    // Business validation
+    console.log(
+      "[groupService.createGroup] Starting group creation with data:",
+      groupData
+    );
+
+    // Basic client-side validation (backend will do full validation)
     if (!groupData.courseId) {
       throw new Error("Course ID is required");
     }
@@ -51,65 +56,77 @@ export const groupService = {
       throw new Error("Group name is required");
     }
 
-    if (!groupData.capacity || groupData.capacity < 2 || groupData.capacity > 10) {
+    if (
+      !groupData.capacity ||
+      groupData.capacity < 2 ||
+      groupData.capacity > 10
+    ) {
       throw new Error("Capacity must be between 2 and 10");
     }
 
-    // Validate members are from same course
+    // Validate member IDs are valid numbers (fix NaN issue)
     const memberIds = groupData.memberIds || [];
-    const totalMembers = 1 + memberIds.length; // Leader + members
+    const validMemberIds = memberIds
+      .map((id) => {
+        if (typeof id === "string") {
+          const parsed = parseInt(id, 10);
+          if (isNaN(parsed)) {
+            console.error("Invalid member ID:", id);
+            return null;
+          }
+          return parsed;
+        }
+        return typeof id === "number" && !isNaN(id) ? id : null;
+      })
+      .filter((id): id is number => id !== null && !isNaN(id));
 
-    if (totalMembers > groupData.capacity) {
-      throw new Error(`Total members (${totalMembers}) exceeds capacity (${groupData.capacity})`);
+    if (memberIds.length > 0 && validMemberIds.length !== memberIds.length) {
+      console.warn("Some member IDs were invalid and filtered out", {
+        original: memberIds,
+        valid: validMemberIds,
+      });
     }
 
-    // Validate all members exist and are students from same course
-    if (memberIds.length > 0) {
-      const users = await userRepository.getAll();
-      const numericLeaderId = typeof groupData.leaderId === 'string' ? parseInt(groupData.leaderId, 10) : groupData.leaderId;
-      const leader = users.find((u) => {
-        const userId = typeof u.id === 'string' ? parseInt(u.id, 10) : u.id;
-        return userId === numericLeaderId;
-      });
-
-      if (!leader || leader.role !== "student") {
-        throw new Error("Leader must be a student");
-      }
-
-      const numericCourseId = typeof groupData.courseId === 'string' ? parseInt(groupData.courseId, 10) : groupData.courseId;
-
-      for (const memberId of memberIds) {
-        const numericMemberId = typeof memberId === 'string' ? parseInt(memberId, 10) : memberId;
-        const member = users.find((u) => {
-          const userId = typeof u.id === 'string' ? parseInt(u.id, 10) : u.id;
-          return userId === numericMemberId;
-        });
-
-        if (!member || member.role !== "student") {
-          throw new Error(`Member ${memberId} must be a student`);
-        }
-
-        const memberCourseId = typeof member.courseId === 'string' ? parseInt(member.courseId, 10) : member.courseId;
-        if (memberCourseId !== numericCourseId) {
-          throw new Error(`Member ${memberId} must be from the same course as the leader`);
-        }
-      }
+    // Convert leaderId to number
+    const numericLeaderId =
+      typeof groupData.leaderId === "string"
+        ? parseInt(groupData.leaderId, 10)
+        : groupData.leaderId;
+    if (isNaN(numericLeaderId)) {
+      throw new Error("Invalid leader ID");
     }
 
     // Ensure leader is in memberIds
-    const numericLeaderId = typeof groupData.leaderId === 'string' ? parseInt(groupData.leaderId, 10) : groupData.leaderId;
-    const allMemberIds = memberIds.includes(numericLeaderId)
-      ? memberIds
-      : [numericLeaderId, ...memberIds];
+    const allMemberIds = validMemberIds.includes(numericLeaderId)
+      ? validMemberIds
+      : [numericLeaderId, ...validMemberIds];
 
-    // Create group via repository (handles API call)
-    return groupRepository.create({
-      courseId: groupData.courseId,
-      leaderId: groupData.leaderId,
+    // Prepare data for API call - backend will validate everything
+    const groupPayload = {
+      courseId:
+        typeof groupData.courseId === "string"
+          ? parseInt(groupData.courseId, 10)
+          : groupData.courseId,
+      leaderId: numericLeaderId,
       memberIds: allMemberIds,
       name: groupData.name.trim(),
       capacity: groupData.capacity,
-    });
+    };
+
+    console.log(
+      "Creating group with payload (backend will validate):",
+      groupPayload
+    );
+
+    // Create group via repository - backend handles all validation
+    try {
+      const result = await groupRepository.create(groupPayload);
+      console.log("Group created successfully:", result);
+      return result;
+    } catch (error) {
+      console.error("Failed to create group via API:", error);
+      throw error;
+    }
   },
 
   /**
@@ -126,7 +143,7 @@ export const groupService = {
     id: number | string,
     updates: Partial<GroupI>
   ): Promise<GroupI> => {
-    const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
+    const numericId = typeof id === "string" ? parseInt(id, 10) : id;
     const existingGroup = await groupRepository.getById(numericId);
 
     // Validate capacity if provided
@@ -137,20 +154,25 @@ export const groupService = {
 
       const memberIds = updates.memberIds || existingGroup.memberIds;
       if (memberIds.length > updates.capacity) {
-        throw new Error(`Current members (${memberIds.length}) exceed new capacity (${updates.capacity})`);
+        throw new Error(
+          `Current members (${memberIds.length}) exceed new capacity (${updates.capacity})`
+        );
       }
     }
 
     // Ensure leader remains in memberIds if memberIds is updated
     if (updates.memberIds !== undefined) {
-      const leaderId = updates.leaderId !== undefined
-        ? (typeof updates.leaderId === 'string' ? parseInt(updates.leaderId, 10) : updates.leaderId)
-        : existingGroup.leaderId;
-      
+      const leaderId =
+        updates.leaderId !== undefined
+          ? typeof updates.leaderId === "string"
+            ? parseInt(updates.leaderId, 10)
+            : updates.leaderId
+          : existingGroup.leaderId;
+
       const allMemberIds = updates.memberIds.includes(leaderId)
         ? updates.memberIds
         : [leaderId, ...updates.memberIds];
-      
+
       updates.memberIds = allMemberIds;
     }
 
@@ -167,11 +189,11 @@ export const groupService = {
    * @throws Error if group not found
    */
   deleteGroup: async (id: number | string): Promise<void> => {
-    const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
-    
+    const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+
     // Verify group exists
     await groupRepository.getById(numericId);
-    
+
     // Delete via repository (handles API call)
     return groupRepository.delete(numericId);
   },
@@ -190,13 +212,38 @@ export const groupService = {
     id: number | string,
     memberIds: (number | string)[]
   ): Promise<GroupI> => {
-    const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
+    const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+    if (isNaN(numericId)) {
+      throw new Error("Invalid group ID");
+    }
+
     const group = await groupRepository.getById(numericId);
 
-    // Convert to numeric IDs
-    const numericMemberIds = memberIds.map((id) =>
-      typeof id === 'string' ? parseInt(id, 10) : id
-    );
+    // Convert to numeric IDs with validation (fix NaN issue)
+    const numericMemberIds = memberIds
+      .map((id) => {
+        if (typeof id === "string") {
+          const parsed = parseInt(id, 10);
+          if (isNaN(parsed)) {
+            console.error("Invalid member ID:", id);
+            return null;
+          }
+          return parsed;
+        }
+        return typeof id === "number" && !isNaN(id) ? id : null;
+      })
+      .filter((id): id is number => id !== null && !isNaN(id));
+
+    if (numericMemberIds.length === 0) {
+      throw new Error("No valid member IDs provided");
+    }
+
+    if (numericMemberIds.length !== memberIds.length) {
+      console.warn("Some member IDs were invalid and filtered out", {
+        original: memberIds,
+        valid: numericMemberIds,
+      });
+    }
 
     // Check for duplicates
     const existingMemberIds = group.memberIds;
@@ -208,38 +255,20 @@ export const groupService = {
       throw new Error("All members are already in the group");
     }
 
-    // Validate capacity
-    const totalMembers = existingMemberIds.length + newMemberIds.length;
-    if (totalMembers > group.capacity) {
-      throw new Error(
-        `Adding ${newMemberIds.length} member(s) would exceed capacity (${group.capacity})`
-      );
-    }
-
-    // Validate members are students from same course
-    const users = await userRepository.getAll();
-    const numericCourseId = typeof group.courseId === 'string' ? parseInt(group.courseId, 10) : group.courseId;
-
-    for (const memberId of newMemberIds) {
-      const member = users.find((u) => {
-        const userId = typeof u.id === 'string' ? parseInt(u.id, 10) : u.id;
-        return userId === memberId;
-      });
-
-      if (!member || member.role !== "student") {
-        throw new Error(`Member ${memberId} must be a student`);
-      }
-
-      const memberCourseId = typeof member.courseId === 'string' ? parseInt(member.courseId, 10) : member.courseId;
-      if (memberCourseId !== numericCourseId) {
-        throw new Error(`Member ${memberId} must be from the same course as the group`);
-      }
-    }
-
-    // Update group with new members
-    return groupRepository.update(numericId, {
-      memberIds: [...existingMemberIds, ...newMemberIds],
+    // Prepare update payload - backend will validate members and capacity
+    const updatedMemberIds = [...existingMemberIds, ...newMemberIds];
+    console.log("Updating group with members (backend will validate):", {
+      groupId: numericId,
+      updatedMemberIds,
+      totalMembers: updatedMemberIds.length,
     });
+
+    // Update group with new members - backend handles validation
+    const result = await groupRepository.update(numericId, {
+      memberIds: updatedMemberIds,
+    });
+    console.log("Group updated successfully:", result);
+    return result;
   },
 
   /**
@@ -256,8 +285,9 @@ export const groupService = {
     id: number | string,
     memberId: number | string
   ): Promise<GroupI> => {
-    const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
-    const numericMemberId = typeof memberId === 'string' ? parseInt(memberId, 10) : memberId;
+    const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+    const numericMemberId =
+      typeof memberId === "string" ? parseInt(memberId, 10) : memberId;
     const group = await groupRepository.getById(numericId);
 
     // Cannot remove leader
@@ -271,12 +301,12 @@ export const groupService = {
     }
 
     // Remove member
-    const updatedMemberIds = group.memberIds.filter((id) => id !== numericMemberId);
+    const updatedMemberIds = group.memberIds.filter(
+      (id) => id !== numericMemberId
+    );
 
     return groupRepository.update(numericId, {
       memberIds: updatedMemberIds,
     });
   },
 };
-
-

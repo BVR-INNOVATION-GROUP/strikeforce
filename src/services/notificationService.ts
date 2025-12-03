@@ -7,12 +7,12 @@ import { NotificationI } from "@/src/models/notification";
 
 export const notificationService = {
   /**
-   * Get all notifications for a user, sorted by most recent first
-   * @param userId - User ID to fetch notifications for
+   * Get all notifications for the authenticated user, sorted by most recent first
+   * Backend uses JWT token's user_id - never pass userId parameter
    * @returns Sorted array of notifications
    */
-  getUserNotifications: async (userId: string | number): Promise<NotificationI[]> => {
-    const notifications = await notificationRepository.getByUserId(userId);
+  getUserNotifications: async (): Promise<NotificationI[]> => {
+    const notifications = await notificationRepository.getByUserId();
     
     // Sort by most recent first (createdAt descending)
     return notifications.sort((a, b) => {
@@ -23,12 +23,12 @@ export const notificationService = {
   },
 
   /**
-   * Get unread notifications count for a user
-   * @param userId - User ID
+   * Get unread notifications count for the authenticated user
+   * Backend uses JWT token's user_id - never pass userId parameter
    * @returns Count of unread notifications
    */
-  getUnreadCount: async (userId: string | number): Promise<number> => {
-    const notifications = await notificationRepository.getByUserId(userId);
+  getUnreadCount: async (): Promise<number> => {
+    const notifications = await notificationRepository.getByUserId();
     return notifications.filter((n) => !n.read).length;
   },
 
@@ -42,11 +42,11 @@ export const notificationService = {
   },
 
   /**
-   * Mark all notifications as read for a user
-   * @param userId - User ID
+   * Mark all notifications as read for the authenticated user
+   * Backend uses JWT token's user_id - never pass userId parameter
    */
-  markAllAsRead: async (userId: string | number): Promise<void> => {
-    return notificationRepository.markAllAsRead(userId);
+  markAllAsRead: async (): Promise<void> => {
+    return notificationRepository.markAllAsRead();
   },
 
   /**
@@ -82,6 +82,7 @@ export const notificationService = {
     return notificationRepository.create(transformedData);
   },
 };
+
 
 
 

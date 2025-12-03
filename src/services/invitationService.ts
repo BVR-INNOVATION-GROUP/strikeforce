@@ -2,7 +2,7 @@
  * Invitation Service - business logic for invitation links
  * PRD Reference: Section 4, Section 15 - Invitations
  */
-import { InvitationI, InvitationRole } from '@/src/models/invitation';
+import { InvitationI, InvitationRole } from "@/src/models/invitation";
 
 /**
  * Business logic layer for invitation operations
@@ -39,7 +39,7 @@ export const invitationService = {
     // Generate secure token (in production, use cryptographically secure random from API)
     // Browser-compatible random token generation
     const array = new Uint8Array(32);
-    if (typeof window !== 'undefined' && window.crypto) {
+    if (typeof window !== "undefined" && window.crypto) {
       window.crypto.getRandomValues(array);
     } else {
       // Fallback for Node.js
@@ -47,14 +47,18 @@ export const invitationService = {
         array[i] = Math.floor(Math.random() * 256);
       }
     }
-    const token = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    const token = Array.from(array, (byte) =>
+      byte.toString(16).padStart(2, "0")
+    ).join("");
 
     // Calculate expiry date
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + expiresInDays);
 
-    const { invitationRepository } = await import('@/src/repositories/invitationRepository');
-    
+    const { invitationRepository } = await import(
+      "@/src/repositories/invitationRepository"
+    );
+
     const invitation = await invitationRepository.create({
       email: email.toLowerCase().trim(),
       role,
@@ -73,7 +77,7 @@ export const invitationService = {
    * @returns Full invitation URL
    */
   generateInvitationLink: (token: string): string => {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     return `${baseUrl}/auth/invite?token=${token}`;
   },
 
@@ -84,7 +88,9 @@ export const invitationService = {
    * @returns Invitation if valid, throws error if invalid
    */
   validateInvitation: async (token: string): Promise<InvitationI> => {
-    const { invitationRepository } = await import('@/src/repositories/invitationRepository');
+    const { invitationRepository } = await import(
+      "@/src/repositories/invitationRepository"
+    );
     const invitation = await invitationRepository.getByToken(token);
 
     if (!invitation) {
@@ -113,9 +119,14 @@ export const invitationService = {
    * PRD: One-time use; supports password set
    * @param token - Invitation token
    * @param password - User password
+   * @param name - User name (optional, defaults to email if not provided)
    * @returns Created user account
    */
-  useInvitation: async (token: string, password: string): Promise<{ user: unknown; invitation: InvitationI }> => {
+  useInvitation: async (
+    token: string,
+    password: string,
+    name?: string
+  ): Promise<{ user: unknown; invitation: InvitationI; token?: string }> => {
     // Validate first
     const invitation = await invitationService.validateInvitation(token);
 
@@ -123,28 +134,51 @@ export const invitationService = {
       throw new Error("Password must be at least 8 characters");
     }
 
-    // Call API endpoint to create user account and mark invitation as used
-    const response = await fetch("/api/invitations/accept", {
+    // Use email as default name if not provided
+    const userName = name || invitation.email.split("@")[0];
+
+    // Call backend API endpoint to create user account and mark invitation as used
+    const { api } = await import("@/src/api/client");
+    const BACKEND_URL =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const existingToken =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+    const response = await fetch(`${BACKEND_URL}/api/v1/invitations/accept`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(existingToken && { Authorization: `Bearer ${existingToken}` }),
       },
       body: JSON.stringify({
         token,
         password,
+        name: userName,
       }),
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: "Failed to accept invitation" }));
-      throw new Error(errorData.error || "Failed to accept invitation");
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: "Failed to accept invitation" }));
+      throw new Error(
+        errorData.error || errorData.msg || "Failed to accept invitation"
+      );
     }
 
-    const user = await response.json();
+    const result = await response.json();
+    // Backend returns {msg, data: {user, token}} format
+    const userData = result.data?.user || result.user || result.data || result;
+    const issuedToken = result.data?.token || result.token;
+
+    // Store the auth token if provided
+    if (issuedToken && typeof window !== "undefined") {
+      localStorage.setItem("token", issuedToken);
+    }
 
     // Return the invitation we already have (no need to fetch updated version)
     // The API route already marks it as used
-    return { user, invitation };
+    return { user: userData, invitation, token: issuedToken };
   },
 
   /**
@@ -152,8 +186,12 @@ export const invitationService = {
    * @param universityId - University ID
    * @returns Array of invitations
    */
-  getUniversityInvitations: async (universityId: string): Promise<InvitationI[]> => {
-    const { invitationRepository } = await import('@/src/repositories/invitationRepository');
+  getUniversityInvitations: async (
+    universityId: string
+  ): Promise<InvitationI[]> => {
+    const { invitationRepository } = await import(
+      "@/src/repositories/invitationRepository"
+    );
     return invitationRepository.getAll(universityId);
   },
 
@@ -163,19 +201,23 @@ export const invitationService = {
    * @returns Updated invitation with new token
    */
   resendInvitation: async (invitationId: string): Promise<InvitationI> => {
-    const { invitationRepository } = await import('@/src/repositories/invitationRepository');
+    const { invitationRepository } = await import(
+      "@/src/repositories/invitationRepository"
+    );
     const existing = await invitationRepository.getById(invitationId);
 
     // Generate new token
     const array = new Uint8Array(32);
-    if (typeof window !== 'undefined' && window.crypto) {
+    if (typeof window !== "undefined" && window.crypto) {
       window.crypto.getRandomValues(array);
     } else {
       for (let i = 0; i < array.length; i++) {
         array[i] = Math.floor(Math.random() * 256);
       }
     }
-    const newToken = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    const newToken = Array.from(array, (byte) =>
+      byte.toString(16).padStart(2, "0")
+    ).join("");
 
     // Extend expiry by 7 days
     const expiresAt = new Date();
@@ -189,4 +231,3 @@ export const invitationService = {
     });
   },
 };
-

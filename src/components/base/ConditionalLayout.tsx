@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import AuthInitializer from "./AuthInitializer";
+import OrganizationTheme from "./OrganizationTheme";
 import { ReactNode } from "react";
 
 export interface ConditionalLayoutProps {
@@ -15,25 +16,30 @@ export interface ConditionalLayoutProps {
 
 /**
  * Routes that should not show Navbar and Sidebar
+ * Landing page and auth routes should be standalone
  */
-const authRoutes = ["/auth"];
+const standaloneRoutes = ["/", "/auth"];
 
 const ConditionalLayout = ({ children }: ConditionalLayoutProps) => {
   const pathname = usePathname();
-  const isAuthRoute = authRoutes.some((route) => pathname?.startsWith(route));
+  const isStandaloneRoute = standaloneRoutes.some((route) => pathname === route || pathname?.startsWith(route + "/"));
 
-  if (isAuthRoute) {
-    return <>{children}</>;
-  }
-
+  // Always apply organization theme (even on standalone routes for logged-in users)
   return (
     <>
       <AuthInitializer />
-      <Navbar />
-      <Sidebar />
-      <main className="fixed top-[8vh] left-[6vw] right-0 bottom-0 overflow-y-auto p-4">
-        {children}
-      </main>
+      <OrganizationTheme />
+      {isStandaloneRoute ? (
+        <div className="min-h-screen">{children}</div>
+      ) : (
+        <>
+          <Navbar />
+          <Sidebar />
+          <main className="fixed top-[8vh] left-[6vw] right-0 bottom-0 overflow-y-auto p-4">
+            {children}
+          </main>
+        </>
+      )}
     </>
   );
 };

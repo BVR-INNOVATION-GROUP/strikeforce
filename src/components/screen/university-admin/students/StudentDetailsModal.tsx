@@ -3,14 +3,19 @@
  */
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import SideModal from "@/src/components/base/SideModal";
 import Button from "@/src/components/core/Button";
 import ConfirmationDialog from "@/src/components/base/ConfirmationDialog";
 import { UserI } from "@/src/models/user";
-import { DepartmentI, CourseI } from "@/src/models/project";
-import { User, Mail, Calendar, Edit, Trash2, Building2, BookOpen } from "lucide-react";
+import { DepartmentI, CourseI, ProjectI } from "@/src/models/project";
+import { GroupI } from "@/src/models/group";
+import { ApplicationI } from "@/src/models/application";
+import { User, Mail, Calendar, Edit, Trash2, Building2, BookOpen, Users, Briefcase } from "lucide-react";
 import { formatDateShort } from "@/src/utils/dateFormatters";
+import { groupRepository } from "@/src/repositories/groupRepository";
+import { applicationService } from "@/src/services/applicationService";
+import { projectService } from "@/src/services/projectService";
 
 export interface Props {
   open: boolean;
@@ -20,6 +25,7 @@ export interface Props {
   programme?: CourseI;
   onEdit?: (student: UserI) => void;
   onDelete: (studentId: string) => void;
+  onSuspend?: (studentId: string) => void;
 }
 
 /**
@@ -33,8 +39,70 @@ const StudentDetailsModal = ({
   programme,
   onEdit,
   onDelete,
+  onSuspend,
 }: Props) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showSuspendConfirm, setShowSuspendConfirm] = useState(false);
+  const [groups, setGroups] = useState<GroupI[]>([]);
+  const [projects, setProjects] = useState<ProjectI[]>([]);
+  const [applications, setApplications] = useState<ApplicationI[]>([]);
+  const [loadingGroups, setLoadingGroups] = useState(false);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+
+  useEffect(() => {
+    if (open && student?.id) {
+      loadStudentData();
+    }
+  }, [open, student?.id]);
+
+  const loadStudentData = async () => {
+    if (!student?.id) return;
+
+    const studentId = typeof student.id === "number" ? student.id : parseInt(student.id.toString(), 10);
+
+    // Load groups
+    setLoadingGroups(true);
+    try {
+      // Get all groups and filter by memberIds
+      const allGroups = await groupRepository.getAll();
+      const studentGroups = allGroups.filter(
+        (g) => g.leaderId === studentId || (g.memberIds && g.memberIds.includes(studentId))
+      );
+      setGroups(studentGroups);
+    } catch (error) {
+      console.error("Failed to load groups:", error);
+    } finally {
+      setLoadingGroups(false);
+    }
+
+    // Load applications and projects
+    setLoadingProjects(true);
+    try {
+      // Get all applications from repository
+      const { applicationRepository } = await import("@/src/repositories/applicationRepository");
+      const allApplications = await applicationRepository.getAll();
+      
+      // Filter by studentIds
+      const studentApplications = allApplications.filter(
+        (app) => app.studentIds && app.studentIds.includes(studentId)
+      );
+      setApplications(studentApplications);
+
+      // Get projects from applications
+      const projectIds = studentApplications.map((app) => app.projectId);
+      if (projectIds.length > 0) {
+        const allProjects = await projectService.getAllProjects();
+        const studentProjects = allProjects.filter((p) =>
+          projectIds.includes(typeof p.id === "number" ? p.id : parseInt(p.id.toString(), 10))
+        );
+        setProjects(studentProjects);
+      }
+    } catch (error) {
+      console.error("Failed to load projects:", error);
+    } finally {
+      setLoadingProjects(false);
+    }
+  };
 
   if (!student) return null;
 
@@ -50,9 +118,19 @@ const StudentDetailsModal = ({
   };
 
   const handleConfirmDelete = () => {
-    onDelete(student.id);
+    const studentId = typeof student.id === "number" ? student.id.toString() : student.id;
+    onDelete(studentId);
     setShowDeleteConfirm(false);
     onClose();
+  };
+
+  const handleConfirmSuspend = () => {
+    if (onSuspend) {
+      const studentId = typeof student.id === "number" ? student.id.toString() : student.id;
+      onSuspend(studentId);
+      setShowSuspendConfirm(false);
+      onClose();
+    }
   };
 
   return (
@@ -119,15 +197,68 @@ const StudentDetailsModal = ({
             </p>
           </div>
 
-          <div className="p-4 bg-pale rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <User size={16} className="opacity-60" />
-              <p className="text-[0.875rem] font-medium">Student ID</p>
-            </div>
-            <p className="text-[0.875rem] opacity-60 font-mono">
-              {student.id}
-            </p>
+        </div>
+
+        {/* Groups Section */}
+        <div className="pt-4 border-t border-custom">
+          <div className="flex items-center gap-2 mb-4">
+            <Users size={18} className="text-primary" />
+            <h4 className="text-[0.875rem] font-semibold">Groups</h4>
           </div>
+          {loadingGroups ? (
+            <p className="text-[0.8125rem] opacity-60">Loading groups...</p>
+          ) : groups.length === 0 ? (
+            <p className="text-[0.8125rem] opacity-60">This student is not part of any groups.</p>
+          ) : (
+            <div className="space-y-2">
+              {groups.map((group) => (
+                <div key={group.id} className="p-3 bg-pale rounded-lg">
+                  <p className="text-[0.875rem] font-medium mb-1">{group.name}</p>
+                  <p className="text-[0.75rem] opacity-60">
+                    {group.leaderId === (typeof student.id === "number" ? student.id : parseInt(student.id.toString(), 10))
+                      ? "Leader"
+                      : "Member"}
+                    {" • "}
+                    {group.memberIds?.length || 0} member{group.memberIds?.length !== 1 ? "s" : ""}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Projects Section */}
+        <div className="pt-4 border-t border-custom">
+          <div className="flex items-center gap-2 mb-4">
+            <Briefcase size={18} className="text-primary" />
+            <h4 className="text-[0.875rem] font-semibold">Projects</h4>
+          </div>
+          {loadingProjects ? (
+            <p className="text-[0.8125rem] opacity-60">Loading projects...</p>
+          ) : projects.length === 0 ? (
+            <p className="text-[0.8125rem] opacity-60">This student has not worked on any projects.</p>
+          ) : (
+            <div className="space-y-2">
+              {projects.map((project) => {
+                const application = applications.find((app) => app.projectId === (typeof project.id === "number" ? project.id : parseInt(project.id.toString(), 10)));
+                return (
+                  <div key={project.id} className="p-3 bg-pale rounded-lg">
+                    <p className="text-[0.875rem] font-medium mb-1">{project.title}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {application && (
+                        <span className="text-[0.75rem] px-2 py-0.5 bg-paper text-primary rounded capitalize">
+                          {application.status}
+                        </span>
+                      )}
+                      <span className="text-[0.75rem] opacity-60">
+                        {project.deadline && new Date(project.deadline).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Actions */}
@@ -139,6 +270,14 @@ const StudentDetailsModal = ({
             >
               <Edit size={16} className="mr-2" />
               Edit
+            </Button>
+          )}
+          {onSuspend && (
+            <Button
+              onClick={() => setShowSuspendConfirm(true)}
+              className="bg-pale text-primary flex-1"
+            >
+              Suspend
             </Button>
           )}
           <Button
@@ -167,6 +306,27 @@ const StudentDetailsModal = ({
         confirmText="Delete"
         cancelText="Cancel"
       />
+
+      {/* Suspend Confirmation */}
+      {onSuspend && (
+        <ConfirmationDialog
+          open={showSuspendConfirm}
+          onClose={() => setShowSuspendConfirm(false)}
+          onConfirm={handleConfirmSuspend}
+          title="Suspend Student"
+          message={
+            <div className="space-y-2">
+              <p>Are you sure you want to suspend this student?</p>
+              <p className="text-[0.8125rem] opacity-75">
+                {student.name || student.email} will be suspended and unable to access the system.
+              </p>
+            </div>
+          }
+          type="warning"
+          confirmText="Suspend"
+          cancelText="Cancel"
+        />
+      )}
     </SideModal>
   );
 };

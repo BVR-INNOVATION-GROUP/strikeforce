@@ -116,7 +116,7 @@ export default function SupervisorProjects() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold mb-2">Project Dashboard</h1>
-        <p className="text-gray-600">Overview of all projects under your supervision</p>
+        <p className="text-secondary">Overview of all projects under your supervision</p>
       </div>
 
       {/* Statistics */}
@@ -172,7 +172,7 @@ export default function SupervisorProjects() {
             <ProjectCard key={project.id} project={project} milestones={milestones} />
           ))}
           {projects.length === 0 && (
-            <p className="text-center text-gray-500 py-8">No projects under supervision</p>
+            <p className="text-center text-muted py-8">No projects under supervision</p>
           )}
         </div>
       </Card>

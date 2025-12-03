@@ -6,6 +6,8 @@
 import React from "react";
 import Input from "@/src/components/core/Input";
 import TextArea from "@/src/components/core/TextArea";
+import MergedCurrencyInput from "@/src/components/base/MergedCurrencyInput";
+import { OptionI } from "@/src/components/core/Select";
 import { ValidationErrors } from "@/src/utils/milestoneProposalValidation";
 
 export interface Props {
@@ -14,12 +16,14 @@ export interface Props {
   acceptanceCriteria: string;
   dueDate: string;
   amount: string;
+  currency: OptionI | null;
   errors: ValidationErrors;
   onTitleChange: (title: string) => void;
   onScopeChange: (scope: string) => void;
   onAcceptanceCriteriaChange: (criteria: string) => void;
   onDueDateChange: (date: string) => void;
   onAmountChange: (amount: string) => void;
+  onCurrencyChange: (currency: OptionI | string) => void;
   onClearError: (field: string) => void;
 }
 
@@ -32,12 +36,14 @@ const MilestoneProposalFormFields = ({
   acceptanceCriteria,
   dueDate,
   amount,
+  currency,
   errors,
   onTitleChange,
   onScopeChange,
   onAcceptanceCriteriaChange,
   onDueDateChange,
   onAmountChange,
+  onCurrencyChange,
   onClearError,
 }: Props) => {
   return (
@@ -90,18 +96,22 @@ const MilestoneProposalFormFields = ({
           error={errors.dueDate}
         />
 
-        <Input
+        <MergedCurrencyInput
           title="Amount (Optional)"
-          type="number"
-          value={amount}
-          onChange={(e) => {
-            onAmountChange(e.target.value);
+          currency={currency}
+          amount={amount}
+          onCurrencyChange={(value) => {
+            onCurrencyChange(value);
+            onClearError("currency");
+          }}
+          onAmountChange={(value) => {
+            onAmountChange(value);
             onClearError("amount");
           }}
+          currencyError={errors.currency}
+          amountError={errors.amount}
+          onClearError={onClearError}
           placeholder="0.00"
-          min="0"
-          step="0.01"
-          error={errors.amount}
         />
       </div>
 
@@ -119,6 +129,7 @@ const MilestoneProposalFormFields = ({
 };
 
 export default MilestoneProposalFormFields;
+
 
 
 

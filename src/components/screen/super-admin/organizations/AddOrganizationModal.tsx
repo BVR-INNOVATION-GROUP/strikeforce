@@ -12,6 +12,8 @@ import Select from "@/src/components/core/Select";
 import { OrganizationType } from "@/src/models/organization";
 import { validateOrganizationSignup, OrganizationSignupFormData, ValidationErrors } from "@/src/utils/organizationSignupValidation";
 import { useToast } from "@/src/hooks/useToast";
+import { organizationRepository } from "@/src/repositories/organizationRepository";
+import { ApiError } from "@/base/index";
 
 export interface Props {
   open: boolean;
@@ -33,6 +35,7 @@ const AddOrganizationModal = ({ open, onClose, onSuccess, defaultType }: Props) 
     address: "",
     website: "",
     description: "",
+    password: "", // Not used for superadmin - backend generates password
   });
   const [orgType, setOrgType] = useState<OrganizationType>(defaultType || "PARTNER");
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -54,9 +57,10 @@ const AddOrganizationModal = ({ open, onClose, onSuccess, defaultType }: Props) 
 
   /**
    * Validate form data
+   * Skip password validation since backend generates it for superadmin-created orgs
    */
   const validate = (): boolean => {
-    const validationErrors = validateOrganizationSignup(formData, orgType === "UNIVERSITY");
+    const validationErrors = validateOrganizationSignup(formData, orgType === "UNIVERSITY", true);
     setErrors(validationErrors);
     return Object.keys(validationErrors).length === 0;
   };
@@ -75,33 +79,33 @@ const AddOrganizationModal = ({ open, onClose, onSuccess, defaultType }: Props) 
 
     setSubmitting(true);
     try {
-      const response = await fetch("/api/organizations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.orgName,
-          type: orgType,
-          email: formData.email,
-          kycStatus: "APPROVED", // Pre-approved when created by super admin
-          billingProfile: {
-            contactName: formData.contactName,
-            phone: formData.phone,
-            address: formData.address,
-            website: formData.website || undefined,
-          },
-          description: formData.description || undefined,
-        }),
-      });
+      const normalizedType =
+        orgType === "UNIVERSITY" ? "university" : "company";
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create organization");
-      }
+      const payload: Partial<Record<string, unknown>> = {
+        name: formData.orgName.trim(),
+        type: normalizedType,
+        address: formData.address.trim(),
+        website: formData.website?.trim() || undefined,
+        brandColor: undefined,
+      };
 
-      const organization = await response.json();
-      showSuccess(`${organization.name} has been created and pre-approved`);
+      // Preserve additional details so backend can support them later
+      const billingProfile = {
+        email: formData.email.trim(),
+        contactName: formData.contactName.trim(),
+        phone: formData.phone.trim(),
+        address: formData.address.trim(),
+        website: formData.website?.trim() || undefined,
+      };
+
+      payload.billingProfile = billingProfile;
+      payload.description = formData.description?.trim() || undefined;
+
+      const organization = await organizationRepository.create(payload as any);
+      showSuccess(
+        `${organization.name} has been created. Review the details and approve when ready.`
+      );
       
       // Reset form
       setFormData({
@@ -112,6 +116,7 @@ const AddOrganizationModal = ({ open, onClose, onSuccess, defaultType }: Props) 
         address: "",
         website: "",
         description: "",
+        password: "", // Not used for superadmin - backend generates password
       });
       setErrors({});
       
@@ -119,7 +124,18 @@ const AddOrganizationModal = ({ open, onClose, onSuccess, defaultType }: Props) 
       onClose();
     } catch (error) {
       console.error("Failed to create organization:", error);
-      showError(error instanceof Error ? error.message : "Failed to create organization. Please try again.");
+      if (error instanceof ApiError) {
+        const backendMsg =
+          (error.payload?.msg as string | undefined)?.trim() ||
+          error.message.replace(/^\[\d+\]\s*/, "");
+        showError(backendMsg || "Failed to create organization. Please try again.");
+      } else {
+        showError(
+          error instanceof Error
+            ? error.message
+            : "Failed to create organization. Please try again."
+        );
+      }
     } finally {
       setSubmitting(false);
     }
@@ -137,6 +153,7 @@ const AddOrganizationModal = ({ open, onClose, onSuccess, defaultType }: Props) 
       address: "",
       website: "",
       description: "",
+      password: "", // Not used for superadmin - backend generates password
     });
     setErrors({});
     onClose();

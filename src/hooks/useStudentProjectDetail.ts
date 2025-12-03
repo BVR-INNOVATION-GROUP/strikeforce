@@ -40,11 +40,9 @@ export function useStudentProjectDetail(
         const projectData = await projectService.getProjectById(projectId);
         setProject(projectData);
 
-        const groupsData = await import("@/src/data/mockGroups.json");
-        const allGroups = groupsData.default as GroupI[];
-        const userGroups = allGroups.filter(
-          (g) => g.leaderId === userId || g.memberIds.includes(userId || "")
-        );
+        // Load user groups from backend
+        const { groupRepository } = await import("@/src/repositories/groupRepository");
+        const userGroups = await groupRepository.getByUserId();
         setGroups(userGroups);
 
         if (userId) {
@@ -52,7 +50,7 @@ export function useStudentProjectDetail(
           setHasApplied(applied);
 
           if (applied) {
-            const userApplications = await applicationService.getUserApplications(userId);
+            const userApplications = await applicationService.getUserApplications();
             const existingApp = userApplications.find((app) => app.projectId === projectId);
             setExistingApplication(existingApp || null);
           }
@@ -73,11 +71,9 @@ export function useStudentProjectDetail(
       await applicationService.submitApplication(applicationData);
       showSuccess("Application submitted successfully!");
       setHasApplied(true);
-      if (userId) {
-        const userApplications = await applicationService.getUserApplications(userId);
-        const existingApp = userApplications.find((app) => app.projectId === projectId);
-        setExistingApplication(existingApp || null);
-      }
+      const userApplications = await applicationService.getUserApplications();
+      const existingApp = userApplications.find((app) => app.projectId === projectId);
+      setExistingApplication(existingApp || null);
     } catch (error) {
       console.error("Failed to submit application:", error);
       throw error;
@@ -93,6 +89,7 @@ export function useStudentProjectDetail(
     handleApplicationSubmit,
   };
 }
+
 
 
 

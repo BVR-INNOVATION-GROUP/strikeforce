@@ -43,7 +43,7 @@ export default function SuperAdminDisputes() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-2xl font-bold mb-2">Dispute Arbitration</h1>
-                <p className="text-gray-600">Final resolution for escalated disputes</p>
+                <p className="text-secondary">Final resolution for escalated disputes</p>
             </div>
 
             {/* Statistics */}

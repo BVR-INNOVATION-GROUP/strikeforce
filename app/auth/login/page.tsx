@@ -10,16 +10,20 @@ import AuthLayout from "@/src/components/base/AuthLayout";
 import Input from "@/src/components/core/Input";
 import Button from "@/src/components/core/Button";
 import Modal from "@/src/components/base/Modal";
-import { Mail, Lock } from "lucide-react";
+import { POST, ApiError } from "@/base/index"
 import { useAuthStore } from "@/src/store";
 import { useToast } from "@/src/hooks/useToast";
-import { UserI } from "@/src/models/user";
-import { organizationRepository } from "@/src/repositories/organizationRepository";
 import { OrganizationI } from "@/src/models/organization";
+import { BackendLoginResponse, mapBackendUserToFrontend, mapBackendOrganizationToFrontend } from "@/src/lib/server";
+
+interface User {
+  name: string
+  email: string
+  id: number
+}
 
 const LoginPage = () => {
   const router = useRouter();
-  const { setUser } = useAuthStore();
   const { showSuccess, showError } = useToast();
   const [formData, setFormData] = useState({
     email: "",
@@ -44,8 +48,8 @@ const LoginPage = () => {
 
     if (!formData.password) {
       newErrors.password = "Password is required";
-    } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
+    } else if (formData.password.length < 4) {
+      newErrors.password = "Password must be at least 4 characters";
     }
 
     setErrors(newErrors);
@@ -54,7 +58,39 @@ const LoginPage = () => {
 
   /**
    * Handle form submission
-   */
+  //  */
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+
+  //   if (!validate()) {
+  //     return;
+  //   }
+
+  //   setLoading(true);
+  //   try {
+  //     const { msg, status, data } = await POST<{ email: string, password: string, user?: User, token?: string }>("user/login", {
+  //       email: formData.email,
+  //       password: formData.password
+  //     })
+
+  //     if (status != 200) {
+  //       showError(msg)
+  //       return
+  //     }
+
+  //     localStorage.setItem("token", data?.token ?? "")
+  //     localStorage.setItem("user", JSON.stringify(data.user))
+
+  //     window.location.href = "/"
+
+  //   } catch (error) {
+  //     console.error("Login failed:", error);
+  //     showError("Login failed. Please try again.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -64,58 +100,63 @@ const LoginPage = () => {
 
     setLoading(true);
     try {
-      // Load mock user data - in production, this would be an API call
-      const usersData = await import("@/src/data/mockUsers.json");
-      const users = usersData.default as UserI[];
+      const response = await POST<BackendLoginResponse>("user/login", {
+        email: formData.email,
+        password: formData.password
+      });
 
-      // Find user by email
-      const user = users.find((u) => u.email.toLowerCase() === formData.email.toLowerCase());
-
-      // Validate credentials against user data
-      if (!user || !user.password || user.password !== formData.password) {
-        showError("Invalid email or password");
-        setErrors({ email: "Invalid credentials", password: "Invalid credentials" });
+      const { data, msg } = response;
+      if (!data) {
+        showError(msg || "Unexpected response from server.");
         return;
       }
 
-      // Check organization approval status for partner and university-admin roles
-      if ((user.role === "partner" || user.role === "university-admin") && user.orgId) {
-        try {
-          const organization = await organizationRepository.getById(user.orgId);
+      // Set token FIRST
+      const { setUser, setAccessToken, setOrganization } = useAuthStore.getState();
+      setAccessToken(data.token);
+      localStorage.setItem("token", data?.token)
 
-          // If organization is not approved, show modal and don't create session
-          if (organization.kycStatus !== "APPROVED") {
-            setPendingOrganization(organization);
-            setShowPendingModal(true);
-            return; // Don't create session
-          }
-        } catch (error) {
-          console.error("Failed to fetch organization:", error);
-          // If we can't fetch organization, allow login but log the error
-          // In production, you might want to handle this differently
-        }
+      console.log(mapBackendUserToFrontend(data.user))
+
+      if (data.organization) {
+        const organization = mapBackendOrganizationToFrontend(data.organization);
+        setOrganization(organization);
+      } else {
+        setOrganization(null);
       }
 
-      // Set user in auth store (this will also fetch and store organization for university-admin)
-      await setUser(user);
+      // Then set user (this might be async if fetching org)
+      await setUser(mapBackendUserToFrontend(data.user));
 
-      // Set cookie for middleware (in production, this would be handled by NextAuth)
-      document.cookie = `user=${JSON.stringify({ role: user.role, id: user.id })}; path=/; max-age=86400`; // 24 hours
+      console.log("Auth state after login:", useAuthStore.getState()); // Debug log
 
-      // Redirect based on role
-      const roleRoutes: Record<string, string> = {
-        partner: "/partner",
-        student: "/student",
-        supervisor: "/supervisor",
-        "university-admin": "/university-admin",
-        "super-admin": "/super-admin",
-      };
+      // Navigate to home
+      showSuccess("Welcome back!");
+      router.push("/");
 
-      showSuccess("Login successful!");
-      router.push(roleRoutes[user.role] || "/partner");
     } catch (error) {
       console.error("Login failed:", error);
-      showError("Login failed. Please try again.");
+
+      if (error instanceof ApiError) {
+        const backendMsg =
+          (error.payload?.msg &&
+            error.payload.msg.replace(/^\[\d+\]\s*/, "").trim()) ||
+          error.message.replace(/^\[\d+\]\s*/, "").trim() ||
+          "Login failed. Please try again.";
+
+        if (error.status === 403) {
+          const pendingOrg = (error.payload?.data as BackendLoginResponse | undefined)?.organization;
+          if (pendingOrg) {
+            setPendingOrganization(mapBackendOrganizationToFrontend(pendingOrg));
+            setShowPendingModal(true);
+          }
+        }
+
+        showError(backendMsg);
+        return;
+      }
+
+      showError(error instanceof Error ? error.message : "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -137,14 +178,17 @@ const LoginPage = () => {
       rightContent={{
         title: "Welcome back to StrikeForce",
         description:
-          "Continue your journey of collaboration and innovation. Connect with students, manage your projects, and build lasting partnerships that drive real impact.",
+          "A collaboration system enabling universities, students, and partners to run real-world projects efficiently — with traceable outcomes and verified participants.",
       }}
     >
       <div>
-        <h1 className="text-3xl font-bold mb-2 text-center">Log in</h1>
-        <p className="text-sm opacity-60 mb-8 text-center">
+        <h1 className="text-3xl font-bold mb-2 text-center text-[var(--text)]">Log in</h1>
+        <p className="text-sm text-muted mb-6 text-center">
           Enter your credentials to access your account
         </p>
+
+        {/* Role Selection Info */}
+
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -186,8 +230,9 @@ const LoginPage = () => {
 
           {/* Submit Button */}
           <Button
+            onClick={handleSubmit}
             type="submit"
-            className="w-full bg-primary mt-6"
+            className="w-full bg-primary hover:opacity-90 text-white mt-6"
             disabled={loading}
           >
             {loading ? "Logging in..." : "Log in"}
@@ -195,18 +240,26 @@ const LoginPage = () => {
         </form>
 
         {/* Sign Up Link */}
-        <p className="mt-6 text-center text-sm opacity-60">
+        <p className="mt-6 text-center text-sm text-muted">
           Don&apos;t have an account?{" "}
-          <Link href="/auth/signup" className="text-primary font-medium hover:underline">
+          <Link href="/auth/signup" className="text-primary font-semibold hover:underline">
             Sign up
           </Link>
+        </p>
+
+        {/* Footer */}
+        <p className="mt-8 text-center text-xs text-muted-light">
+          Powered by BVR Innovation Group
         </p>
       </div>
 
       {/* Pending Approval Modal */}
       <Modal
-        open={showPendingModal}
-        handleClose={() => setShowPendingModal(false)}
+      open={showPendingModal}
+      handleClose={() => {
+        setShowPendingModal(false);
+        setPendingOrganization(null);
+      }}
         title={
           pendingOrganization?.kycStatus === "REJECTED"
             ? "Account Not Approved"
@@ -217,7 +270,10 @@ const LoginPage = () => {
         actions={[
           <Button
             key="close"
-            onClick={() => setShowPendingModal(false)}
+            onClick={() => {
+              setShowPendingModal(false);
+              setPendingOrganization(null);
+            }}
             className="bg-primary"
           >
             Close

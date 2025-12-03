@@ -20,11 +20,13 @@ export interface Props {
   errors: ValidationErrors;
   availableMembers: OptionI[];
   usersMap: Record<string, UserI>;
+  loadingMembers?: boolean;
   currentUserId?: string | null;
   onClose: () => void;
   onChange: (field: keyof GroupFormData, value: string | number) => void;
   onMembersChange: (memberIds: string[]) => void;
   onClearError: (field: string) => void;
+  onSearchMembers?: (query: string) => void;
   onSubmit: () => void;
 }
 
@@ -38,11 +40,13 @@ const CreateGroupModal = ({
   errors,
   availableMembers,
   usersMap,
+  loadingMembers = false,
   currentUserId,
   onClose,
   onChange,
   onMembersChange,
   onClearError,
+  onSearchMembers,
   onSubmit,
 }: Props) => {
   /**
@@ -220,6 +224,8 @@ const CreateGroupModal = ({
               onChange={handleMemberSelection}
               placeHolder="Search and select members..."
               error={errors.memberIds}
+              onSearch={onSearchMembers}
+              loading={loadingMembers}
             />
 
             {/* Helper text showing capacity */}

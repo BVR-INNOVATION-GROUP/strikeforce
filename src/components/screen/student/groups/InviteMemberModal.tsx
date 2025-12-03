@@ -17,8 +17,10 @@ export interface Props {
   group: GroupI | null;
   availableMembers: OptionI[];
   usersMap: Record<string, UserI>;
+  loadingMembers?: boolean;
   currentUserId?: string | null;
   onInvite: (groupId: string, memberIds: string[]) => Promise<void>;
+  onSearchMembers?: (query: string) => void;
 }
 
 /**
@@ -31,8 +33,10 @@ const InviteMemberModal = ({
   group,
   availableMembers,
   usersMap,
+  loadingMembers = false,
   currentUserId: _currentUserId,
   onInvite,
+  onSearchMembers,
 }: Props) => {
   const [selectedMembers, setSelectedMembers] = useState<OptionI[]>([]);
   const [inviting, setInviting] = useState(false);
@@ -66,10 +70,39 @@ const InviteMemberModal = ({
   const handleInvite = async () => {
     if (!group || selectedMembers.length === 0 || inviting) return;
 
-    const memberIds = selectedMembers.map((m) => String(m.value));
+    // Extract member IDs and validate they are valid numbers
+    const memberIds = selectedMembers
+      .map((m) => {
+        if (m.value === null || m.value === undefined) {
+          console.error("Invalid member value:", m);
+          return null;
+        }
+        // Convert to string, ensuring it's a valid number
+        const valueStr = String(m.value);
+        const numValue = typeof m.value === 'number' ? m.value : parseInt(valueStr, 10);
+        if (isNaN(numValue)) {
+          console.error("Invalid member ID:", m.value);
+          return null;
+        }
+        return String(numValue);
+      })
+      .filter((id): id is string => id !== null);
+
+    if (memberIds.length === 0) {
+      console.error("No valid member IDs to invite");
+      return;
+    }
+
+    if (memberIds.length !== selectedMembers.length) {
+      console.warn("Some member IDs were invalid and filtered out", {
+        original: selectedMembers.map(m => m.value),
+        valid: memberIds
+      });
+    }
+
     setInviting(true);
     try {
-      await onInvite(group.id, memberIds);
+      await onInvite(String(group.id), memberIds);
       setSelectedMembers([]);
       onClose();
     } catch (error) {
@@ -126,6 +159,8 @@ const InviteMemberModal = ({
           value={selectedMembers}
           onChange={handleMemberSelection}
           placeHolder="Search and select members to invite..."
+          onSearch={onSearchMembers}
+          loading={loadingMembers}
         />
 
         {selectedMembers.length > remainingCapacity && (

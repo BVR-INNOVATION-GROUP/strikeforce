@@ -33,6 +33,11 @@ const GroupCard = ({ group, users, currentUserId, onInvite, onViewDetails }: Pro
    * Get group members as UserI objects, sorted with leader first
    */
   const groupMembers = useMemo(() => {
+    // Safety check: ensure memberIds is an array
+    if (!group.memberIds || !Array.isArray(group.memberIds)) {
+      return [];
+    }
+
     const members = group.memberIds
       .map((id) => users[id])
       .filter((user): user is UserI => user !== undefined);
@@ -49,13 +54,14 @@ const GroupCard = ({ group, users, currentUserId, onInvite, onViewDetails }: Pro
    * Calculate capacity percentage for progress indicator
    */
   const capacityPercentage = useMemo(() => {
-    return Math.round((group.memberIds.length / group.capacity) * 100);
-  }, [group.memberIds.length, group.capacity]);
+    const memberCount = group.memberIds?.length || 0;
+    return Math.round((memberCount / group.capacity) * 100);
+  }, [group.memberIds?.length, group.capacity]);
 
   /**
    * Check if group is full
    */
-  const isFull = group.memberIds.length >= group.capacity;
+  const isFull = (group.memberIds?.length || 0) >= group.capacity;
 
   /**
    * Handle image load error
@@ -141,7 +147,7 @@ const GroupCard = ({ group, users, currentUserId, onInvite, onViewDetails }: Pro
           <div className="flex items-center gap-2">
             <Users size={14} className="opacity-60" />
             <p className="text-[0.8125rem] opacity-60">
-              {group.memberIds.length} of {group.capacity} members
+              {group.memberIds?.length || 0} of {group.capacity} members
             </p>
           </div>
           {isFull && (

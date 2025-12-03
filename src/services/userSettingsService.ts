@@ -17,7 +17,7 @@ export const userSettingsService = {
     // Return default settings if none found
     if (!settings) {
       return {
-        userId,
+        userId: user.id.toString(),
         notifications: {
           emailNotifications: true,
           milestoneUpdates: true,
@@ -42,12 +42,20 @@ export const userSettingsService = {
   },
 
   /**
-   * Update user settings with validation
+   * Update authenticated user's settings with validation
+   * Backend uses JWT token's user_id - userId parameter will be ignored by backend
    */
   updateSettings: async (
-    userId: string,
     settings: Partial<UserSettingsI>
   ): Promise<UserSettingsI> => {
+    // Note: Backend should use authenticated user's ID from JWT token, not path parameter
+    // For now, we'll need to get current user ID from auth store
+    const { useAuthStore } = await import("@/src/store/useAuthStore");
+    const user = useAuthStore.getState().user;
+    if (!user?.id) {
+      throw new Error("User not authenticated");
+    }
+    const userId = user.id.toString();
     // Business validation
     if (
       settings.security?.sessionTimeout &&
@@ -68,6 +76,7 @@ export const userSettingsService = {
     return userSettingsRepository.update(userId, settings);
   },
 };
+
 
 
 

@@ -4,20 +4,16 @@
  */
 import { projectRepository } from "@/src/repositories/projectRepository";
 import { applicationRepository } from "@/src/repositories/applicationRepository";
-import { userRepository } from "@/src/repositories/userRepository";
-import { milestoneRepository } from "@/src/repositories/milestoneRepository";
 import { disputeRepository } from "@/src/repositories/disputeRepository";
 import { kycRepository } from "@/src/repositories/kycRepository";
 import { organizationRepository } from "@/src/repositories/organizationRepository";
 import { portfolioRepository } from "@/src/repositories/portfolioRepository";
+import { OrganizationDashboardStats } from "@/src/models/organization";
 
 /**
  * University admin dashboard statistics interface
  */
-export interface UniversityAdminDashboardStats {
-  totalStudents: number;
-  activeProjects: number;
-  pendingReviews: number;
+export interface UniversityAdminDashboardStats extends OrganizationDashboardStats {
   totalStudentsChange?: number;
   activeProjectsChange?: number;
 }
@@ -34,10 +30,13 @@ export interface SuperAdminDashboardStats {
 }
 
 export interface DashboardStats {
-  totalProjects: number;
+  totalProjects?: number;
   activeProjects: number;
   totalBudget: number;
+  totalEarnings?: number; // Actual earnings from completed projects
   completedProjects: number;
+  totalApplications?: number; // For student analytics
+  activeApplications?: number; // For student analytics
   totalBudgetChange?: number; // Percentage change from previous period
   activeProjectsChange?: number;
 }
@@ -85,32 +84,24 @@ function calculateChangeStats(
 export const dashboardService = {
   /**
    * Get partner dashboard statistics
-   * Calculated from actual project data
+   * Fetched from backend API
    */
   getDashboardStats: async (partnerId: string): Promise<DashboardStats> => {
-    const projects = await projectRepository.getAll();
-    const partnerProjects = projects.filter((p) => p.partnerId === partnerId);
-
-    const activeProjects = partnerProjects.filter(
-      (p) => p.status === "in-progress"
-    ).length;
-    const completedProjects = partnerProjects.filter(
-      (p) => p.status === "completed"
-    ).length;
-    const totalBudget = partnerProjects.reduce((sum, p) => sum + p.budget, 0);
+    // Get stats from backend
+    const backendStats = await organizationRepository.getPartnerDashboardStats();
 
     // Calculate changes (simulated - in production would compare with historical data)
-    const previousActiveProjects = Math.max(0, activeProjects - 1);
-    const previousBudget = totalBudget * 0.9; // Simulate 10% less previous period
+    const previousActiveProjects = Math.max(0, backendStats.activeProjects - 1);
+    const previousBudget = backendStats.totalBudget * 0.9; // Simulate 10% less previous period
 
     const stats: DashboardStats = {
-      totalProjects: partnerProjects.length,
-      activeProjects,
-      totalBudget,
-      completedProjects,
-      totalBudgetChange: calculateChangeStats(totalBudget, previousBudget),
+      totalProjects: backendStats.totalProjects,
+      activeProjects: backendStats.activeProjects,
+      totalBudget: backendStats.totalBudget,
+      completedProjects: backendStats.completedProjects,
+      totalBudgetChange: calculateChangeStats(backendStats.totalBudget, previousBudget),
       activeProjectsChange: calculateChangeStats(
-        activeProjects,
+        backendStats.activeProjects,
         previousActiveProjects
       ),
     };
@@ -134,17 +125,17 @@ export const dashboardService = {
    * Get student dashboard statistics
    * Calculated from actual application and portfolio data
    */
-  getStudentDashboardStats: async (
-    studentId: string
-  ): Promise<DashboardStats> => {
-    // Get all applications for this student
-    const applications = await applicationRepository.getByUserId(studentId);
+  getStudentDashboardStats: async (): Promise<DashboardStats> => {
+    // Get all applications for the authenticated student
+    // Backend uses JWT token's user_id - never pass userId parameter
+    const applications = await applicationRepository.getByUserId();
     const activeApplications = applications.filter(
       (app) => app.status === "ASSIGNED" || app.status === "ACCEPTED"
     ).length;
 
     // Get projects for assigned applications
-    const projects = await projectRepository.getAll();
+    const projectsResponse = await projectRepository.getAll();
+    const projects = projectsResponse.projects || [];
     const assignedApplications = applications.filter(
       (app) => app.status === "ASSIGNED" || app.status === "ACCEPTED"
     );
@@ -156,7 +147,8 @@ export const dashboardService = {
     );
 
     // Get portfolio items for earnings calculation
-    const portfolioItems = await portfolioRepository.getAll(studentId);
+    // Backend uses JWT token's user_id - never pass userId parameter
+    const portfolioItems = await portfolioRepository.getAll();
     const totalEarnings = portfolioItems.reduce(
       (sum, item) => sum + item.amountDelivered,
       0
@@ -190,17 +182,17 @@ export const dashboardService = {
    * Get student dashboard statistics (detailed)
    * Returns StudentDashboardStats interface with portfolio items count
    */
-  getStudentDashboardStatsDetailed: async (
-    studentId: string
-  ): Promise<StudentDashboardStats> => {
-    // Get all applications for this student
-    const applications = await applicationRepository.getByUserId(studentId);
+  getStudentDashboardStatsDetailed: async (): Promise<StudentDashboardStats> => {
+    // Get all applications for the authenticated student
+    // Backend uses JWT token's user_id - never pass userId parameter
+    const applications = await applicationRepository.getByUserId();
     const activeApplications = applications.filter(
       (app) => app.status === "ASSIGNED" || app.status === "ACCEPTED"
     ).length;
 
     // Get projects for assigned applications
-    const projects = await projectRepository.getAll();
+    const projectsResponse = await projectRepository.getAll();
+    const projects = projectsResponse.projects || [];
     const assignedApplications = applications.filter(
       (app) => app.status === "ASSIGNED" || app.status === "ACCEPTED"
     );
@@ -212,7 +204,8 @@ export const dashboardService = {
     );
 
     // Get portfolio items for earnings calculation
-    const portfolioItems = await portfolioRepository.getAll(studentId);
+    // Backend uses JWT token's user_id - never pass userId parameter
+    const portfolioItems = await portfolioRepository.getAll();
     const totalEarnings = portfolioItems.reduce(
       (sum, item) => sum + item.amountDelivered,
       0
@@ -246,10 +239,10 @@ export const dashboardService = {
   getSupervisorDashboardStats: async (
     supervisorId: string
   ): Promise<DashboardStats> => {
-    const projects = await projectRepository.getAll();
-    const supervisedProjects = projects.filter(
-      (p) => p.supervisorId === supervisorId
-    );
+    // Fetch projects filtered by supervisorId at database level (more efficient)
+    const supervisorIdNum = typeof supervisorId === "string" ? parseInt(supervisorId, 10) : supervisorId;
+    const projectsResponse = await projectRepository.getAll({ supervisorId: supervisorIdNum });
+    const supervisedProjects = projectsResponse.projects || [];
 
     const activeProjects = supervisedProjects.filter(
       (p) => p.status === "in-progress"
@@ -257,10 +250,13 @@ export const dashboardService = {
     const completedProjects = supervisedProjects.filter(
       (p) => p.status === "completed"
     ).length;
-    const totalBudget = supervisedProjects.reduce(
-      (sum, p) => sum + p.budget,
-      0
-    );
+    // Handle budget - can be number or object
+    const totalBudget = supervisedProjects.reduce((sum, p) => {
+      const budgetValue = typeof p.budget === "number"
+        ? p.budget
+        : (p.budget?.Value ?? p.budget?.value ?? 0);
+      return sum + budgetValue;
+    }, 0);
 
     // Calculate changes
     const previousActiveProjects = Math.max(0, activeProjects - 1);
@@ -286,43 +282,14 @@ export const dashboardService = {
   getUniversityAdminDashboardStats: async (
     universityId: string
   ): Promise<UniversityAdminDashboardStats> => {
-    // Get all students for this university
-    const users = await userRepository.getAll();
-    const students = users.filter(
-      (u) => u.role === "student" && u.universityId === universityId
+    const rawStats = await organizationRepository.getDashboardStats(
+      universityId
     );
-
-    // Get all projects for this university
-    const projects = await projectRepository.getAll();
-    const universityProjects = projects.filter(
-      (p) => p.universityId === universityId
-    );
-    const activeProjects = universityProjects.filter(
-      (p) => p.status === "in-progress"
-    ).length;
-
-    // Get pending milestone reviews (milestones in SUPERVISOR_REVIEW or PARTNER_REVIEW)
-    const milestones = await milestoneRepository.getAll();
-    const pendingReviews = milestones.filter(
-      (m) => m.status === "SUPERVISOR_REVIEW" || m.status === "PARTNER_REVIEW"
-    ).length;
-
-    // Calculate changes
-    const previousStudents = Math.max(0, students.length - 5);
-    const previousActiveProjects = Math.max(0, activeProjects - 1);
 
     return {
-      totalStudents: students.length,
-      activeProjects,
-      pendingReviews,
-      totalStudentsChange: calculateChangeStats(
-        students.length,
-        previousStudents
-      ),
-      activeProjectsChange: calculateChangeStats(
-        activeProjects,
-        previousActiveProjects
-      ),
+      ...rawStats,
+      totalStudentsChange: calculateChangeStats(rawStats.totalStudents),
+      activeProjectsChange: calculateChangeStats(rawStats.activeProjects),
     };
   },
 

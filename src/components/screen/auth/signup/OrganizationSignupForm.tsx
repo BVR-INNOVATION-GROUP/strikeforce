@@ -83,24 +83,28 @@ const OrganizationSignupForm = ({
         error={errors.address}
       />
       <Input
+        title="Password *"
+        value={formData.password}
+        onChange={(e) => {
+          onFieldChange("password", e.target.value);
+          onClearError("password");
+        }}
+        placeholder="************"
+        error={errors.address}
+      />
+      <Input
         title="Website (Optional)"
         type="url"
         value={formData.website}
         onChange={(e) => onFieldChange("website", e.target.value)}
         placeholder="https://example.com"
       />
-      <TextArea
-        title="Description (Optional)"
-        value={formData.description}
-        onChange={(e) => onFieldChange("description", e.target.value)}
-        placeholder={`Brief description of your ${orgTypeName.toLowerCase()}...`}
-        rows={4}
-      />
     </div>
   );
 };
 
 export default OrganizationSignupForm;
+
 
 
 

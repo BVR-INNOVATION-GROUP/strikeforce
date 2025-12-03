@@ -536,9 +536,7 @@ export const transformTeamMembers = (
         id: studentId,
         name: user?.name ?? "Team Member",
         role: roles[idx] ?? "Developer",
-        avatar:
-          user?.profile?.avatar ??
-          "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg",
+        avatar: user?.profile?.avatar ?? "", // Empty string for fallback to initials
         badges: {
           isLeader,
           isSupervisor,
@@ -559,9 +557,7 @@ export const transformTeamMembers = (
         id: supervisorId,
         name: supervisorUser.name ?? "Supervisor",
         role: "Project Supervisor",
-        avatar:
-          supervisorUser.profile?.avatar ??
-          "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg",
+        avatar: supervisorUser.profile?.avatar ?? "", // Empty string for fallback to initials
         badges: {
           isLeader: false,
           isSupervisor: true,

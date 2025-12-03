@@ -6,7 +6,7 @@
 import React from "react";
 import Input from "@/src/components/core/Input";
 import RichTextEditor from "@/src/components/core/RichTextEditor";
-import CurrencyInput from "@/src/components/base/CurrencyInput";
+import MergedCurrencyInput from "@/src/components/base/MergedCurrencyInput";
 import DatePicker from "@/src/components/base/DatePicker";
 import { OptionI } from "@/src/components/core/Select";
 
@@ -66,7 +66,7 @@ const ProjectFormStep2 = ({
         rows={6}
         error={errors.desc}
       />
-      <CurrencyInput
+      <MergedCurrencyInput
         title="Budget *"
         currency={currency}
         amount={budget}

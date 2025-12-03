@@ -29,8 +29,52 @@ export function getMilestonePermissions(
   milestone: MilestoneI | undefined,
   isProjectOwner: boolean = false
 ): MilestonePermissions {
-  // Default: no permissions if no role or milestone
-  if (!userRole || !milestone) {
+  // Default: no permissions if no role
+  if (!userRole) {
+    return {
+      canEdit: false,
+      canAdd: false,
+      canApproveAndRelease: false,
+      canDisapprove: false,
+      canRequestChanges: false,
+      canFundEscrow: false,
+      canSubmit: false,
+      canDispute: false,
+      canMarkAsComplete: false,
+      canUnmarkAsComplete: false,
+    };
+  }
+
+  // If milestone is not provided, still allow basic permissions for project owners
+  if (!milestone) {
+    if (userRole === "partner" && isProjectOwner) {
+      return {
+        canEdit: true, // Allow editing if milestone data is missing (will be loaded)
+        canAdd: true,
+        canApproveAndRelease: false,
+        canDisapprove: false,
+        canRequestChanges: false,
+        canFundEscrow: false,
+        canSubmit: false,
+        canDispute: false,
+        canMarkAsComplete: false,
+        canUnmarkAsComplete: false,
+      };
+    }
+    if (userRole === "super-admin") {
+      return {
+        canEdit: true,
+        canAdd: true,
+        canApproveAndRelease: false,
+        canDisapprove: false,
+        canRequestChanges: false,
+        canFundEscrow: false,
+        canSubmit: false,
+        canDispute: false,
+        canMarkAsComplete: false,
+        canUnmarkAsComplete: false,
+      };
+    }
     return {
       canEdit: false,
       canAdd: false,
@@ -50,8 +94,18 @@ export function getMilestonePermissions(
   // Partner permissions
   if (userRole === "partner") {
     return {
-      // Partner can edit milestones that are in PROPOSED or DRAFT status
-      canEdit: isProjectOwner && (status === "PROPOSED" || status === "DRAFT"),
+      // Partner can edit milestones that are in early stages or not yet in active work
+      // Allow editing for: PROPOSED, DRAFT, ACCEPTED, FINALIZED, FUNDED
+      // Don't allow editing once work has started (IN_PROGRESS and beyond)
+      canEdit: isProjectOwner && (
+        status === "PROPOSED" || 
+        status === "DRAFT" ||
+        status === "ACCEPTED" ||
+        status === "FINALIZED" ||
+        status === "FUNDED" ||
+        // Also allow editing if status is not yet in progress or beyond
+        !["IN_PROGRESS", "SUBMITTED", "SUPERVISOR_REVIEW", "PARTNER_REVIEW", "APPROVED", "RELEASED", "COMPLETED", "CHANGES_REQUESTED"].includes(status)
+      ),
       // Partner can always add milestones to their own projects
       canAdd: isProjectOwner,
       // Partner can approve and release if milestone is in PARTNER_REVIEW and supervisor has approved

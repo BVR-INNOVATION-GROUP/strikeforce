@@ -36,7 +36,7 @@ const SupervisorCard = ({ supervisor, department, onEdit, onDelete, onViewDetail
   const initials = getInitials(supervisor.name);
 
   return (
-    <div 
+    <div
       className="bg-paper rounded-lg p-6 shadow-custom hover:shadow-lg transition-all duration-200 cursor-pointer"
       onClick={() => onViewDetails?.(supervisor)}
     >
@@ -79,7 +79,7 @@ const SupervisorCard = ({ supervisor, department, onEdit, onDelete, onViewDetail
             </Button>
           )}
           {onDelete && (
-            <Button onClick={() => onDelete(supervisor.id)} className="bg-primary flex-1 text-[0.875rem] py-2.5">
+            <Button onClick={() => onDelete(supervisor.id.toString())} className="bg-primary flex-1 text-[0.875rem] py-2.5">
               Delete
             </Button>
           )}
@@ -188,34 +188,18 @@ export default function UniversityAdminSupervisors() {
 
       setIsCreating(true);
       try {
-        // Call API route that handles invitation creation, user creation, and email sending server-side
-        const response = await fetch("/api/supervisors", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: data.name,
-            email: data.email,
-            departmentId: numericDepartmentId,
-            universityId: numericUniversityId,
-            organizationName: organizationName,
-          }),
+        // Create supervisor directly via backend API - this will also send the password email
+        const { api } = await import("@/src/api/client");
+        await api.post(`/api/v1/supervisors/${numericDepartmentId}`, {
+          email: data.email.toLowerCase().trim(),
+          name: data.name.trim(),
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to create supervisor");
-        }
-
-        const result = await response.json();
-        const newUser = result.user;
-
-        // Add new supervisor to the list immediately
-        setSupervisors((prev) => [...prev, newUser]);
+        // Reload supervisors list
+        await loadData();
 
         showSuccess(
-          `Supervisor created successfully! Welcome email with invitation link has been sent to ${data.email}`
+          `Supervisor created successfully! Login credentials have been sent to ${data.email}`
         );
         setIsModalOpen(false);
       } catch (invError) {
@@ -246,7 +230,7 @@ export default function UniversityAdminSupervisors() {
       return;
     }
 
-      try {
+    try {
       // In production, process CSV files
       // Parse CSV, create accounts, generate invitations, send emails
       console.log("Bulk upload supervisors:", selectedFiles);

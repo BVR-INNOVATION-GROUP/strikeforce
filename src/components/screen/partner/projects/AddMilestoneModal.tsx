@@ -126,7 +126,16 @@ const AddMilestoneModal = (props: Props) => {
 
             if (isEditMode && milestone && onUpdate) {
                 // Update existing milestone
-                await onUpdate(String(milestone.id), title, scope, dueDate, amount, currencyCode?.toString())
+                // Ensure milestone.id is converted to string properly
+                // Handle both number and string IDs, and also handle cases where milestone might be a partial object
+                let milestoneId: string;
+                if (milestone.id !== undefined && milestone.id !== null) {
+                    milestoneId = String(milestone.id);
+                } else {
+                    console.error("Milestone ID is missing:", milestone);
+                    throw new Error("Milestone ID is missing. Cannot update milestone.");
+                }
+                await onUpdate(milestoneId, title, scope, dueDate, amount, currencyCode?.toString())
             } else {
                 // Create new milestone
                 await onCreate(title, scope, dueDate, amount, currencyCode?.toString())

@@ -18,7 +18,9 @@ export interface Props {
   onViewDetails?: (application: ApplicationI) => void;
   onShortlist?: (application: ApplicationI) => void;
   onReject?: (application: ApplicationI) => void;
-  onWaitlist?: (application: ApplicationI) => void;
+  onOffer?: (application: ApplicationI) => void;
+  onUndoReject?: (application: ApplicationI) => void;
+  readOnly?: boolean; // If true, hide all action buttons (for partners)
 }
 
 /**
@@ -33,13 +35,13 @@ const formatDate = (dateString: string): string => {
   });
 };
 
-const ScreeningApplicationCard = ({ application, project, onScore, onViewDetails, onShortlist, onReject, onWaitlist }: Props) => {
+const ScreeningApplicationCard = ({ application, project, onScore, onViewDetails, onShortlist, onReject, onOffer, onUndoReject, readOnly = false }: Props) => {
   const hasScore = !!application.score;
   const finalScore = application.score?.finalScore || 0;
   const autoScore = application.score?.autoScore || 0;
 
   return (
-    <div 
+    <div
       className="bg-paper rounded-lg shadow-custom p-6 hover:shadow-md transition-all cursor-pointer"
       onClick={() => onViewDetails?.(application)}
     >
@@ -113,44 +115,54 @@ const ScreeningApplicationCard = ({ application, project, onScore, onViewDetails
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col gap-2 pt-2 border-t border-custom" onClick={(e) => e.stopPropagation()}>
-          {/* Core Screening Actions */}
-          <div className="flex gap-2">
-            {onShortlist && application.status === "SUBMITTED" && (
+        {!readOnly && (
+          <div className="flex flex-col gap-2 pt-2 border-t border-custom" onClick={(e) => e.stopPropagation()}>
+            {/* Core Screening Actions */}
+            <div className="flex gap-2">
+              {onShortlist && application.status === "SUBMITTED" && (
+                <Button
+                  onClick={() => onShortlist(application)}
+                  className="bg-primary text-[0.8125rem] py-2 px-3 flex-1"
+                >
+                  Shortlist
+                </Button>
+              )}
+              {onOffer && application.status === "SHORTLISTED" && (
+                <Button
+                  onClick={() => onOffer(application)}
+                  className="bg-green-600 hover:bg-green-700 text-white text-[0.8125rem] py-2 px-3 flex-1"
+                >
+                  Assign
+                </Button>
+              )}
+              {onReject && (application.status === "SUBMITTED" || application.status === "SHORTLISTED") && (
+                <Button
+                  onClick={() => onReject(application)}
+                  className="bg-pale text-primary text-[0.8125rem] py-2 px-3 flex-1"
+                >
+                  Reject
+                </Button>
+              )}
+              {onUndoReject && application.status === "REJECTED" && (
+                <Button
+                  onClick={() => onUndoReject(application)}
+                  className="bg-green-600 hover:bg-green-700 text-white text-[0.8125rem] py-2 px-3 flex-1"
+                >
+                  Undo Reject
+                </Button>
+              )}
+            </div>
+            {/* Optional Scoring Action (Advisory) */}
+            {onScore && (
               <Button
-                onClick={() => onShortlist(application)}
-                className="bg-primary text-[0.8125rem] py-2 px-3 flex-1"
+                onClick={() => onScore(application)}
+                className="bg-pale text-primary text-[0.8125rem] py-2 px-4 w-full"
               >
-                Shortlist
-              </Button>
-            )}
-            {onReject && (application.status === "SUBMITTED" || application.status === "SHORTLISTED") && (
-              <Button
-                onClick={() => onReject(application)}
-                className="bg-pale text-primary text-[0.8125rem] py-2 px-3 flex-1"
-              >
-                Reject
-              </Button>
-            )}
-            {onWaitlist && (application.status === "SUBMITTED" || application.status === "SHORTLISTED") && (
-              <Button
-                onClick={() => onWaitlist(application)}
-                className="bg-pale text-primary text-[0.8125rem] py-2 px-3 flex-1"
-              >
-                Waitlist
+                {hasScore ? "Update Score" : "Add Score (Advisory)"}
               </Button>
             )}
           </div>
-          {/* Optional Scoring Action (Advisory) */}
-          {onScore && (
-            <Button
-              onClick={() => onScore(application)}
-              className="bg-pale text-primary text-[0.8125rem] py-2 px-4 w-full"
-            >
-              {hasScore ? "Update Score" : "Add Score (Advisory)"}
-            </Button>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );

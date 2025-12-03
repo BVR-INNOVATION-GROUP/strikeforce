@@ -141,7 +141,7 @@ export default function SupervisorDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold mb-2">Dashboard</h1>
-        <p className="text-gray-600">Welcome, {user?.name}</p>
+        <p className="text-secondary">Welcome, {user?.name}</p>
       </div>
 
       {/* Stats */}

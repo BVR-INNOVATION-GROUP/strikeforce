@@ -32,10 +32,12 @@ export default function StudentGroups() {
     errors,
     availableMembers,
     usersMap,
+    loadingMembers,
     setFormData,
     updateMembers,
     clearError,
     handleCreateGroup,
+    handleSearchMembers,
   } = useGroupCreation(isCreateModalOpen, user?.id ? String(user.id) : null);
 
   useEffect(() => {
@@ -92,7 +94,33 @@ export default function StudentGroups() {
     try {
       const { groupService } = await import("@/src/services/groupService");
       const numericGroupId = parseInt(groupId, 10);
-      const numericMemberIds = memberIds.map((id) => parseInt(id, 10));
+
+      if (isNaN(numericGroupId)) {
+        throw new Error("Invalid group ID");
+      }
+
+      // Convert to numeric IDs with validation
+      const numericMemberIds = memberIds
+        .map((id) => {
+          const parsed = parseInt(id, 10);
+          if (isNaN(parsed)) {
+            console.error("Invalid member ID:", id);
+            return null;
+          }
+          return parsed;
+        })
+        .filter((id): id is number => id !== null && !isNaN(id));
+
+      if (numericMemberIds.length === 0) {
+        throw new Error("No valid member IDs provided");
+      }
+
+      if (numericMemberIds.length !== memberIds.length) {
+        console.warn("Some member IDs were invalid and filtered out", {
+          original: memberIds,
+          valid: numericMemberIds
+        });
+      }
 
       // Use groupService to add members with business validation
       const updatedGroup = await groupService.addMembers(numericGroupId, numericMemberIds);
@@ -104,6 +132,10 @@ export default function StudentGroups() {
         updatedGroups[groupIndex] = updatedGroup;
         setLocalGroups(updatedGroups);
       }
+
+      // Close invite modal and keep details modal open with updated data
+      setIsInviteModalOpen(false);
+      // selectedGroupId is already set, so details modal will show updated group
 
       showSuccess(
         `Successfully invited ${memberIds.length} member${memberIds.length !== 1 ? "s" : ""}`
@@ -211,7 +243,7 @@ export default function StudentGroups() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {localGroups.map((group, index) => (
             <GroupCard
-              key={group.id}
+              key={group.id || `group-${index}`}
               group={group}
               users={users}
               currentUserId={user?.id ? String(user.id) : ""}
@@ -265,8 +297,10 @@ export default function StudentGroups() {
         group={inviteGroup || null}
         availableMembers={availableMembers}
         usersMap={usersMap}
+        loadingMembers={loadingMembers}
         currentUserId={user?.id ? String(user.id) : undefined}
         onInvite={handleInviteMembers}
+        onSearchMembers={handleSearchMembers}
       />
     </div>
   );
