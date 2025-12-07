@@ -20,7 +20,7 @@ function extractData<T>(response: ApiResponse<T> | T): T {
 
 const DEV_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const PRODUCTION_URL = "https://strikeforce-be-production.up.railway.app";
-export const BASE_URL = DEV_URL;
+export const BASE_URL = PRODUCTION_URL;
 
 /**
  * Get authentication token from storage
