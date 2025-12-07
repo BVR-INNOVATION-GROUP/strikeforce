@@ -6,6 +6,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 import AuthLayout from "@/src/components/base/AuthLayout";
 import Input from "@/src/components/core/Input";
 import Button from "@/src/components/core/Button";
@@ -33,6 +34,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [showPendingModal, setShowPendingModal] = useState(false);
   const [pendingOrganization, setPendingOrganization] = useState<OrganizationI | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   /**
    * Validate form data
@@ -204,19 +206,31 @@ const LoginPage = () => {
             error={errors.email}
           />
 
-          <div className="relative">
-            <Input
-              type="password"
-              title="Password *"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={(e) => {
-                setFormData({ ...formData, password: e.target.value });
-                clearError("password");
-              }}
-              error={errors.password}
-            />
-          </div>
+          <Input
+            type={showPassword ? "text" : "password"}
+            title="Password *"
+            placeholder="Enter your password"
+            value={formData.password}
+            onChange={(e) => {
+              setFormData({ ...formData, password: e.target.value });
+              clearError("password");
+            }}
+            error={errors.password}
+            rightElement={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-gray-500 hover:text-gray-700 focus:outline-none transition-colors cursor-pointer"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff size={20} />
+                ) : (
+                  <Eye size={20} />
+                )}
+              </button>
+            }
+          />
 
           {/* Forgot Password Link */}
           <div className="flex justify-end">

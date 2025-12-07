@@ -4,6 +4,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/src/hooks/useToast";
 import Card from "@/src/components/core/Card";
 import Input from "@/src/components/core/Input";
@@ -27,6 +28,9 @@ const PasswordUpdateSection = ({ userId: _userId }: Props) => {
     confirmPassword: "",
   });
   const [updatingPassword, setUpdatingPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Handle password update
   const handlePasswordUpdate = async () => {
@@ -76,7 +80,7 @@ const PasswordUpdateSection = ({ userId: _userId }: Props) => {
 
         <Input
           title="Current Password"
-          type="password"
+          type={showCurrentPassword ? "text" : "password"}
           value={passwordData.currentPassword}
           onChange={(e) =>
             setPasswordData({
@@ -85,11 +89,25 @@ const PasswordUpdateSection = ({ userId: _userId }: Props) => {
             })
           }
           placeholder="Enter current password"
+          rightElement={
+            <button
+              type="button"
+              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+              className="text-gray-500 hover:text-gray-700 focus:outline-none transition-colors cursor-pointer"
+              aria-label={showCurrentPassword ? "Hide password" : "Show password"}
+            >
+              {showCurrentPassword ? (
+                <EyeOff size={20} />
+              ) : (
+                <Eye size={20} />
+              )}
+            </button>
+          }
         />
 
         <Input
           title="New Password"
-          type="password"
+          type={showNewPassword ? "text" : "password"}
           value={passwordData.newPassword}
           onChange={(e) =>
             setPasswordData({
@@ -98,11 +116,25 @@ const PasswordUpdateSection = ({ userId: _userId }: Props) => {
             })
           }
           placeholder="Enter new password (min. 8 characters)"
+          rightElement={
+            <button
+              type="button"
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              className="text-gray-500 hover:text-gray-700 focus:outline-none transition-colors cursor-pointer"
+              aria-label={showNewPassword ? "Hide password" : "Show password"}
+            >
+              {showNewPassword ? (
+                <EyeOff size={20} />
+              ) : (
+                <Eye size={20} />
+              )}
+            </button>
+          }
         />
 
         <Input
           title="Confirm New Password"
-          type="password"
+          type={showConfirmPassword ? "text" : "password"}
           value={passwordData.confirmPassword}
           onChange={(e) =>
             setPasswordData({
@@ -111,6 +143,20 @@ const PasswordUpdateSection = ({ userId: _userId }: Props) => {
             })
           }
           placeholder="Confirm new password"
+          rightElement={
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="text-gray-500 hover:text-gray-700 focus:outline-none transition-colors cursor-pointer"
+              aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+            >
+              {showConfirmPassword ? (
+                <EyeOff size={20} />
+              ) : (
+                <Eye size={20} />
+              )}
+            </button>
+          }
         />
 
         <div className="flex justify-end pt-2">

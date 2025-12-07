@@ -6,6 +6,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 import AuthLayout from "@/src/components/base/AuthLayout";
 import Input from "@/src/components/core/Input";
 import Button from "@/src/components/core/Button";
@@ -26,6 +27,8 @@ const ResetPasswordForm = () => {
   const [reset, setReset] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [tokenError, setTokenError] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   /**
    * Get token from URL query parameter
@@ -187,7 +190,7 @@ const ResetPasswordForm = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            type="password"
+            type={showPassword ? "text" : "password"}
             title="New Password *"
             placeholder="Create a new password"
             value={formData.password}
@@ -196,13 +199,27 @@ const ResetPasswordForm = () => {
               clearError("password");
             }}
             error={errors.password}
+            rightElement={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-gray-500 hover:text-gray-700 focus:outline-none transition-colors cursor-pointer"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff size={20} />
+                ) : (
+                  <Eye size={20} />
+                )}
+              </button>
+            }
           />
           <p className="text-xs opacity-60 -mt-2">
             Must be at least 8 characters.
           </p>
 
           <Input
-            type="password"
+            type={showConfirmPassword ? "text" : "password"}
             title="Confirm Password *"
             placeholder="Confirm your new password"
             value={formData.confirmPassword}
@@ -211,6 +228,20 @@ const ResetPasswordForm = () => {
               clearError("confirmPassword");
             }}
             error={errors.confirmPassword}
+            rightElement={
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="text-gray-500 hover:text-gray-700 focus:outline-none transition-colors cursor-pointer"
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff size={20} />
+                ) : (
+                  <Eye size={20} />
+                )}
+              </button>
+            }
           />
 
           <Button

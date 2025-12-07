@@ -1,14 +1,15 @@
 /**
  * Application File Upload Utility
- * Handles uploading application attachment files (CVs, portfolios, etc.) to the backend
+ * Handles uploading application attachment files (CVs, portfolios, etc.) to Cloudinary
+ * Returns Cloudinary URLs that should be saved to the backend
  */
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { uploadMultipleToCloudinary } from "./cloudinaryUpload";
 
 /**
- * Upload application attachment files to the backend
+ * Upload application attachment files to Cloudinary
  * @param files - Array of File objects to upload
- * @returns Promise<string[]> - Array of file paths returned from the server
+ * @returns Promise<string[]> - Array of Cloudinary URLs
  * @throws Error if upload fails
  */
 export async function uploadApplicationFiles(files: File[]): Promise<string[]> {
@@ -17,37 +18,15 @@ export async function uploadApplicationFiles(files: File[]): Promise<string[]> {
   }
 
   try {
-    // Get auth token
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
-    // Create FormData with all files
-    const formData = new FormData();
-    files.forEach((file) => {
-      formData.append("files", file);
+    // Upload files to Cloudinary
+    const urls = await uploadMultipleToCloudinary(files, {
+      folder: "strikeforce/applications",
+      resourceType: "auto", // Auto-detect file type
     });
 
-    // Upload files to backend API
-    const response = await fetch(`${BACKEND_URL}/api/v1/applications/upload`, {
-      method: "POST",
-      headers: {
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const errorMessage =
-        errorData.error || errorData.msg || `Upload failed: ${response.statusText}`;
-      throw new Error(errorMessage);
-    }
-
-    const result = await response.json();
-    // Backend returns {msg, data} format
-    const data = result.data || result;
-    return data.paths || data.files || [];
+    return urls;
   } catch (error) {
-    console.error("Error uploading application files:", error);
+    console.error("Error uploading application files to Cloudinary:", error);
     throw error instanceof Error
       ? error
       : new Error("Failed to upload files. Please try again.");

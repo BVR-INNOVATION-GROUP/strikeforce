@@ -4,6 +4,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import Input from "@/src/components/core/Input";
 import TextArea from "@/src/components/core/TextArea";
 import { MultiStepForm } from "./MultiStepForm";
@@ -32,6 +33,7 @@ const MultiStepOrganizationForm: React.FC<Props> = ({
     onLogoFileChange,
 }) => {
     const orgTypeName = isUniversity ? "University" : "Organization";
+    const [showPassword, setShowPassword] = useState(false);
 
     const steps = [
         {
@@ -128,7 +130,7 @@ const MultiStepOrganizationForm: React.FC<Props> = ({
 
                             <Input
                                 title="Password *"
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 value={formData.password}
                                 onChange={(e) => {
                                     onFieldChange("password", e.target.value);
@@ -136,6 +138,20 @@ const MultiStepOrganizationForm: React.FC<Props> = ({
                                 }}
                                 placeholder="At least 8 characters"
                                 error={errors.password}
+                                rightElement={
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="text-gray-500 hover:text-gray-700 focus:outline-none transition-colors cursor-pointer"
+                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff size={20} />
+                                        ) : (
+                                            <Eye size={20} />
+                                        )}
+                                    </button>
+                                }
                             />
 
 

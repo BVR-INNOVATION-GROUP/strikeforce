@@ -1,25 +1,38 @@
 /**
  * Organization Logo Upload Utility
- * Handles uploading organization logo files to the backend
+ * Handles uploading organization logo files to Cloudinary
+ * Returns Cloudinary URL that should be saved to the backend
  */
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { uploadOptimizedImage } from "./cloudinaryUpload";
 
 /**
- * Upload organization logo to the backend
+ * Upload organization logo to Cloudinary
  * @param file - File object to upload
- * @returns Promise<string> - Logo path returned from the server
+ * @param organizationId - Optional organization ID for folder organization
+ * @returns Promise<string> - Cloudinary URL of the uploaded logo
  * @throws Error if upload fails
  */
-export async function uploadOrganizationLogo(file: File): Promise<string> {
+export async function uploadOrganizationLogo(
+  file: File,
+  organizationId?: string | number
+): Promise<string> {
   if (!file) {
     throw new Error("No file provided");
   }
 
   // Validate file type
-  const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+  const allowedTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+  ];
   if (!allowedTypes.includes(file.type)) {
-    throw new Error("Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed");
+    throw new Error(
+      "Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed"
+    );
   }
 
   // Validate file size (max 5MB)
@@ -28,34 +41,18 @@ export async function uploadOrganizationLogo(file: File): Promise<string> {
   }
 
   try {
-    // Get auth token
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    // Determine folder path
+    const folder = organizationId
+      ? `strikeforce/organizations/${organizationId}/logos`
+      : "strikeforce/organizations/logos";
 
-    // Create FormData with logo file
-    const formData = new FormData();
-    formData.append("logo", file);
+    // Upload to Cloudinary with optimization
+    // Max dimensions: 800x800, quality: auto:good for balance between size and quality
+    const url = await uploadOptimizedImage(file, folder, 800, 800, "auto:good");
 
-    // Upload file to backend API
-    const response = await fetch(`${BACKEND_URL}/api/v1/org/upload-logo`, {
-      method: "POST",
-      headers: {
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const errorMessage = errorData.error || errorData.msg || `Upload failed: ${response.statusText}`;
-      throw new Error(errorMessage);
-    }
-
-    const result = await response.json();
-    // Backend returns {msg, data} format
-    const data = result.data || result;
-    return data.logo || data.path || "";
+    return url;
   } catch (error) {
-    console.error("Error uploading organization logo:", error);
+    console.error("Error uploading organization logo to Cloudinary:", error);
     throw error instanceof Error
       ? error
       : new Error("Failed to upload logo. Please try again.");

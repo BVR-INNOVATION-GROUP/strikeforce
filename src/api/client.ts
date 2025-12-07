@@ -31,6 +31,45 @@ function getAuthToken(): string | null {
 }
 
 /**
+ * Handle session expiry - automatically logout user on 401 responses
+ */
+async function handleSessionExpiry(): Promise<void> {
+  // Only run on client side
+  if (typeof window === "undefined") return;
+
+  try {
+    // Dynamically import to avoid circular dependencies
+    const { useAuthStore } = await import("@/src/store/useAuthStore");
+    const authStore = useAuthStore.getState();
+
+    // Check if user is authenticated before logging out
+    if (authStore.isAuthenticated || authStore.user) {
+      console.warn("Session expired. Logging out user...");
+
+      // Call logout function
+      authStore.logout();
+
+      // Redirect to login page after a short delay to ensure cleanup completes
+      setTimeout(() => {
+        // Only redirect if we're not already on the login page
+        if (window.location.pathname !== "/auth/login") {
+          window.location.href = "/auth/login";
+        }
+      }, 200);
+    }
+  } catch (error) {
+    console.error("Error handling session expiry:", error);
+    // Fallback: clear token and redirect
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+      if (window.location.pathname !== "/auth/login") {
+        window.location.href = "/auth/login";
+      }
+    }
+  }
+}
+
+/**
  * Build full URL with base path
  */
 function buildUrl(path: string): string {
@@ -61,6 +100,11 @@ export const api = {
       });
 
       if (!response.ok) {
+        // Handle session expiry (401 Unauthorized)
+        if (response.status === 401) {
+          await handleSessionExpiry();
+        }
+
         const errorText = await response.text();
         let errorMessage = `GET ${url} failed: ${response.statusText}`;
         try {
@@ -145,6 +189,11 @@ export const api = {
       const responseText = await response.text();
 
       if (!response.ok) {
+        // Handle session expiry (401 Unauthorized)
+        if (response.status === 401) {
+          await handleSessionExpiry();
+        }
+
         // Try to extract error message from response body
         let errorMessage = `POST ${url} failed: ${response.statusText}`;
         if (isJson && responseText) {
@@ -238,6 +287,11 @@ export const api = {
       });
 
       if (!response.ok) {
+        // Handle session expiry (401 Unauthorized)
+        if (response.status === 401) {
+          await handleSessionExpiry();
+        }
+
         const errorText = await response.text();
         let errorMessage = `PUT ${url} failed: ${response.statusText}`;
         try {
@@ -291,6 +345,11 @@ export const api = {
       });
 
       if (!response.ok) {
+        // Handle session expiry (401 Unauthorized)
+        if (response.status === 401) {
+          await handleSessionExpiry();
+        }
+
         const errorText = await response.text();
         let errorMessage = `PATCH ${url} failed: ${response.statusText}`;
         try {
@@ -338,6 +397,11 @@ export const api = {
       });
 
       if (!response.ok) {
+        // Handle session expiry (401 Unauthorized)
+        if (response.status === 401) {
+          await handleSessionExpiry();
+        }
+
         const errorText = await response.text();
         let errorMessage = `DELETE ${url} failed: ${response.statusText}`;
         try {
