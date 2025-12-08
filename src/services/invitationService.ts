@@ -138,13 +138,11 @@ export const invitationService = {
     const userName = name || invitation.email.split("@")[0];
 
     // Call backend API endpoint to create user account and mark invitation as used
-    const { api } = await import("@/src/api/client");
-    const BACKEND_URL =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const { api, BASE_URL } = await import("@/src/api/client");
     const existingToken =
       typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-    const response = await fetch(`${BACKEND_URL}/api/v1/invitations/accept`, {
+    const response = await fetch(`${BASE_URL}/api/v1/invitations/accept`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

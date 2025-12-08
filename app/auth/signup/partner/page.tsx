@@ -14,6 +14,7 @@ import MultiStepOrganizationForm from "@/src/components/screen/auth/signup/Multi
 import { POST } from "@/base/index";
 import { validateOrganizationSignup, OrganizationSignupFormData, ValidationErrors } from "@/src/utils/organizationSignupValidation";
 import { BackendUser } from "@/src/lib/server";
+import { BASE_URL } from "@/src/api/client";
 
 const errorFieldSteps: (keyof ValidationErrors)[][] = [
   ["orgName", "email", "password"],
@@ -130,7 +131,7 @@ export default function PartnerSignUpPage() {
               formDataLogo.append("logo", logoFile);
 
               const logoResponse = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/org/upload-logo`,
+                `${BASE_URL}/api/v1/org/upload-logo`,
                 {
                   method: "POST",
                   headers: {

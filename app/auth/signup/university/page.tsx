@@ -17,6 +17,7 @@ import { validateOrganizationSignup, OrganizationSignupFormData, ValidationError
 import { BackendUser, mapBackendUserToFrontend } from "@/src/lib/server";
 import { useAuthStore } from "@/src/store";
 import { UserI } from "@/src/models/user";
+import { BASE_URL } from "@/src/api/client";
 
 const errorFieldSteps: (keyof ValidationErrors)[][] = [
   ["orgName", "email", "password"],
@@ -138,7 +139,7 @@ export default function UniversitySignUpPage() {
           formDataLogo.append("logo", logoFile);
 
           const logoResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/org/upload-logo`,
+            `${BASE_URL}/api/v1/org/upload-logo`,
             {
               method: "POST",
               headers: {

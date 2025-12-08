@@ -11,6 +11,7 @@ import { dashboardService, UniversityAdminDashboardStats } from "@/src/services/
 import { useAuthStore } from "@/src/store";
 import { ShieldCheck, Users, FileText, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { BASE_URL } from "@/src/api/client";
 
 /**
  * University Admin Dashboard - overview of organization, students, and applications
@@ -127,7 +128,7 @@ export default function UniversityAdminDashboard() {
               src={
                 organization.logo.startsWith("http")
                   ? organization.logo
-                  : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/${organization.logo}`
+                  : `${BASE_URL}/${organization.logo}`
               }
               alt={organization.name}
               className="h-12 w-auto rounded-lg object-contain mix-blend-multiply"

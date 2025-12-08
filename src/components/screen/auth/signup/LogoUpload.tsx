@@ -8,6 +8,7 @@ import React, { useState, useRef } from "react";
 import { uploadOrganizationLogo } from "@/src/utils/organizationLogoUpload";
 import { useToast } from "@/src/hooks/useToast";
 import { Upload, X, Image as ImageIcon } from "lucide-react";
+import { BASE_URL } from "@/src/api/client";
 
 export interface LogoUploadProps {
   onLogoChange: (logoPath: string) => void;
@@ -21,8 +22,6 @@ const LogoUpload: React.FC<LogoUploadProps> = ({ onLogoChange, onFileChange, cur
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { showError, showSuccess } = useToast();
-
-  const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -66,7 +65,7 @@ const LogoUpload: React.FC<LogoUploadProps> = ({ onLogoChange, onFileChange, cur
 
   const getImageUrl = (path: string) => {
     if (path.startsWith("http")) return path;
-    return `${BACKEND_URL}/${path}`;
+    return `${BASE_URL}/${path}`;
   };
 
   return (

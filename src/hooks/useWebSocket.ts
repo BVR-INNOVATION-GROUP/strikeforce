@@ -4,6 +4,7 @@
  */
 import { useEffect, useRef, useState, useCallback } from "react";
 import { getAuthToken } from "@/src/utils/config";
+import { BASE_URL } from "@/src/api/client";
 
 export interface WebSocketMessage {
   id?: number;
@@ -65,10 +66,11 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
   const currentIntervalRef = useRef(reconnectInterval);
 
   const getWebSocketUrl = useCallback(() => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-    const wsUrl = baseUrl.replace(/^http/, "ws");
+    const wsUrl = BASE_URL.replace(/^http/, "ws");
     const token = getAuthToken();
-    return `${wsUrl}/api/v1/chats/ws?group=${groupId}${token ? `&token=${token}` : ""}`;
+    return `${wsUrl}/api/v1/chats/ws?group=${groupId}${
+      token ? `&token=${token}` : ""
+    }`;
   }, [groupId]);
 
   const connect = useCallback(() => {
@@ -120,10 +122,11 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
           reconnectAttemptsRef.current < maxReconnectAttempts
         ) {
           reconnectAttemptsRef.current++;
-          
+
           // Exponential backoff
           const delay = Math.min(
-            currentIntervalRef.current * Math.pow(2, reconnectAttemptsRef.current - 1),
+            currentIntervalRef.current *
+              Math.pow(2, reconnectAttemptsRef.current - 1),
             MAX_RECONNECT_INTERVAL
           );
 
@@ -142,7 +145,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     } catch (error) {
       console.error("Error creating WebSocket:", error);
       setConnectionStatus("error");
-      
+
       // Retry connection
       if (
         shouldReconnectRef.current &&
@@ -150,7 +153,8 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       ) {
         reconnectAttemptsRef.current++;
         const delay = Math.min(
-          currentIntervalRef.current * Math.pow(2, reconnectAttemptsRef.current - 1),
+          currentIntervalRef.current *
+            Math.pow(2, reconnectAttemptsRef.current - 1),
           MAX_RECONNECT_INTERVAL
         );
         reconnectTimeoutRef.current = setTimeout(() => {
@@ -158,27 +162,32 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         }, delay);
       }
     }
-  }, [getWebSocketUrl, onMessage, onError, onOpen, onClose, reconnectInterval, maxReconnectAttempts]);
+  }, [
+    getWebSocketUrl,
+    onMessage,
+    onError,
+    onOpen,
+    onClose,
+    reconnectInterval,
+    maxReconnectAttempts,
+  ]);
 
-  const sendMessage = useCallback(
-    (body: string, type: string = "TEXT") => {
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        try {
-          wsRef.current.send(
-            JSON.stringify({
-              body,
-              type,
-            })
-          );
-        } catch (error) {
-          console.error("Error sending WebSocket message:", error);
-        }
-      } else {
-        console.warn("WebSocket is not connected. Message not sent:", body);
+  const sendMessage = useCallback((body: string, type: string = "TEXT") => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      try {
+        wsRef.current.send(
+          JSON.stringify({
+            body,
+            type,
+          })
+        );
+      } catch (error) {
+        console.error("Error sending WebSocket message:", error);
       }
-    },
-    []
-  );
+    } else {
+      console.warn("WebSocket is not connected. Message not sent:", body);
+    }
+  }, []);
 
   const disconnect = useCallback(() => {
     shouldReconnectRef.current = false;
@@ -221,10 +230,3 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     disconnect,
   };
 }
-
-
-
-
-
-
-

@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation'
 import { UserI } from '@/src/models/user'
 import { notificationService } from '@/src/services/notificationService'
 import { NotificationI } from '@/src/models/notification'
+import { BASE_URL } from '@/src/api/client'
 
 /**
  * Get notification icon based on type
@@ -205,7 +206,7 @@ const Navbar = () => {
                         <img
                             src={organization.logo.startsWith("http")
                                 ? organization.logo
-                                : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/${organization.logo}`}
+                                : `${BASE_URL}/${organization.logo}`}
                             alt={organization.name || "Organization Logo"}
                             className="h-12 w-auto rounded-lg object-contain max-w-[200px]"
                             onError={(e) => {

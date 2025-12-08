@@ -2,7 +2,7 @@
  * Repository for project data operations
  * Connects to backend API
  */
-import { api } from "@/src/api/client";
+import { api, BASE_URL } from "@/src/api/client";
 import { ProjectI } from "@/src/models/project";
 
 /**
@@ -183,8 +183,7 @@ export const projectRepository = {
     // api.get extracts data property, but we need the full response for pagination
     const token =
       typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-    const fullUrl = `${baseUrl}${url}`;
+    const fullUrl = `${BASE_URL}${url}`;
 
     const response = await fetch(fullUrl, {
       method: "GET",

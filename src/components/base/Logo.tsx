@@ -2,17 +2,17 @@
 
 import React, { useState } from 'react'
 import { useAuthStore } from '@/src/store'
+import { BASE_URL } from '@/src/api/client'
 
 const Logo = () => {
     const { organization } = useAuthStore();
     const [imageError, setImageError] = useState(false);
-    const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
     // If organization has a logo, display it
     if (organization?.logo && !imageError) {
         const logoUrl = organization.logo.startsWith("http") 
             ? organization.logo 
-            : `${BACKEND_URL}/${organization.logo}`;
+            : `${BASE_URL}/${organization.logo}`;
         
         return (
             <div className='flex ml-[1vw] items-center justify-center'>

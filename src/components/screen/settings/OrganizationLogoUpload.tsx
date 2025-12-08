@@ -12,8 +12,7 @@ import { uploadOrganizationLogo } from "@/src/utils/organizationLogoUpload";
 import { organizationService } from "@/src/services/organizationService";
 import { Upload } from "lucide-react";
 import LogoCropper from "./LogoCropper";
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { BASE_URL } from "@/src/api/client";
 
 const OrganizationLogoUpload = () => {
   const { organization, setOrganization, user } = useAuthStore();
@@ -39,7 +38,7 @@ const OrganizationLogoUpload = () => {
 
   function getLogoUrl(path: string): string {
     if (path.startsWith("http")) return path;
-    return `${BACKEND_URL}/${path}`;
+    return `${BASE_URL}/${path}`;
   }
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {

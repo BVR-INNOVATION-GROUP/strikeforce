@@ -1,11 +1,8 @@
 import { BASE_URL } from "@/src/api/client";
 import { DepartmentI, CourseI } from "@/src/models/project";
 
-const DEFAULT_BASE_URL = BASE_URL;
-const envBase = process.env.NEXT_PUBLIC_API_URL;
-const sanitizedBase = envBase?.replace(/\/+$/, "") || DEFAULT_BASE_URL;
-
-export const base_url = sanitizedBase;
+// Use BASE_URL directly from client.ts, removing trailing slashes
+export const base_url = BASE_URL.replace(/\/+$/, "");
 
 export interface ResponseI<T> {
   data: T;
@@ -140,7 +137,11 @@ export const GET = async <T>(path: string): Promise<ResponseI<T>> => {
     const data = parseResponse<T>(text);
     data.status = res.status;
     if (!res.ok) {
-      throw new ApiError(res.status, buildErrorMessage(res.status, data, text), data);
+      throw new ApiError(
+        res.status,
+        buildErrorMessage(res.status, data, text),
+        data
+      );
     }
     return data as ResponseI<T>;
   } catch (error) {
@@ -168,7 +169,11 @@ export const POST = async <T>(
     const data = parseResponse<T>(text);
     data.status = res.status;
     if (!res.ok) {
-      throw new ApiError(res.status, buildErrorMessage(res.status, data, text), data);
+      throw new ApiError(
+        res.status,
+        buildErrorMessage(res.status, data, text),
+        data
+      );
     }
     return data;
   } catch (error) {
@@ -195,7 +200,11 @@ export const PUT = async <T>(
     const data = parseResponse<T>(text);
     data.status = res.status;
     if (!res.ok) {
-      throw new ApiError(res.status, buildErrorMessage(res.status, data, text), data);
+      throw new ApiError(
+        res.status,
+        buildErrorMessage(res.status, data, text),
+        data
+      );
     }
     return data;
   } catch (error) {
@@ -220,7 +229,11 @@ export const DELETE_REQ = async (
     const data = parseResponse<null>(text, null);
     data.status = res.status;
     if (!res.ok) {
-      throw new ApiError(res.status, buildErrorMessage(res.status, data, text), data);
+      throw new ApiError(
+        res.status,
+        buildErrorMessage(res.status, data, text),
+        data
+      );
     }
     return data;
   } catch (error) {

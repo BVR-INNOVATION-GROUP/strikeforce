@@ -11,6 +11,7 @@ import { projectService } from "@/src/services/projectService";
 import { OrganizationI } from "@/src/models/organization";
 import { ProjectI } from "@/src/models/project";
 import { Building2, Calendar, Briefcase, Filter } from "lucide-react";
+import { BASE_URL } from "@/src/api/client";
 
 export default function UniversityPartnersPage() {
   const [partners, setPartners] = useState<OrganizationI[]>([]);
@@ -127,7 +128,7 @@ export default function UniversityPartnersPage() {
               <div className="flex items-start gap-4 mb-4">
                 {partner.logo ? (
                   <img
-                    src={partner.logo.startsWith("http") ? partner.logo : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/${partner.logo}`}
+                    src={partner.logo.startsWith("http") ? partner.logo : `${BASE_URL}/${partner.logo}`}
                     alt={partner.name}
                     className="w-16 h-16 object-contain rounded-lg border border-custom bg-paper p-2"
                   />
