@@ -20,7 +20,14 @@ import { stripHtmlTags, safeRender } from '@/src/utils/htmlUtils'
 import { UserCheck, Clock, Users } from 'lucide-react'
 
 export interface ProjectDisplayI {
-    description: string
+    description: string // Kept for backward compatibility
+    summary?: string
+    challengeStatement?: string
+    scopeActivities?: string
+    deliverablesMilestones?: string
+    teamStructure?: "individuals" | "groups" | "both"
+    duration?: string
+    expectations?: string
     skills: string[]
     applications: Array<{
         id: number
@@ -167,13 +174,85 @@ const ProjectContent = (props: Props) => {
     const canBulkMarkComplete = (isProjectOwner || userRole === "super-admin") && onMarkAsComplete && selectedMilestoneIds.size > 0
 
 
+    // Use structured fields from projectData if available, otherwise fall back to project.description
+    const displaySummary = projectData?.summary || project.summary || project.description;
+    const displayChallenge = projectData?.challengeStatement || project.challengeStatement;
+    const displayScope = projectData?.scopeActivities || project.scopeActivities;
+    const displayDeliverables = projectData?.deliverablesMilestones || project.deliverablesMilestones;
+    const displayTeamStructure = projectData?.teamStructure || project.teamStructure;
+    const displayDuration = projectData?.duration || project.duration;
+    const displayExpectations = projectData?.expectations || project.expectations;
+
+    // Helper to get team structure label
+    const getTeamStructureLabel = (structure?: string) => {
+        switch (structure) {
+            case "individuals": return "Individuals Only";
+            case "groups": return "Groups Only";
+            case "both": return "Individuals or Groups";
+            default: return "Not specified";
+        }
+    };
+
     return (
         <div className="lg:col-span-2 flex flex-col gap-6 h-full overflow-y-auto pr-2">
-            <Card title="Project Overview">
-                <div className="prose max-w-none">
-                    <p className="whitespace-pre-line text-[0.875rem] leading-relaxed opacity-60">{stripHtmlTags(safeRender(project.description))}</p>
-                </div>
-            </Card>
+            {displaySummary && (
+                <Card title="Project Summary">
+                    <div className="prose max-w-none">
+                        <p className="whitespace-pre-line text-[0.875rem] leading-relaxed opacity-60">{stripHtmlTags(safeRender(displaySummary))}</p>
+                    </div>
+                </Card>
+            )}
+
+            {displayChallenge && (
+                <Card title="Challenge/Opportunity Statement">
+                    <div className="prose max-w-none">
+                        <p className="whitespace-pre-line text-[0.875rem] leading-relaxed opacity-60">{stripHtmlTags(safeRender(displayChallenge))}</p>
+                    </div>
+                </Card>
+            )}
+
+            {displayScope && (
+                <Card title="Project Scope/Activities">
+                    <div className="prose max-w-none">
+                        <p className="whitespace-pre-line text-[0.875rem] leading-relaxed opacity-60">{stripHtmlTags(safeRender(displayScope))}</p>
+                    </div>
+                </Card>
+            )}
+
+            {displayDeliverables && (
+                <Card title="Deliverables/Milestones">
+                    <div className="prose max-w-none">
+                        <p className="whitespace-pre-line text-[0.875rem] leading-relaxed opacity-60">{stripHtmlTags(safeRender(displayDeliverables))}</p>
+                    </div>
+                </Card>
+            )}
+
+            {(displayTeamStructure || displayDuration) && (
+                <Card title="Project Details">
+                    <div className="space-y-3">
+                        {displayTeamStructure && (
+                            <div>
+                                <p className="text-[0.75rem] font-[600] mb-1 opacity-60">Allowed Team Structure</p>
+                                <p className="text-[0.875rem]">{getTeamStructureLabel(displayTeamStructure)}</p>
+                            </div>
+                        )}
+                        {displayDuration && (
+                            <div>
+                                <p className="text-[0.75rem] font-[600] mb-1 opacity-60">Project Duration</p>
+                                <p className="text-[0.875rem]">{displayDuration}</p>
+                            </div>
+                        )}
+                    </div>
+                </Card>
+            )}
+
+            {displayExpectations && (
+                <Card title="Expectations">
+                    <div className="prose max-w-none">
+                        <p className="whitespace-pre-line text-[0.875rem] leading-relaxed opacity-60">{stripHtmlTags(safeRender(displayExpectations))}</p>
+                    </div>
+                </Card>
+            )}
 
             <Card title="Required Skills">
                 <div className="flex flex-wrap gap-3">

@@ -20,12 +20,30 @@ export interface Props {
     email?: string;
     course?: string;
     department?: string;
+    gender?: string;
+    district?: string;
+    universityBranch?: string;
+    branchId?: string;
+    birthYear?: string;
+    enrollmentYear?: string;
   }) => void;
   courses?: CourseI[]; // Courses for student selection (department is derived from course)
   departments?: DepartmentI[]; // Departments for supervisor selection
+  branches?: Array<{ id: number; name: string }>; // Branches for student selection
   isSubmitting?: boolean; // Loading state for submit button
   lockDepartmentId?: string | number;
   hideDepartmentField?: boolean;
+  initialData?: {
+    name?: string;
+    email?: string;
+    course?: string;
+    department?: string;
+    gender?: string;
+    district?: string;
+    branchId?: string;
+    birthYear?: string;
+    enrollmentYear?: string;
+  }; // Initial data for editing
 }
 
 /**
@@ -38,9 +56,11 @@ const ManualEntryForm = ({
   onSubmit,
   courses = [],
   departments = [],
+  branches = [],
   isSubmitting = false,
   lockDepartmentId,
   hideDepartmentField = false,
+  initialData,
 }: Props) => {
   const lockedDepartmentValue = useMemo(() => {
     if (lockDepartmentId === undefined || lockDepartmentId === null) return "";
@@ -48,13 +68,30 @@ const ManualEntryForm = ({
   }, [lockDepartmentId]);
 
   const buildInitialFormState = () => ({
-    name: "",
-    email: "",
-    department: lockedDepartmentValue,
-    course: "",
+    name: initialData?.name || "",
+    email: initialData?.email || "",
+    department: initialData?.department || lockedDepartmentValue,
+    course: initialData?.course || "",
+    gender: initialData?.gender || "",
+    district: initialData?.district || "",
+    universityBranch: "",
+    branchId: initialData?.branchId || "",
+    birthYear: initialData?.birthYear || "",
+    enrollmentYear: initialData?.enrollmentYear || "",
   });
   const [formData, setFormData] = useState(buildInitialFormState);
   const [errors, setErrors] = useState<ValidationErrors>({});
+
+  // Update form data when initialData changes (for editing) or when modal opens/closes
+  useEffect(() => {
+    if (open && initialData) {
+      setFormData(buildInitialFormState());
+    } else if (!open) {
+      // Reset form when modal closes
+      setFormData(buildInitialFormState());
+      setErrors({});
+    }
+  }, [initialData, open]);
 
   useEffect(() => {
     if (lockedDepartmentValue) {
@@ -92,6 +129,12 @@ const ManualEntryForm = ({
         uploadType === "supervisor"
           ? lockedDepartmentValue || formData.department
           : undefined,
+      gender: uploadType === "student" ? formData.gender : undefined,
+      district: uploadType === "student" ? formData.district : undefined,
+      universityBranch: uploadType === "student" ? formData.universityBranch : undefined,
+      branchId: uploadType === "student" ? formData.branchId : undefined,
+      birthYear: uploadType === "student" ? formData.birthYear : undefined,
+      enrollmentYear: uploadType === "student" ? formData.enrollmentYear : undefined,
     });
 
     resetForm();
@@ -102,9 +145,11 @@ const ManualEntryForm = ({
     resetForm();
   };
 
+  const isEditing = Boolean(initialData);
+
   return (
     <Modal
-      title={`Create ${uploadType.charAt(0).toUpperCase() + uploadType.slice(1)}`}
+      title={isEditing ? `Edit ${uploadType.charAt(0).toUpperCase() + uploadType.slice(1)}` : `Create ${uploadType.charAt(0).toUpperCase() + uploadType.slice(1)}`}
       open={open}
       handleClose={handleClose}
       actions={[
@@ -112,7 +157,7 @@ const ManualEntryForm = ({
           Cancel
         </Button>,
         <Button key="submit" onClick={handleSubmit} className="bg-primary" disabled={isSubmitting}>
-          {isSubmitting ? "Creating..." : "Create"}
+          {isSubmitting ? (isEditing ? "Updating..." : "Creating...") : (isEditing ? "Update" : "Create")}
         </Button>,
       ]}
     >
@@ -126,6 +171,7 @@ const ManualEntryForm = ({
         onClearError={(field) => clearError(field as keyof ValidationErrors)}
         courses={courses}
         departments={departments}
+        branches={branches}
         hideDepartmentField={hideDepartmentField || Boolean(lockedDepartmentValue)}
       />
     </Modal>

@@ -12,21 +12,37 @@ import { UserI } from "@/src/models/user";
 import { ArrowLeft, Plus, Eye, EyeOff } from "lucide-react";
 import Modal from "@/src/components/base/Modal";
 import Input from "@/src/components/core/Input";
+import Select from "@/src/components/core/Select";
 import StudentDetailsModal from "@/src/components/screen/university-admin/students/StudentDetailsModal";
-import { GET, POST, SourceDepartment, SourceCourse, transformDepartment, transformCourses } from "@/base";
+import { GET, POST, PUT, SourceDepartment, SourceCourse, transformDepartment, transformCourses } from "@/base";
 import { getInitials } from "@/src/utils/avatarUtils";
 import { userRepository } from "@/src/repositories/userRepository";
+import { branchService } from "@/src/services/branchService";
 
 interface StudentApiResponse {
   ID?: number;
   id?: number;
+  userId?: number;
   user?: {
+    ID?: number;
+    id?: number;
     name?: string;
     email?: string;
     profile?: {
       avatar?: string;
     };
   };
+  branchId?: number;
+  branch?: {
+    ID?: number;
+    id?: number;
+    name?: string;
+    Name?: string;
+  };
+  gender?: string;
+  district?: string;
+  birthYear?: number;
+  enrollmentYear?: number;
 }
 
 interface ProgrammeStudent {
@@ -35,6 +51,15 @@ interface ProgrammeStudent {
   email: string;
   avatar?: string;
   initials: string;
+  branchId?: number;
+  branch?: {
+    id: number;
+    name: string;
+  };
+  gender?: string;
+  district?: string;
+  birthYear?: number;
+  enrollmentYear?: number;
 }
 
 interface ParsedStudent {
@@ -71,8 +96,15 @@ export default function ProgrammeStudentsPage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    gender: "",
+    district: "",
+    universityBranch: "",
+    branchId: "",
+    birthYear: "",
+    enrollmentYear: "",
   });
-  const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+  const [branches, setBranches] = useState<Array<{ id: number; name: string }>>([]);
+  const [errors, setErrors] = useState<{ name?: string; email?: string; enrollmentYear?: string }>({});
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
   const [bulkText, setBulkText] = useState("");
   const [bulkStudents, setBulkStudents] = useState<ParsedStudent[]>([]);
@@ -96,6 +128,7 @@ export default function ProgrammeStudentsPage() {
   const [showApiKey, setShowApiKey] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<UserI | null>(null);
+  const [editingStudent, setEditingStudent] = useState<UserI | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
 
@@ -154,6 +187,16 @@ export default function ProgrammeStudentsPage() {
 
       setCourse(matchingCourse);
 
+      // Load branches
+      try {
+        const { branchService } = await import("@/src/services/branchService");
+        const branchesData = await branchService.getAllBranches();
+        setBranches(branchesData.map(b => ({ id: b.id, name: b.name })));
+      } catch (branchError) {
+        console.error("Failed to load branches:", branchError);
+        // Don't fail the whole page if branches fail to load
+      }
+
       // Load students
       const studentResponse = await GET<StudentApiResponse[]>(`api/v1/students?course=${numericCourseId}`);
       const payload = Array.isArray(studentResponse.data) ? studentResponse.data : [];
@@ -176,24 +219,48 @@ export default function ProgrammeStudentsPage() {
 
   const transformStudentResponse = (student: StudentApiResponse, fallbackIndex: number): ProgrammeStudent => {
     const name = student.user?.name?.trim() || "Unnamed student";
+    const studentId = student.ID ?? student.id ?? fallbackIndex;
+    const userId = student.user?.ID ?? student.user?.id ?? student.userId;
+    
     return {
-      id: student.ID ?? student.id ?? fallbackIndex,
+      id: studentId,
       name,
       email: student.user?.email || "No email",
       avatar: student.user?.profile?.avatar,
       initials: getInitials(name),
+      branchId: student.branchId ?? student.branch?.ID ?? student.branch?.id,
+      branch: student.branch ? {
+        id: student.branch.ID ?? student.branch.id ?? 0,
+        name: student.branch.name ?? student.branch.Name ?? "Unknown Branch",
+      } : undefined,
+      gender: student.gender,
+      district: student.district,
+      birthYear: student.birthYear,
+      enrollmentYear: student.enrollmentYear,
     };
   };
 
   const validate = (): boolean => {
-    const newErrors: { name?: string; email?: string } = {};
+    const newErrors: { name?: string; email?: string; enrollmentYear?: string } = {};
     if (!formData.name || formData.name.trim().length === 0) {
       newErrors.name = "Student name is required";
     }
-    if (!formData.email || formData.email.trim().length === 0) {
-      newErrors.email = "Email is required";
-    } else if (!isValidEmail(formData.email)) {
-      newErrors.email = "Invalid email format";
+    // Only validate email when creating (not editing)
+    if (!editingStudent) {
+      if (!formData.email || formData.email.trim().length === 0) {
+        newErrors.email = "Email is required";
+      } else if (!isValidEmail(formData.email)) {
+        newErrors.email = "Invalid email format";
+      }
+    }
+    if (!formData.enrollmentYear || formData.enrollmentYear.trim().length === 0) {
+      newErrors.enrollmentYear = "Enrollment year is required";
+    } else {
+      const year = parseInt(formData.enrollmentYear, 10);
+      const currentYear = new Date().getFullYear();
+      if (isNaN(year) || year < 2000 || year > currentYear + 1) {
+        newErrors.enrollmentYear = `Enrollment year must be between 2000 and ${currentYear + 1}`;
+      }
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -652,44 +719,92 @@ export default function ProgrammeStudentsPage() {
   const handleSubmit = async () => {
     if (!validate()) return;
 
-    if (!courseId || courseId.trim() === "") {
-      showError("Invalid course identifier");
-      return;
-    }
-
     try {
-      const numericCourseId = parseInt(courseId.trim(), 10);
-      if (Number.isNaN(numericCourseId)) {
-        showError("Invalid course identifier");
-        return;
+      if (editingStudent) {
+        // Update existing student
+        const studentId = typeof editingStudent.id === 'number' ? editingStudent.id : parseInt(editingStudent.id.toString(), 10);
+        const payload = {
+          name: formData.name.trim(),
+          gender: formData.gender || "",
+          district: formData.district || "",
+          branchId: formData.branchId ? parseInt(formData.branchId, 10) : undefined,
+          birthYear: formData.birthYear ? parseInt(formData.birthYear, 10) : 0,
+          enrollmentYear: formData.enrollmentYear ? parseInt(formData.enrollmentYear, 10) : 0,
+        };
+
+        await PUT(`api/v1/students/${studentId}`, payload);
+        showSuccess("Student updated successfully!");
+        handleClose();
+        await loadData();
+      } else {
+        // Create new student
+        if (!courseId || courseId.trim() === "") {
+          showError("Invalid course identifier");
+          return;
+        }
+
+        const numericCourseId = parseInt(courseId.trim(), 10);
+        if (Number.isNaN(numericCourseId)) {
+          showError("Invalid course identifier");
+          return;
+        }
+
+        const payload = {
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          gender: formData.gender || "",
+          district: formData.district || "",
+          universityBranch: formData.universityBranch || "",
+          branchId: formData.branchId ? parseInt(formData.branchId, 10) : undefined,
+          birthYear: formData.birthYear ? parseInt(formData.birthYear, 10) : 0,
+          enrollmentYear: formData.enrollmentYear ? parseInt(formData.enrollmentYear, 10) : 0,
+        };
+
+        await POST(`api/v1/students/${numericCourseId}`, payload);
+        showSuccess(`Student created successfully! Login credentials have been sent to ${formData.email}`);
+        handleClose();
+        await loadData();
       }
-
-      const payload = {
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-      };
-
-      await POST(`api/v1/students/${numericCourseId}`, payload);
-      showSuccess(`Student created successfully! Login credentials have been sent to ${formData.email}`);
-      handleClose();
-      await loadData();
     } catch (error) {
-      console.error("Failed to add student:", error);
+      console.error(`Failed to ${editingStudent ? 'update' : 'add'} student:`, error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      showError(`Failed to add student: ${errorMessage}`);
+      showError(`Failed to ${editingStudent ? 'update' : 'add'} student: ${errorMessage}`);
     }
   };
 
   const handleCreate = () => {
-    setFormData({ name: "", email: "" });
+    setFormData({ name: "", email: "", gender: "", district: "", universityBranch: "", branchId: "", birthYear: "", enrollmentYear: "" });
     setErrors({});
     setIsModalOpen(true);
   };
 
   const handleClose = () => {
     setIsModalOpen(false);
-    setFormData({ name: "", email: "" });
+    setEditingStudent(null);
+    setFormData({ name: "", email: "", gender: "", district: "", universityBranch: "", branchId: "", birthYear: "", enrollmentYear: "" });
     setErrors({});
+  };
+
+  const handleEditStudent = (student: UserI) => {
+    const studentData = student as ProgrammeStudent;
+    setEditingStudent(student);
+    setFormData({
+      name: student.name || "",
+      email: student.email || "",
+      gender: studentData.gender || "",
+      district: studentData.district || "",
+      universityBranch: "",
+      branchId: studentData.branchId?.toString() || studentData.branch?.id?.toString() || "",
+      birthYear: studentData.birthYear?.toString() || "",
+      enrollmentYear: studentData.enrollmentYear?.toString() || "",
+    });
+    setIsDetailsModalOpen(false);
+    setIsModalOpen(true);
+  };
+
+  const handleViewDetails = (student: UserI) => {
+    setSelectedStudent(student);
+    setIsDetailsModalOpen(true);
   };
 
   const handleDeleteClick = (studentId: string) => {
@@ -819,7 +934,7 @@ export default function ProgrammeStudentsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {students.map((student) => {
             // Convert ProgrammeStudent to UserI for the modal
-            const userStudent: UserI = {
+            const userStudent: UserI & ProgrammeStudent = {
               id: student.id,
               name: student.name,
               email: student.email,
@@ -835,6 +950,13 @@ export default function ProgrammeStudentsPage() {
               departmentId: department?.id,
               createdAt: "",
               updatedAt: "",
+              // Include all student-specific fields
+              branchId: student.branchId,
+              branch: student.branch,
+              gender: student.gender,
+              district: student.district,
+              birthYear: student.birthYear,
+              enrollmentYear: student.enrollmentYear,
             };
 
             return (
@@ -1034,9 +1156,9 @@ export default function ProgrammeStudentsPage() {
         </div>
       </Modal>
 
-      {/* Add Student Modal */}
+      {/* Add/Edit Student Modal */}
       <Modal
-        title="Add Student"
+        title={editingStudent ? "Edit Student" : "Add Student"}
         open={isModalOpen}
         handleClose={handleClose}
         actions={[
@@ -1044,7 +1166,7 @@ export default function ProgrammeStudentsPage() {
             Cancel
           </Button>,
           <Button key="submit" onClick={handleSubmit} className="bg-primary">
-            Add Student
+            {editingStudent ? "Update Student" : "Add Student"}
           </Button>,
         ]}
       >
@@ -1077,6 +1199,99 @@ export default function ProgrammeStudentsPage() {
             }}
             placeholder="e.g., john.doe@example.com"
             error={errors.email}
+            disabled={!!editingStudent}
+          />
+          <Select
+            title="Gender"
+            options={[
+              { value: "male", label: "Male" },
+              { value: "female", label: "Female" },
+              { value: "other", label: "Other" },
+              { value: "prefer-not-to-say", label: "Prefer not to say" },
+            ]}
+            value={formData.gender}
+            onChange={(option) => {
+              const value =
+                typeof option === "string"
+                  ? option
+                  : typeof option === "object" && "value" in option
+                    ? String(option.value)
+                    : "";
+              setFormData({ ...formData, gender: value });
+            }}
+            placeHolder="Select gender"
+          />
+          <Select
+            title="University Branch"
+            options={branches.map((branch) => ({
+              value: branch.id.toString(),
+              label: branch.name,
+            }))}
+            value={formData.branchId}
+            onChange={(option) => {
+              const value =
+                typeof option === "string"
+                  ? option
+                  : typeof option === "object" && "value" in option
+                    ? String(option.value)
+                    : "";
+              setFormData({ ...formData, branchId: value });
+            }}
+            placeHolder="Select branch"
+          />
+          <Select
+            title="Birth Year"
+            searchable={true}
+            options={(() => {
+              const currentYear = new Date().getFullYear();
+              const startYear = currentYear - 40; // 40 years ago (typical max age for students)
+              const endYear = currentYear - 15; // 15 years ago (typical min age for students)
+              const years = [];
+              for (let year = endYear; year >= startYear; year--) {
+                years.push({ value: year.toString(), label: year.toString() });
+              }
+              return years;
+            })()}
+            value={formData.birthYear}
+            onChange={(option) => {
+              const value =
+                typeof option === "string"
+                  ? option
+                  : typeof option === "object" && "value" in option
+                    ? String(option.value)
+                    : "";
+              setFormData({ ...formData, birthYear: value });
+            }}
+            placeHolder="Type or select birth year"
+          />
+          <Select
+            title="Enrollment Year *"
+            searchable={true}
+            options={(() => {
+              const currentYear = new Date().getFullYear();
+              const startYear = 2000;
+              const endYear = currentYear + 1; // Allow next year for early enrollment
+              const years = [];
+              for (let year = endYear; year >= startYear; year--) {
+                years.push({ value: year.toString(), label: year.toString() });
+              }
+              return years;
+            })()}
+            value={formData.enrollmentYear}
+            onChange={(option) => {
+              const value =
+                typeof option === "string"
+                  ? option
+                  : typeof option === "object" && "value" in option
+                    ? String(option.value)
+                    : "";
+              setFormData({ ...formData, enrollmentYear: value });
+              if (errors.enrollmentYear) {
+                setErrors({ ...errors, enrollmentYear: undefined });
+              }
+            }}
+            placeHolder="Type or select enrollment year"
+            error={errors.enrollmentYear}
           />
           <p className="text-[0.8125rem] opacity-60">
             A random password will be generated and sent to the student's email address with a login link.
@@ -1094,6 +1309,7 @@ export default function ProgrammeStudentsPage() {
         student={selectedStudent}
         department={department || undefined}
         programme={course || undefined}
+        onEdit={handleEditStudent}
         onDelete={handleDeleteClick}
         onSuspend={handleSuspend}
       />

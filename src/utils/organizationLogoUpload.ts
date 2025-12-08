@@ -58,8 +58,3 @@ export async function uploadOrganizationLogo(
       : new Error("Failed to upload logo. Please try again.");
   }
 }
-
-
-
-
-

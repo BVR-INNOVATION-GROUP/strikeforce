@@ -5,7 +5,8 @@
 import {
     LayoutPanelTop, Briefcase, User, Settings,
     Search, Users, GraduationCap,
-    ClipboardList, AlertCircle, BarChart3, FileText, UserPlus, BookOpen, Building2, UserCheck
+    ClipboardList, AlertCircle, BarChart3, FileText, UserPlus, BookOpen, Building2, UserCheck,
+    Handshake, FolderTree, MapPin
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { SidebarLinkI } from "@/src/components/base/SidebarLink";
@@ -55,8 +56,9 @@ export const sidebarLinks: SideLinkCategory[] = [
         role: "university-admin",
         links: [
             { title: "Dashboard", iconComponent: LayoutPanelTop, path: "/university-admin" },
-            { title: "Partners", iconComponent: Building2, path: "/university-admin/partners" },
-            { title: "Departments", iconComponent: Building2, path: "/university-admin/departments" },
+            { title: "Partners", iconComponent: Handshake, path: "/university-admin/partners" },
+            { title: "Departments", iconComponent: FolderTree, path: "/university-admin/departments" },
+            { title: "Branches", iconComponent: MapPin, path: "/university-admin/branches" },
             { title: "Offers", iconComponent: Briefcase, path: "/university-admin/offers" },
             { title: "Analytics", iconComponent: BarChart3, path: "/university-admin/analytics" },
             { title: "Disputes", iconComponent: AlertCircle, path: "/university-admin/disputes" },

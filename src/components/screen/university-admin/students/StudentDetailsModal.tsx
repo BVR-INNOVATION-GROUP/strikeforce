@@ -11,7 +11,7 @@ import { UserI } from "@/src/models/user";
 import { DepartmentI, CourseI, ProjectI } from "@/src/models/project";
 import { GroupI } from "@/src/models/group";
 import { ApplicationI } from "@/src/models/application";
-import { User, Mail, Calendar, Edit, Trash2, Building2, BookOpen, Users, Briefcase } from "lucide-react";
+import { User, Mail, Calendar, Edit, Trash2, Building2, BookOpen, Users, Briefcase, MapPin, CalendarDays } from "lucide-react";
 import { formatDateShort } from "@/src/utils/dateFormatters";
 import { groupRepository } from "@/src/repositories/groupRepository";
 import { applicationService } from "@/src/services/applicationService";
@@ -107,9 +107,8 @@ const StudentDetailsModal = ({
   if (!student) return null;
 
   const handleEdit = () => {
-    if (onEdit) {
+    if (onEdit && student) {
       onEdit(student);
-      onClose();
     }
   };
 
@@ -183,6 +182,42 @@ const StudentDetailsModal = ({
               </div>
               <p className="text-[0.875rem] opacity-60">
                 {programme.name}
+              </p>
+            </div>
+          )}
+
+          {((student as any).branchId || (student as any).branch) && (
+            <div className="p-4 bg-pale rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <MapPin size={16} className="opacity-60" />
+                <p className="text-[0.875rem] font-medium">Branch</p>
+              </div>
+              <p className="text-[0.875rem] opacity-60">
+                {(student as any).branch?.name || (student as any).branch?.Name || "N/A"}
+              </p>
+            </div>
+          )}
+
+          {(student as any).birthYear && (student as any).birthYear > 0 && (
+            <div className="p-4 bg-pale rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <CalendarDays size={16} className="opacity-60" />
+                <p className="text-[0.875rem] font-medium">Birth Year</p>
+              </div>
+              <p className="text-[0.875rem] opacity-60">
+                {(student as any).birthYear}
+              </p>
+            </div>
+          )}
+
+          {(student as any).enrollmentYear && (student as any).enrollmentYear > 0 && (
+            <div className="p-4 bg-pale rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <CalendarDays size={16} className="opacity-60" />
+                <p className="text-[0.875rem] font-medium">Enrollment Year</p>
+              </div>
+              <p className="text-[0.875rem] opacity-60">
+                {(student as any).enrollmentYear}
               </p>
             </div>
           )}

@@ -16,6 +16,7 @@ const Board = (props: Props) => {
     return (
         <motion.div 
             className="flex-1 z-[5] bg-paper flex flex-col rounded-lg overflow-hidden"
+            style={{ minWidth: '30vw' }}
             initial={false}
             animate={{
                 backgroundColor: isDraggingOver ? 'rgba(233, 34, 110, 0.05)' : undefined,
@@ -30,7 +31,7 @@ const Board = (props: Props) => {
             </div>
 
             <div 
-                className="h-[70vh] flex-col gap-3 flex p-4 overflow-y-auto"
+                className="flex-1 flex-col gap-3 flex p-4 overflow-y-auto min-h-0"
                 onDragEnter={() => setIsDraggingOver(true)}
                 onDragLeave={(e) => {
                     // Only set false if we're leaving the drop zone entirely

@@ -329,4 +329,56 @@ export const dashboardService = {
       ),
     };
   },
+
+  /**
+   * Get university admin analytics
+   * Includes revenue, earnings, and demographic data
+   */
+  getUniversityAdminAnalytics: async (
+    universityId: string
+  ): Promise<UniversityAdminAnalytics> => {
+    const { api } = await import("@/src/api/client");
+    return api.get<UniversityAdminAnalytics>(
+      `/api/v1/analytics/university/${universityId}`
+    );
+  },
 };
+
+/**
+ * University admin analytics interface
+ */
+export interface UniversityAdminAnalytics {
+  totalRevenue: number;
+  revenueTrend: RevenueTrendPoint[];
+  totalStudentEarnings: number;
+  earningsTrend: EarningsTrendPoint[];
+  studentsEarningCount: number;
+  genderDistribution: GenderDistributionPoint[];
+  branchDistribution: BranchDistributionPoint[];
+  districtDistribution: DistrictDistributionPoint[];
+}
+
+export interface RevenueTrendPoint {
+  month: string;
+  value: number;
+}
+
+export interface EarningsTrendPoint {
+  month: string;
+  value: number;
+}
+
+export interface GenderDistributionPoint {
+  gender: string;
+  count: number;
+}
+
+export interface BranchDistributionPoint {
+  branchName: string;
+  count: number;
+}
+
+export interface DistrictDistributionPoint {
+  district: string;
+  count: number;
+}

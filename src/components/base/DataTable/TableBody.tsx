@@ -15,6 +15,7 @@ export interface Props<T extends { id: string }> {
     columns: Column<T>[]
     selectedRows: Set<string>
     showActions: boolean
+    showCheckboxes?: boolean
     onRowClick?: (item: T) => void
     onSelectRow: (id: string, checked: boolean) => void
     onEdit?: (item: T) => void
@@ -22,14 +23,14 @@ export interface Props<T extends { id: string }> {
 }
 
 function TableBody<T extends { id: string }>(props: Props<T>) {
-    const { data, columns, selectedRows, showActions, onRowClick, onSelectRow, onEdit, onDelete } = props
+    const { data, columns, selectedRows, showActions, showCheckboxes = true, onRowClick, onSelectRow, onEdit, onDelete } = props
 
     if (data.length === 0) {
         return (
             <tbody>
                 <tr>
                     <td
-                        colSpan={columns.length + (showActions ? 2 : 1)}
+                        colSpan={columns.length + (showCheckboxes ? 1 : 0) + (showActions ? 1 : 0)}
                         className="p-8 text-center text-muted"
                     >
                         No data available
@@ -50,13 +51,15 @@ function TableBody<T extends { id: string }>(props: Props<T>) {
                             } ${onRowClick ? 'cursor-pointer' : ''}`}
                         onClick={() => !showActions && onRowClick?.(item)}
                     >
-                        <td className="p-3">
-                            <Checkbox
-                                checked={isSelected}
-                                onChange={(checked) => onSelectRow(item.id, checked)}
-                                onClick={(e) => e.stopPropagation()}
-                            />
-                        </td>
+                        {showCheckboxes && (
+                            <td className="p-3">
+                                <Checkbox
+                                    checked={isSelected}
+                                    onChange={(checked) => onSelectRow(item.id, checked)}
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                            </td>
+                        )}
                         {columns.map((column) => (
                             <td key={column.key} className="p-3 text-sm text-secondary">
                                 {column.render
@@ -74,6 +77,7 @@ function TableBody<T extends { id: string }>(props: Props<T>) {
                                                 onEdit(item)
                                             }}
                                             className="p-1 rounded hover:bg-pale text-secondary"
+                                            title="Edit"
                                         >
                                             <Edit size={14} />
                                         </button>
@@ -85,16 +89,20 @@ function TableBody<T extends { id: string }>(props: Props<T>) {
                                                 onDelete(item)
                                             }}
                                             className="p-1 rounded hover:bg-pale text-primary"
+                                            title="Delete"
                                         >
                                             <Trash2 size={14} />
                                         </button>
                                     )}
-                                    <button
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="p-1 rounded hover:bg-pale text-secondary"
-                                    >
-                                        <MoreVertical size={14} />
-                                    </button>
+                                    {/* Only show more actions if there are no edit/delete actions */}
+                                    {!onEdit && !onDelete && (
+                                        <button
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="p-1 rounded hover:bg-pale text-secondary"
+                                        >
+                                            <MoreVertical size={14} />
+                                        </button>
+                                    )}
                                 </div>
                             </td>
                         )}

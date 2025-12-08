@@ -136,7 +136,7 @@ const OnboardingPage = () => {
         .filter(Boolean);
 
       // Update user profile
-      const updatedUser = await userProfileService.updateProfile(user.id.toString(), {
+      const updatedUser = await userProfileService.updateProfile({
         name: formData.name,
         bio: formData.bio || undefined,
         phone: formData.phone || undefined,

@@ -16,10 +16,10 @@ export interface ProfileUpdateData {
 
 export const userProfileService = {
   /**
-   * Update user profile with validation
+   * Update current user profile with validation
+   * Uses token's user_id from backend (no need to pass user ID)
    */
   updateProfile: async (
-    userId: string,
     profileData: ProfileUpdateData
   ): Promise<UserI> => {
     // Business validation
@@ -31,8 +31,8 @@ export const userProfileService = {
       throw new Error("Phone number must be at least 10 digits");
     }
 
-    // Get existing user
-    const existing = await userRepository.getById(userId);
+    // Get existing user (uses token's user_id)
+    const existing = await userRepository.getCurrent();
 
     // Transform data for update
     const updatedUser: UserI = {
@@ -49,7 +49,8 @@ export const userProfileService = {
       updatedAt: new Date().toISOString(),
     };
 
-    return userRepository.update(userId, updatedUser);
+    // Update current user (backend extracts user_id from token)
+    return userRepository.updateCurrent(updatedUser);
   },
 
   /**

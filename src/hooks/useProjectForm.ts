@@ -1,7 +1,7 @@
 /**
  * Custom hook for project form state management
  */
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { OptionI } from "@/src/components/core/Select";
 
 export interface ProjectFormState {
@@ -10,7 +10,14 @@ export interface ProjectFormState {
   course: OptionI | null;
   currency: OptionI | null;
   title: string;
-  desc: string;
+  desc: string; // Kept for backward compatibility
+  summary: string;
+  challengeStatement: string;
+  scopeActivities: string;
+  deliverablesMilestones: string;
+  teamStructure: "individuals" | "groups" | "both" | "";
+  duration: string;
+  expectations: string;
   budget: string;
   deadline: string;
   capacity: string;
@@ -25,6 +32,13 @@ export interface ProjectFormActions {
   setCurrency: (o: OptionI | string) => void;
   setTitle: (value: string) => void;
   setDesc: (value: string) => void;
+  setSummary: (value: string) => void;
+  setChallengeStatement: (value: string) => void;
+  setScopeActivities: (value: string) => void;
+  setDeliverablesMilestones: (value: string) => void;
+  setTeamStructure: (value: "individuals" | "groups" | "both" | "") => void;
+  setDuration: (value: string) => void;
+  setExpectations: (value: string) => void;
   setBudget: (value: string) => void;
   setDeadline: (value: string) => void;
   setCapacity: (value: string) => void;
@@ -33,6 +47,13 @@ export interface ProjectFormActions {
   toggleSkill: (skill: string) => void;
   resetForm: () => void;
 }
+
+// Default currency constant - defined outside component to prevent re-creation
+const DEFAULT_CURRENCY: OptionI = {
+  value: "UGX",
+  label: "UGX - Ugandan Shilling",
+  icon: "🇺🇬",
+};
 
 /**
  * Hook for managing project form state
@@ -48,19 +69,19 @@ export function useProjectForm(
     currency: OptionI | null;
     title: string;
     desc: string;
+    summary: string;
+    challengeStatement: string;
+    scopeActivities: string;
+    deliverablesMilestones: string;
+    teamStructure: "individuals" | "groups" | "both" | "";
+    duration: string;
+    expectations: string;
     budget: string;
     deadline: string;
     capacity: string;
     selectedSkills: string[];
   }>
 ): [ProjectFormState, ProjectFormActions] {
-  // Default currency to UGX
-  const defaultCurrency: OptionI = {
-    value: "UGX",
-    label: "UGX - Ugandan Shilling",
-    icon: "🇺🇬",
-  };
-
   // Initialize with empty values - will be populated by useEffect when modal opens
   const [university, setUniversityState] = useState<OptionI | undefined>(
     undefined
@@ -68,10 +89,19 @@ export function useProjectForm(
   const [department, setDepartmentState] = useState<OptionI | null>(null);
   const [course, setCourseState] = useState<OptionI | null>(null);
   const [currency, setCurrencyState] = useState<OptionI | null>(
-    defaultCurrency
+    DEFAULT_CURRENCY
   );
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
+  const [summary, setSummary] = useState("");
+  const [challengeStatement, setChallengeStatement] = useState("");
+  const [scopeActivities, setScopeActivities] = useState("");
+  const [deliverablesMilestones, setDeliverablesMilestones] = useState("");
+  const [teamStructure, setTeamStructure] = useState<
+    "individuals" | "groups" | "both" | ""
+  >("");
+  const [duration, setDuration] = useState("");
+  const [expectations, setExpectations] = useState("");
   const [budget, setBudget] = useState("");
   const [deadline, setDeadline] = useState("");
   const [capacity, setCapacity] = useState("");
@@ -82,9 +112,16 @@ export function useProjectForm(
     setUniversityState(undefined);
     setDepartmentState(null);
     setCourseState(null);
-    setCurrencyState(defaultCurrency);
+    setCurrencyState(DEFAULT_CURRENCY);
     setTitle("");
     setDesc("");
+    setSummary("");
+    setChallengeStatement("");
+    setScopeActivities("");
+    setDeliverablesMilestones("");
+    setTeamStructure("");
+    setDuration("");
+    setExpectations("");
     setBudget("");
     setDeadline("");
     setCapacity("");
@@ -107,23 +144,33 @@ export function useProjectForm(
       isInitializingRef.current = true;
       // When modal opens with initial data, populate all form fields immediately
       // Set all values at once to prevent cascading resets
-      // setUniversityState(initialData.university ?? undefined);
-      // setDepartmentState(initialData.department ?? null);
-      // setCourseState(initialData.course ?? null);
-      // setCurrencyState(initialData.currency ?? defaultCurrency);
-      // setTitle(initialData.title ?? "");
-      // setDesc(initialData.desc ?? "");
-      // setBudget(initialData.budget ?? "");
-      // setDeadline(initialData.deadline ?? "");
-      // setCapacity(initialData.capacity ?? "");
-      // setSelectedSkills(initialData.selectedSkills ?? []);
+      setUniversityState(initialData.university ?? undefined);
+      setDepartmentState(initialData.department ?? null);
+      setCourseState(initialData.course ?? null);
+      setCurrencyState(initialData.currency ?? DEFAULT_CURRENCY);
+      setTitle(initialData.title ?? "");
+      setDesc(initialData.desc ?? "");
+      setSummary(initialData.summary ?? "");
+      setChallengeStatement(initialData.challengeStatement ?? "");
+      setScopeActivities(initialData.scopeActivities ?? "");
+      setDeliverablesMilestones(initialData.deliverablesMilestones ?? "");
+      setTeamStructure(initialData.teamStructure ?? "");
+      setDuration(initialData.duration ?? "");
+      setExpectations(initialData.expectations ?? "");
+      setBudget(initialData.budget ?? "");
+      setDeadline(initialData.deadline ?? "");
+      setCapacity(initialData.capacity ?? "");
+      setSelectedSkills(initialData.selectedSkills ?? []);
 
       // Reset flag after effects have run (use setTimeout to ensure it happens after state updates)
       setTimeout(() => {
         isInitializingRef.current = false;
       }, 0);
+    } else if (open && !initialData) {
+      // Reset form when opening without initial data (create mode)
+      resetForm();
     }
-  }, [open, initialData, defaultCurrency]);
+  }, [open, initialData]);
 
   // Reset department and course when university changes (only if not initializing)
   // useEffect(() => {
@@ -174,6 +221,13 @@ export function useProjectForm(
     currency,
     title,
     desc,
+    summary,
+    challengeStatement,
+    scopeActivities,
+    deliverablesMilestones,
+    teamStructure,
+    duration,
+    expectations,
     budget,
     deadline,
     capacity,
@@ -188,6 +242,13 @@ export function useProjectForm(
     setCurrency,
     setTitle,
     setDesc,
+    setSummary,
+    setChallengeStatement,
+    setScopeActivities,
+    setDeliverablesMilestones,
+    setTeamStructure,
+    setDuration,
+    setExpectations,
     setBudget,
     setDeadline,
     setCapacity,

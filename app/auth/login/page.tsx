@@ -269,11 +269,11 @@ const LoginPage = () => {
 
       {/* Pending Approval Modal */}
       <Modal
-      open={showPendingModal}
-      handleClose={() => {
-        setShowPendingModal(false);
-        setPendingOrganization(null);
-      }}
+        open={showPendingModal}
+        handleClose={() => {
+          setShowPendingModal(false);
+          setPendingOrganization(null);
+        }}
         title={
           pendingOrganization?.kycStatus === "REJECTED"
             ? "Account Not Approved"

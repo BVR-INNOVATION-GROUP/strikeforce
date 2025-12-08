@@ -10,7 +10,13 @@ export interface ProjectFormData {
   course: OptionI | null;
   currency: OptionI | null;
   title: string;
-  desc: string;
+  desc: string; // Kept for backward compatibility
+  summary: string;
+  challengeStatement: string;
+  scopeActivities: string;
+  teamStructure: "individuals" | "groups" | "both" | "";
+  duration: string;
+  expectations: string;
   budget: string;
   deadline: string;
   capacity: string;
@@ -32,7 +38,12 @@ export function buildProjectFromForm(data: ProjectFormData): Omit<
     !data.course ||
     !data.currency ||
     !data.title ||
-    !data.desc ||
+    !data.summary ||
+    !data.challengeStatement ||
+    !data.scopeActivities ||
+    !data.teamStructure ||
+    !data.duration ||
+    !data.expectations ||
     !data.budget ||
     !data.deadline ||
     !data.capacity ||
@@ -44,12 +55,22 @@ export function buildProjectFromForm(data: ProjectFormData): Omit<
   // Filter out "__OTHERS__" marker from skills - it's just a UI marker, not an actual skill
   const cleanedSkills = data.selectedSkills.filter((skill) => skill !== "__OTHERS__");
 
-  return {
+  // Use summary as description if desc is empty (desc field is kept for backward compatibility but not used in new form)
+  // Description is required by backend validation, so we use summary which is always filled
+  const description = data.desc?.trim() || data.summary?.trim() || "";
+
+  // Build base project object
+  const project: any = {
     universityId: Number(data.university.value),
     departmentId: Number(data.department.value),
-    courseId: Number(data.course.value),
     title: data.title.trim(),
-    description: data.desc.trim(),
+    description: description, // Use summary if desc is empty
+    summary: data.summary.trim(),
+    challengeStatement: data.challengeStatement.trim(),
+    scopeActivities: data.scopeActivities.trim(),
+    teamStructure: data.teamStructure as "individuals" | "groups" | "both",
+    duration: data.duration.trim(),
+    expectations: data.expectations.trim(),
     status: "draft",
     skills: cleanedSkills,
     budget: parseFloat(data.budget) || 0,
@@ -58,6 +79,16 @@ export function buildProjectFromForm(data: ProjectFormData): Omit<
     capacity: parseInt(data.capacity) || 1,
     attachments: data.attachments || [], // Include uploaded file paths
   };
+
+  // Only include courseId if course is selected (not null and value is valid)
+  if (data.course && data.course.value) {
+    const courseIdNum = Number(data.course.value);
+    if (courseIdNum > 0) {
+      project.courseId = courseIdNum;
+    }
+  }
+
+  return project;
 }
 
 

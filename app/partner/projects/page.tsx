@@ -16,6 +16,7 @@ const page = () => {
     const { user } = UseAuthStore()
     const { showSuccess, showError } = UseToast()
     const [projects, setProjects] = useState<ProjectI[]>([])
+    const [modelProjects, setModelProjects] = useState<ModelProjectI[]>([]) // Store original model projects for status filtering
     const [loading, setLoading] = useState(true)
     const [open, setOpen] = useState(false)
 
@@ -37,6 +38,8 @@ const page = () => {
                     partnerId: partnerId
                 })
 
+                // Store model projects for status filtering
+                setModelProjects(result.projects)
                 // Convert model projects to UI format
                 const uiProjects = result.projects.map((p) => convertModelToUIProject(p))
                 setProjects(uiProjects)
@@ -58,35 +61,42 @@ const page = () => {
     const handleProjectSubmit = async (newProject: Omit<ModelProjectI, 'id' | 'createdAt' | 'updatedAt' | 'partnerId'>) => {
         if (!user?.id) {
             showError("User not found. Please log in again.")
-            return
+            throw new Error("User not found. Please log in again.")
         }
 
-        try {
-            // Add partnerId to the project
-            const projectWithPartner: Omit<ModelProjectI, 'id' | 'createdAt' | 'updatedAt'> = {
-                ...newProject,
-                partnerId: typeof user.id === 'string' ? parseInt(user.id, 10) : user.id,
-            }
-
-            // Create project via service
-            const createdProject = await projectService.createProject(projectWithPartner)
-
-            // Reload projects from server to ensure we have the latest data
-            const partnerId = typeof user.id === 'string' ? Number(user.id) : user.id
-            const result = await projectService.getAllProjects({
-                partnerId: partnerId
-            })
-
-            // Convert to UI format and update list
-            const uiProjects = result.projects.map((p) => convertModelToUIProject(p))
-                setProjects(uiProjects)
-
-            showSuccess("Project created successfully!")
-            setOpen(false)
-        } catch (error) {
-            console.error("Failed to create project:", error)
-            showError(error instanceof Error ? error.message : "Failed to create project. Please try again.")
+        // Add partnerId to the project
+        const projectWithPartner: Omit<ModelProjectI, 'id' | 'createdAt' | 'updatedAt'> = {
+            ...newProject,
+            partnerId: typeof user.id === 'string' ? parseInt(user.id, 10) : user.id,
         }
+
+        console.log("[page] Creating project via service:", {
+            project: projectWithPartner,
+            timestamp: new Date().toISOString(),
+        })
+
+        // Create project via service (this will make the network call)
+        const createdProject = await projectService.createProject(projectWithPartner)
+
+        console.log("[page] Project created successfully:", {
+            projectId: createdProject.id,
+            timestamp: new Date().toISOString(),
+        })
+
+        // Reload projects from server to ensure we have the latest data
+        const partnerId = typeof user.id === 'string' ? Number(user.id) : user.id
+        const result = await projectService.getAllProjects({
+            partnerId: partnerId
+        })
+
+        // Store model projects for status filtering
+        setModelProjects(result.projects)
+        // Convert to UI format and update list
+        const uiProjects = result.projects.map((p) => convertModelToUIProject(p))
+        setProjects(uiProjects)
+
+        // Don't show success here - let the hook handle it
+        // Don't close modal here - let the hook handle it
     }
 
     /**
@@ -151,12 +161,41 @@ const page = () => {
             </div>
 
             {/* projects list  */}
-            <div className="flex sm:flex-row flex-col flex-1 gap-6 min-h-0 overflow-hidden">
+            <div className="flex sm:flex-row flex-col flex-1 gap-6 min-h-0 overflow-x-auto overflow-y-hidden">
 
                 {/* board  */}
-                <Board onMove={moveProject} content={projects.filter(p => p?.status == "in-progress")} title='In Progress' />
-                <Board onMove={moveProject} content={projects.filter(p => p?.status == "on-hold")} title='On Hold' />
-                <Board content={projects.filter(p => p?.status == "completed")} title='Completed' />
+                {/* Filter by original model status before conversion */}
+                <Board
+                    content={projects.filter(p => {
+                        const modelProject = modelProjects.find(mp => mp.id === p.id || String(mp.id) === String(p.id))
+                        return modelProject?.status === "draft"
+                    })}
+                    title='Draft'
+                />
+                <Board
+                    content={projects.filter(p => {
+                        const modelProject = modelProjects.find(mp => mp.id === p.id || String(mp.id) === String(p.id))
+                        return modelProject?.status === "published"
+                    })}
+                    title='Published'
+                />
+                <Board
+                    onMove={moveProject}
+                    content={projects.filter(p => {
+                        const modelProject = modelProjects.find(mp => mp.id === p.id || String(mp.id) === String(p.id))
+                        return modelProject?.status === "in-progress"
+                    })}
+                    title='In Progress'
+                />
+                <Board
+                    onMove={moveProject}
+                    content={projects.filter(p => p?.status === "on-hold")}
+                    title='On Hold'
+                />
+                <Board
+                    content={projects.filter(p => p?.status === "completed")}
+                    title='Completed'
+                />
             </div>
 
 

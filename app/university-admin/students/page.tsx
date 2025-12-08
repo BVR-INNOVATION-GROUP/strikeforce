@@ -19,6 +19,7 @@ import { getInitials, hasAvatar } from "@/src/utils/avatarUtils";
 import { studentRepository } from "@/src/repositories/studentRepository";
 import { departmentService } from "@/src/services/departmentService";
 import { courseService } from "@/src/services/courseService";
+import { branchService } from "@/src/services/branchService";
 import { useAuthStore } from "@/src/store";
 
 /**
@@ -108,6 +109,7 @@ export default function UniversityAdminStudents() {
   const [students, setStudents] = useState<UserI[]>([]);
   const [departments, setDepartments] = useState<DepartmentI[]>([]);
   const [courses, setCourses] = useState<CourseI[]>([]);
+  const [branches, setBranches] = useState<Array<{ id: number; name: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBulkUploadModalOpen, setIsBulkUploadModalOpen] = useState(false);
@@ -118,6 +120,7 @@ export default function UniversityAdminStudents() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     // For university-admin, use organization.id or user.orgId
@@ -159,6 +162,10 @@ export default function UniversityAdminStudents() {
       );
       setCourses(universityCourses);
 
+      // Load branches for this university
+      const branchesData = await branchService.getAllBranches();
+      setBranches(branchesData.map(b => ({ id: b.id, name: b.name })));
+
       // Load students directly from backend
       const backendStudents = await studentRepository.getByUniversity(numericUniversityId);
       setStudents(backendStudents);
@@ -179,6 +186,12 @@ export default function UniversityAdminStudents() {
     name: string;
     email?: string;
     course?: string;
+    gender?: string;
+    district?: string;
+    universityBranch?: string;
+    branchId?: string;
+    birthYear?: string;
+    enrollmentYear?: string;
   }) => {
     try {
       // For university-admin, use organization.id or user.orgId
@@ -205,29 +218,52 @@ export default function UniversityAdminStudents() {
 
       setIsCreating(true);
       try {
-        // Create student directly via backend API - this will also send the password email
         const { api } = await import("@/src/api/client");
-        await api.post(`/api/v1/students/${numericCourseId}`, {
-          email: data.email.toLowerCase().trim(),
-          name: data.name.trim(),
-        });
+        
+        if (editingStudent) {
+          // Update existing student
+          const studentId = typeof editingStudent.id === 'number' ? editingStudent.id : parseInt(editingStudent.id.toString(), 10);
+          await api.put(`/api/v1/students/${studentId}`, {
+            name: data.name.trim(),
+            gender: data.gender || "",
+            district: data.district || "",
+            branchId: data.branchId ? parseInt(data.branchId, 10) : undefined,
+            birthYear: data.birthYear ? parseInt(data.birthYear, 10) : 0,
+            enrollmentYear: data.enrollmentYear ? parseInt(data.enrollmentYear, 10) : 0,
+          });
 
-        // Reload students list
-        await loadData();
+          await loadData();
+          showSuccess("Student updated successfully!");
+        } else {
+          // Create new student
+          await api.post(`/api/v1/students/${numericCourseId}`, {
+            email: data.email.toLowerCase().trim(),
+            name: data.name.trim(),
+            gender: data.gender || "",
+            district: data.district || "",
+            universityBranch: data.universityBranch || "",
+            branchId: data.branchId ? parseInt(data.branchId, 10) : undefined,
+            birthYear: data.birthYear ? parseInt(data.birthYear, 10) : 0,
+            enrollmentYear: data.enrollmentYear ? parseInt(data.enrollmentYear, 10) : 0,
+          });
 
-        showSuccess(
-          `Student created successfully! Login credentials have been sent to ${data.email}`
-        );
+          await loadData();
+          showSuccess(
+            `Student created successfully! Login credentials have been sent to ${data.email}`
+          );
+        }
+        
         setIsModalOpen(false);
+        setEditingStudent(null);
       } catch (invError) {
-        console.error("Failed to create student:", invError);
-        showError(invError instanceof Error ? invError.message : "Failed to create student. Please try again.");
+        console.error("Failed to save student:", invError);
+        showError(invError instanceof Error ? invError.message : `Failed to ${editingStudent ? 'update' : 'create'} student. Please try again.`);
       } finally {
         setIsCreating(false);
       }
     } catch (error) {
-      console.error("Failed to create student:", error);
-      showError("Failed to create student. Please try again.");
+      console.error("Failed to save student:", error);
+      showError(`Failed to ${editingStudent ? 'update' : 'create'} student. Please try again.`);
     }
   };
 
@@ -270,6 +306,15 @@ export default function UniversityAdminStudents() {
   const handleViewDetails = (student: UserI) => {
     setSelectedStudent(student);
     setIsDetailsModalOpen(true);
+  };
+
+  /**
+   * Handle edit student - open edit modal with student data
+   */
+  const handleEditStudent = (student: UserI) => {
+    setEditingStudent(student);
+    setIsDetailsModalOpen(false);
+    setIsModalOpen(true);
   };
 
   const handleSuspend = async (studentId: string) => {
@@ -397,10 +442,24 @@ export default function UniversityAdminStudents() {
       <ManualEntryForm
         open={isModalOpen}
         uploadType="student"
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingStudent(null);
+        }}
         onSubmit={handleManualSubmit}
         courses={courses}
+        branches={branches}
         isSubmitting={isCreating}
+        initialData={editingStudent ? {
+          name: editingStudent.name,
+          email: editingStudent.email,
+          course: editingStudent.courseId?.toString(),
+          gender: (editingStudent as any).gender,
+          district: (editingStudent as any).district,
+          branchId: (editingStudent as any).branchId?.toString(),
+          birthYear: (editingStudent as any).birthYear?.toString(),
+          enrollmentYear: (editingStudent as any).enrollmentYear?.toString(),
+        } : undefined}
       />
 
       {/* Bulk Upload Modal */}
@@ -472,6 +531,7 @@ export default function UniversityAdminStudents() {
         student={selectedStudent}
         department={selectedStudent ? getDepartment(selectedStudent.departmentId) : undefined}
         programme={selectedStudent ? getCourse(selectedStudent.courseId) : undefined}
+        onEdit={handleEditStudent}
         onDelete={handleDeleteClick}
         onSuspend={handleSuspend}
       />

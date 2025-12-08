@@ -22,6 +22,7 @@ export interface Props<T> {
     pageSize?: number;
     onBulkAction?: (action: string, selectedIds: string[]) => void;
     showActions?: boolean; // Show edit/delete/more actions column
+    showCheckboxes?: boolean; // Show checkboxes for selection
     onEdit?: (item: T) => void;
     onDelete?: (item: T) => void;
 }
@@ -38,6 +39,7 @@ function DataTable<T extends { id: string }>({
     pageSize = 10,
     onBulkAction,
     showActions = false,
+    showCheckboxes = true,
     onEdit,
     onDelete,
 }: Props<T>) {
@@ -75,6 +77,7 @@ function DataTable<T extends { id: string }>({
                         sortDirection={sortDirection}
                         allSelected={allSelected}
                         showActions={showActions}
+                        showCheckboxes={showCheckboxes}
                         onSelectAll={handleSelectAll}
                         onSort={handleSort}
                     />
@@ -83,6 +86,7 @@ function DataTable<T extends { id: string }>({
                         columns={columns}
                         selectedRows={selectedRows}
                         showActions={showActions}
+                        showCheckboxes={showCheckboxes}
                         onRowClick={onRowClick}
                         onSelectRow={handleSelectRow}
                         onEdit={onEdit}

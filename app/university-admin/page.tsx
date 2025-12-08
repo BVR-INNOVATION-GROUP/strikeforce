@@ -37,7 +37,7 @@ export default function UniversityAdminDashboard() {
           organizationService.getOrganization(universityId.toString()).catch(() => null),
           dashboardService.getUniversityAdminDashboardStats(universityId.toString()),
         ]);
-        
+
         setOrganization(org || storedOrganization);
         setStats({
           ...dashboardStats,
@@ -118,19 +118,22 @@ export default function UniversityAdminDashboard() {
     <div className="w-full flex flex-col min-h-full">
       {/* Header */}
       <div className="flex-shrink-0 mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              {organization?.logo && (
-                <img 
+        <div className="flex items-center gap-3 mb-2">
+          {organization?.logo && (
+            <img
+              style={{
+                mixBlendMode: "multiply"
+              }}
               src={
                 organization.logo.startsWith("http")
                   ? organization.logo
                   : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/${organization.logo}`
               }
-                  alt={organization.name}
-              className="h-12 w-auto object-contain"
-                />
-              )}
-              <div>
+              alt={organization.name}
+              className="h-12 w-auto rounded-lg object-contain mix-blend-multiply"
+            />
+          )}
+          <div>
             <h1 className="text-2xl font-semibold text-default">
               {organization?.name || "University Workspace"}
             </h1>
@@ -146,23 +149,23 @@ export default function UniversityAdminDashboard() {
       {stats && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Projects by Department - Bar Chart */}
-          <div>
-            {projectsByDepartmentData.length > 0 ? (
+          <Card>
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
               <div>
-                <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
-                  <div>
-                    <h2 className="text-lg font-semibold text-default">Projects by Department</h2>
-                    <p className="text-sm text-secondary">
-                      {organization?.name ? `${organization.name} · Active vs. Completed` : "Active vs. Completed"}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => router.push("/university-admin/projects")}
-                    className="text-sm font-medium text-secondary hover:text-default hover:underline"
-                  >
-                    View All Projects
-                  </button>
-                </div>
+                <h2 className="text-lg font-semibold text-default">Projects by Department</h2>
+                <p className="text-sm text-secondary">
+                  {organization?.name ? `${organization.name} · Active vs. Completed` : "Active vs. Completed"}
+                </p>
+              </div>
+              {/* <button
+                onClick={() => router.push("/university-admin/projects")}
+                className="text-sm font-medium text-secondary hover:text-default hover:underline"
+              >
+                View All Projects
+              </button> */}
+            </div>
+            {projectsByDepartmentData.length > 0 ? (
+              <div className="[&>div]:bg-transparent [&>div]:shadow-none [&>div]:p-0">
                 <BarChart
                   title=""
                   data={projectsByDepartmentData}
@@ -175,27 +178,11 @@ export default function UniversityAdminDashboard() {
                 />
               </div>
             ) : (
-              <Card>
-                <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
-                  <div>
-                    <h2 className="text-lg font-semibold text-default">Projects by Department</h2>
-                    <p className="text-sm text-secondary">
-                      {organization?.name ? `${organization.name} · Active vs. Completed` : "Active vs. Completed"}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => router.push("/university-admin/projects")}
-                    className="text-sm font-medium text-secondary hover:text-default hover:underline"
-                  >
-                    View All Projects
-                  </button>
-                </div>
-                <div className="rounded-lg border border-dashed border-custom p-6 text-center text-sm text-muted">
-                  No departmental data yet. Projects will appear here as soon as they are created.
-                </div>
-              </Card>
+              <div className="rounded-lg border border-dashed border-custom p-6 text-center text-sm text-muted">
+                No departmental data yet. Projects will appear here as soon as they are created.
+              </div>
             )}
-          </div>
+          </Card>
 
           {/* Recent Projects */}
           <Card>
@@ -284,7 +271,7 @@ export default function UniversityAdminDashboard() {
       )}
 
       {/* Quick Actions - Secondary Section */}
-      <Card title="Quick Actions" className="flex-1 min-h-0">
+      {/* <Card title="Quick Actions" className="flex-1 min-h-0">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div 
             onClick={() => router.push('/university-admin/uploads')}
@@ -308,7 +295,7 @@ export default function UniversityAdminDashboard() {
             <p className="text-[0.875rem] opacity-60">Issue offers and manage assignments</p>
           </div>
         </div>
-      </Card>
+      </Card> */}
     </div>
   );
 }

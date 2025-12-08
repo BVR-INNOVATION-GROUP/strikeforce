@@ -20,6 +20,7 @@ export interface Props {
     onChange: (value: OptionI | string) => void
     placeHolder: string
     error?: string
+    searchable?: boolean // Enable typing/search functionality
 }
 
 const Option = (o: OptionI & { onSelect?: (option: OptionI) => void }) => {
@@ -50,19 +51,33 @@ interface DropdownPosition {
     top: number
     width: number
     maxHeight: number
+    viewportLeft: number
+    viewportTop: number
 }
 
 const Select = (props: Props) => {
     const [open, setOpen] = useState(false)
+    const [searchQuery, setSearchQuery] = useState('')
     const triggerRef = useRef<HTMLDivElement>(null)
     const dropdownRef = useRef<HTMLDivElement>(null)
+    const inputRef = useRef<HTMLInputElement>(null)
     const [position, setPosition] = useState<DropdownPosition>({
         position: 'below',
         left: 0,
         top: 0,
         width: 0,
-        maxHeight: 0
+        maxHeight: 0,
+        viewportLeft: 0,
+        viewportTop: 0
     })
+
+    // Filter options based on search query when searchable
+    const filteredOptions = props.searchable && searchQuery
+        ? props.options.filter(option => 
+            String(option.label).toLowerCase().includes(searchQuery.toLowerCase()) ||
+            String(option.value).toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        : props.options
 
     /**
      * Calculates optimal dropdown position based on viewport and trigger element position
@@ -137,7 +152,16 @@ const Select = (props: Props) => {
 
         // Calculate initial position
         const updatePosition = () => {
-            setPosition(calculatePosition())
+            const pos = calculatePosition()
+            setPosition({
+                position: pos.position,
+                left: pos.left,
+                top: pos.top,
+                width: pos.width,
+                maxHeight: pos.maxHeight,
+                viewportLeft: pos.viewportLeft,
+                viewportTop: pos.viewportTop
+            })
         }
 
         // Update position on mount and when open
@@ -156,6 +180,9 @@ const Select = (props: Props) => {
                 !dropdownRef.current.contains(event.target as Node)
             ) {
                 setOpen(false)
+                if (props.searchable) {
+                    setSearchQuery('')
+                }
             }
         }
 
@@ -174,29 +201,66 @@ const Select = (props: Props) => {
     const handleOptionSelect = (option: OptionI) => {
         props.onChange(option)
         setOpen(false)
+        setSearchQuery('') // Clear search when option is selected
     }
+
+    // Focus input when dropdown opens and searchable is enabled
+    useEffect(() => {
+        if (open && props.searchable && inputRef.current) {
+            inputRef.current.focus()
+        }
+    }, [open, props.searchable])
 
     return (
         <div>
             {props?.title && <p className='mb-3 text-[12px]'>{props?.title}</p>}
             <div
                 ref={triggerRef}
-                onClick={() => setOpen(!open)}
+                onClick={() => {
+                    if (!props.searchable) {
+                        setOpen(!open)
+                    } else {
+                        setOpen(true)
+                    }
+                }}
                 className={`border relative border-custom rounded-lg p-3 flex items-center justify-between ${props.error ? 'border-red-500' : ''
                     }`}>
-                <span className="flex-1 min-w-0">{props?.value ?
-                    <div
-                        className={`cursor-pointer rounded flex items-center gap-2 hover-bg-pale whitespace-nowrap overflow-hidden`}>
-                        {typeof props.value === 'string' ? (
-                            <span className="truncate">{props.options.find(o => String(o.value) === String(props.value))?.label || props.value}</span>
-                        ) : (
-                            <>
-                                {props?.value?.icon && <span className="flex-shrink-0">{props?.value?.icon}</span>}
-                                <span className="truncate"> {props?.value?.label}</span>
-                            </>
-                        )}
-                    </div>
-                    : props?.placeHolder}</span>
+                {props.searchable && open ? (
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => {
+                            setSearchQuery(e.target.value)
+                            if (!open) setOpen(true)
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && filteredOptions.length > 0) {
+                                handleOptionSelect(filteredOptions[0])
+                            } else if (e.key === 'Escape') {
+                                setOpen(false)
+                                setSearchQuery('')
+                            }
+                        }}
+                        className="flex-1 min-w-0 outline-none bg-transparent text-sm"
+                        placeholder={props?.placeHolder}
+                    />
+                ) : (
+                    <span className="flex-1 min-w-0">{props?.value ?
+                        <div
+                            className={`cursor-pointer rounded flex items-center gap-2 hover-bg-pale whitespace-nowrap overflow-hidden`}>
+                            {typeof props.value === 'string' ? (
+                                <span className="truncate">{props.options.find(o => String(o.value) === String(props.value))?.label || props.value}</span>
+                            ) : (
+                                <>
+                                    {props?.value?.icon && <span className="flex-shrink-0">{props?.value?.icon}</span>}
+                                    <span className="truncate"> {props?.value?.label}</span>
+                                </>
+                            )}
+                        </div>
+                        : props?.placeHolder}</span>
+                )}
                 <span className="flex-shrink-0">
                     {
                         open
@@ -226,14 +290,16 @@ const Select = (props: Props) => {
                                 }}
                                 className="bg-paper rounded-lg flex flex-col p-4 overflow-y-auto shadow-custom-lg">
                                 {
-                                    props?.options?.length == 0
+                                    filteredOptions?.length == 0
                                         ?
                                         <div className="flex flex-col text-center items-center justify-center">
                                             <p className="text-2xl mt-6">No Options found</p>
-                                            <p className='text-[12px] opacity-50 mt-3 max-w-[60%]'>no data found for the selected section</p>
+                                            <p className='text-[12px] opacity-50 mt-3 max-w-[60%]'>
+                                                {props.searchable && searchQuery ? 'No matching results' : 'no data found for the selected section'}
+                                            </p>
                                         </div>
                                         :
-                                        props?.options?.map((o, i) => (
+                                        filteredOptions?.map((o, i) => (
                                             <Option
                                                 key={i}
                                                 {...o}

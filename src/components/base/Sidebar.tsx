@@ -28,13 +28,11 @@ const Sidebar = () => {
                     // Check for exact match first
                     const exactMatch = pathname === l.path;
 
-                    // Only use prefix matching if:
-                    // 1. No exact match exists for current pathname
-                    // 2. This link is a dashboard route (matches role base path exactly)
-                    // 3. Current pathname starts with this link's path
-                    const isDashboardRoute = l.path === `/${userRole}`;
-                    const hasExactMatch = links.some(link => pathname === link.path);
-                    const prefixMatch = !hasExactMatch && isDashboardRoute && pathname?.startsWith(l.path + "/");
+                    // For prefix matching: check if current pathname starts with this link's path
+                    // This handles nested routes like /university-admin/departments/[id]/courses
+                    // Exclude dashboard routes from prefix matching (only exact match for dashboard)
+                    const isDashboardRoute = l.path === `/${userRole}` || l.path === `/${userRole}/`;
+                    const prefixMatch = !isDashboardRoute && pathname && pathname.startsWith(l.path + "/");
 
                     const isActive = exactMatch || prefixMatch;
                     const IconComponent = l.iconComponent;
@@ -55,7 +53,7 @@ const Sidebar = () => {
                                     <motion.div
                                         initial={{ opacity: 0, y: -10 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        className="absolute left-[110%] min-w-max w-max bg-white px-6 py-3 shadow-custom-lg rounded-lg transform -translate-y-[50%] top-[50%]"
+                                        className="absolute left-[110%] min-w-max w-max bg-paper px-6 py-3 shadow-custom-lg rounded-lg transform -translate-y-[50%] top-[50%] border border-custom"
                                     >
                                         {l.title}
                                     </motion.div>

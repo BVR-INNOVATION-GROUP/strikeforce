@@ -32,7 +32,3 @@ export async function uploadApplicationFiles(files: File[]): Promise<string[]> {
       : new Error("Failed to upload files. Please try again.");
   }
 }
-
-
-
-

@@ -86,10 +86,8 @@ export async function uploadToCloudinary(
   // Add resource type
   formData.append("resource_type", resourceType);
 
-  // Add transformation if specified
-  if (transformation) {
-    formData.append("transformation", JSON.stringify(transformation));
-  }
+  // Note: 'eager' parameter is not allowed with unsigned uploads
+  // Transformations will be applied to the URL after upload
 
   // Add public_id if specified
   if (publicId) {
@@ -115,7 +113,53 @@ export async function uploadToCloudinary(
     }
 
     const result = await response.json();
-    return result.secure_url || result.url;
+    
+    if (!result) {
+      throw new Error("Invalid response from Cloudinary");
+    }
+    
+    const baseUrl = result.secure_url || result.url;
+    
+    if (!baseUrl) {
+      throw new Error("No URL returned from Cloudinary upload");
+    }
+    
+    // Apply transformations to the URL if specified
+    // Since we can't use 'eager' with unsigned uploads, we apply transformations in the URL
+    if (transformation && baseUrl && typeof baseUrl === "string") {
+      const transformationParts: string[] = [];
+      
+      if (transformation.width != null && transformation.width !== undefined) {
+        transformationParts.push(`w_${transformation.width}`);
+      }
+      if (transformation.height != null && transformation.height !== undefined) {
+        transformationParts.push(`h_${transformation.height}`);
+      }
+      if (transformation.crop && typeof transformation.crop === "string") {
+        transformationParts.push(`c_${transformation.crop}`);
+      }
+      if (transformation.quality != null && transformation.quality !== undefined) {
+        const qualityValue = typeof transformation.quality === "string" 
+          ? transformation.quality 
+          : String(transformation.quality);
+        transformationParts.push(`q_${qualityValue}`);
+      }
+      if (transformation.fetch_format && typeof transformation.fetch_format === "string") {
+        transformationParts.push(`f_${transformation.fetch_format}`);
+      }
+      
+      if (transformationParts.length > 0) {
+        // Insert transformation string into Cloudinary URL
+        // Format: https://res.cloudinary.com/{cloud_name}/image/upload/{transformations}/{public_id}
+        const transformationString = transformationParts.join(",");
+        const urlParts = baseUrl.split("/upload/");
+        if (urlParts.length === 2 && urlParts[1]) {
+          return `${urlParts[0]}/upload/${transformationString}/${urlParts[1]}`;
+        }
+      }
+    }
+    
+    return baseUrl;
   } catch (error) {
     console.error("Cloudinary upload error:", error);
     throw error instanceof Error
@@ -175,9 +219,13 @@ export async function uploadOptimizedImage(
     fetch_format: "auto",
   };
 
-  if (maxWidth || maxHeight) {
-    transformation.width = maxWidth;
-    transformation.height = maxHeight;
+  if (maxWidth != null || maxHeight != null) {
+    if (maxWidth != null) {
+      transformation.width = maxWidth;
+    }
+    if (maxHeight != null) {
+      transformation.height = maxHeight;
+    }
     transformation.crop = "limit";
   }
 

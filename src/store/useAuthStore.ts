@@ -117,24 +117,57 @@ export const useAuthStore = create<AuthState>()(
         set({ organization });
       },
       setUser: async (user) => {
+        const currentState = get();
+        const currentOrgId = currentState.user?.orgId;
+        const newOrgId = user?.orgId;
+
+        // If orgId is missing in the update but exists in current state, preserve it
+        // This handles cases where backend doesn't return orgId in update responses
+        if (user && (user.orgId === undefined || user.orgId === null) && currentOrgId) {
+          user.orgId = currentOrgId;
+        }
+
         set({ user, isAuthenticated: !!user });
 
+        // Determine the effective orgId (use preserved one if missing)
+        const effectiveOrgId = user?.orgId ?? currentOrgId;
+
         // Fetch and store organization for users with orgId (university-admin, partner, student, supervisor)
-        if (user && user.orgId) {
+        if (user && effectiveOrgId) {
+          // Only fetch if orgId changed, otherwise preserve existing organization
+          if (currentOrgId === effectiveOrgId && currentState.organization) {
+            // Same orgId, keep existing organization
+            return;
+          }
+          
           try {
             const { organizationService } = await import(
               "@/src/services/organizationService"
             );
             const organization = await organizationService
-              .getOrganization(user.orgId.toString())
+              .getOrganization(effectiveOrgId.toString())
               .catch(() => null);
             set({ organization });
           } catch (error) {
             console.error("Failed to fetch organization:", error);
-            set({ organization: null });
+            // Preserve existing organization if orgId hasn't changed
+            if (currentOrgId === effectiveOrgId && currentState.organization) {
+              // Keep existing organization on fetch error if orgId is the same
+              return;
+            }
+            // Only set to null if orgId actually changed
+            if (currentOrgId !== effectiveOrgId) {
+              set({ organization: null });
+            }
           }
         } else {
-          set({ organization: null });
+          // Only clear organization if user explicitly has no orgId AND had one before
+          // Don't clear if orgId is just missing from the update response
+          if (user && user.orgId === null && currentOrgId) {
+            // User explicitly lost orgId
+            set({ organization: null });
+          }
+          // Otherwise, preserve existing organization if it exists
         }
 
         // Set cookie for middleware (in production, handled by NextAuth)

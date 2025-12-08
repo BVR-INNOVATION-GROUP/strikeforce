@@ -10,6 +10,12 @@ export interface ValidationErrors {
   skills?: string;
   title?: string;
   desc?: string;
+  summary?: string;
+  challengeStatement?: string;
+  scopeActivities?: string;
+  teamStructure?: string;
+  duration?: string;
+  expectations?: string;
   currency?: string;
   budget?: string;
   deadline?: string;
@@ -49,6 +55,12 @@ export function validateStep1(
 export function validateStep2(
   title: string,
   desc: string,
+  summary: string,
+  challengeStatement: string,
+  scopeActivities: string,
+  teamStructure: "individuals" | "groups" | "both" | "",
+  duration: string,
+  expectations: string,
   currency: OptionI | null,
   budget: string,
   deadline: string,
@@ -62,10 +74,36 @@ export function validateStep2(
     errors.title = "Title must be at least 3 characters";
   }
 
-  if (!desc || desc.trim().length === 0) {
-    errors.desc = "Description is required";
-  } else if (desc.trim().length < 10) {
-    errors.desc = "Description must be at least 10 characters";
+  if (!summary || summary.trim().length === 0) {
+    errors.summary = "Project summary is required";
+  } else if (summary.trim().length < 10) {
+    errors.summary = "Summary must be at least 10 characters";
+  }
+
+  if (!challengeStatement || challengeStatement.trim().length === 0) {
+    errors.challengeStatement = "Challenge/opportunity statement is required";
+  } else if (challengeStatement.trim().length < 10) {
+    errors.challengeStatement = "Challenge statement must be at least 10 characters";
+  }
+
+  if (!scopeActivities || scopeActivities.trim().length === 0) {
+    errors.scopeActivities = "Project scope/activities is required";
+  } else if (scopeActivities.trim().length < 10) {
+    errors.scopeActivities = "Scope/activities must be at least 10 characters";
+  }
+
+  if (!teamStructure || teamStructure === "") {
+    errors.teamStructure = "Team structure is required";
+  }
+
+  if (!duration || duration.trim().length === 0) {
+    errors.duration = "Project duration is required";
+  }
+
+  if (!expectations || expectations.trim().length === 0) {
+    errors.expectations = "Expectations are required";
+  } else if (expectations.trim().length < 10) {
+    errors.expectations = "Expectations must be at least 10 characters";
   }
 
   if (!currency) {

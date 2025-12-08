@@ -98,6 +98,36 @@ const ProjectFormStep1 = ({
   }, []);
 
   /**
+   * When nestedData loads and we have a course selected, ensure it's still valid
+   * This handles the case where course is set from initialData before nestedData loads
+   * If the course exists in the loaded data but the label doesn't match, update it
+   */
+  useEffect(() => {
+    if (course && nestedData.length > 0 && department && university && course.value) {
+      const availableCourses = getCoursesForDepartment();
+      const courseExists = availableCourses.some(
+        (c) => c.id.toString() === course.value
+      );
+      
+      // If course exists in available courses, ensure the label matches
+      // This handles cases where the course label from initialData might be different
+      if (courseExists) {
+        const foundCourse = availableCourses.find(
+          (c) => c.id.toString() === course.value
+        );
+        if (foundCourse && foundCourse.name !== course.label) {
+          // Update the course label to match what's in the dropdown
+          // This ensures the Select component can properly match and display it
+          onCourseChange({
+            value: course.value,
+            label: foundCourse.name
+          });
+        }
+      }
+    }
+  }, [nestedData, course?.value, department?.value, university?.value]);
+
+  /**
    * Get departments for the selected university from nested data
    */
   const getDepartmentsForUniversity = () => {
@@ -352,6 +382,12 @@ const ProjectFormStep1 = ({
         onChange={(value) => {
           onDepartmentChange(value);
           onClearError("department");
+          // Only clear course if department actually changed (not during initial load)
+          // Check if the new department is different from the current one
+          if (course && typeof value === 'object' && value.value !== department?.value) {
+            // Department changed, clear course
+            onCourseChange(null);
+          }
         }}
         value={department}
         options={getDepartments()}
@@ -367,6 +403,9 @@ const ProjectFormStep1 = ({
         value={course}
         options={getCourses()}
         error={errors.course}
+        // Ensure course is shown even if options haven't loaded yet
+        // The value prop should handle this, but we can add a fallback
+        key={`course-select-${course?.value || 'none'}-${nestedData.length}`}
       />
       <MultiSelect
         title="Skills Required *"

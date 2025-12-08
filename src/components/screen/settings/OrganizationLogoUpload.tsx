@@ -71,9 +71,9 @@ const OrganizationLogoUpload = () => {
   };
 
   const handleCropComplete = (croppedImageBlob: Blob) => {
-    // Convert blob to file
-    const file = new File([croppedImageBlob], selectedFile?.name || "logo.png", {
-      type: "image/png",
+    // Convert blob to file (already compressed to 40% by LogoCropper)
+    const file = new File([croppedImageBlob], selectedFile?.name || "logo.jpg", {
+      type: "image/jpeg",
     });
     setCroppedFile(file);
 
@@ -105,16 +105,25 @@ const OrganizationLogoUpload = () => {
 
     setUploading(true);
     try {
-      // Upload logo (use cropped file if available, otherwise original)
-      const logoPath = await uploadOrganizationLogo(fileToUpload);
+      // Upload logo to Cloudinary (use cropped file if available, otherwise original)
+      const logoUrl = await uploadOrganizationLogo(
+        fileToUpload,
+        organization.id
+      );
 
-      // Refresh organization data to get updated logo
+      // Save the logo URL to the backend
       if (organization.id) {
-        const updatedOrg = await organizationService.getOrganization(
-          organization.id.toString()
+        const updatedOrg = await organizationService.updateOrganization(
+          organization.id.toString(),
+          { logo: logoUrl }
         );
+        
+        // Update the organization in the store
         setOrganization(updatedOrg);
-        setPreview(getLogoUrl(updatedOrg.logo || logoPath));
+        
+        // Update preview with the new logo URL
+        setPreview(logoUrl);
+        
         showSuccess("Logo uploaded successfully!");
         setSelectedFile(null);
         setCroppedFile(null);

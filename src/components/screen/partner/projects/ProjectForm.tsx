@@ -3,7 +3,7 @@
  */
 "use client";
 
-import React from "react";
+import React, { useMemo, useCallback } from "react";
 import Modal from "@/src/components/base/Modal";
 import ProjectFormStep1 from "./ProjectFormStep1";
 import ProjectFormStep2 from "./ProjectFormStep2";
@@ -24,6 +24,13 @@ export interface Props {
     currency: { value: string; label: string; icon?: string } | null;
     title: string;
     desc: string;
+    summary: string;
+    challengeStatement: string;
+    scopeActivities: string;
+    deliverablesMilestones: string;
+    teamStructure: "individuals" | "groups" | "both" | "";
+    duration: string;
+    expectations: string;
     budget: string;
     deadline: string;
     capacity: string;
@@ -54,47 +61,58 @@ const ProjectForm = (props: Props) => {
     handleSubmit: handleFormSubmit,
     isSubmitting: internalIsSubmitting,
   } = useProjectFormSubmission(isEditMode);
-  
+
   // Use external isSaving prop if provided (for edit mode), otherwise use internal isSubmitting
   const isSubmitting = props.isSaving !== undefined ? props.isSaving : internalIsSubmitting;
 
-  const handleStep1ContinueWrapper = () => {
+  // Memoize callbacks to prevent infinite re-renders
+  const handleCancel = useCallback(() => {
+    props?.setOpen && props?.setOpen(false);
+  }, [props?.setOpen]);
+
+  const handleClose = useCallback(() => {
+    props?.setOpen && props?.setOpen(false);
+  }, [props?.setOpen]);
+
+  const handleStep1ContinueWrapper = useCallback(() => {
     if (handleStep1Continue(formState)) {
       // Step transition handled in hook
     }
-  };
+  }, [handleStep1Continue, formState]);
 
-  const handleStep2ContinueWrapper = () => {
+  const handleStep2ContinueWrapper = useCallback(() => {
     if (handleStep2Continue(formState)) {
       // Step transition handled in hook
     }
-  };
+  }, [handleStep2Continue, formState]);
 
-  const handleSubmit = async () => {
+  const handleBack = useCallback(() => {
+    setStep(step - 1);
+  }, [setStep, step]);
+
+  const handleSubmit = useCallback(async () => {
     await handleFormSubmit(formState, props.onSubmit, props.setOpen);
-  };
+  }, [handleFormSubmit, formState, props.onSubmit, props.setOpen]);
+
+  // Memoize actions array to prevent infinite re-renders
+  const actions = useMemo(() => {
+    return getProjectFormActions({
+      step,
+      onCancel: handleCancel,
+      onContinue: step === 1 ? handleStep1ContinueWrapper : handleStep2ContinueWrapper,
+      onBack: handleBack,
+      onSubmit: handleSubmit,
+      isSubmitting,
+    });
+  }, [step, handleCancel, handleStep1ContinueWrapper, handleStep2ContinueWrapper, handleBack, handleSubmit, isSubmitting]);
 
   return (
     <>
       <Modal
         open={props?.open}
-        actions={getProjectFormActions({
-          step,
-          onCancel: () => {
-            props?.setOpen && props?.setOpen(false);
-          },
-          onContinue:
-            step === 1
-              ? handleStep1ContinueWrapper
-              : handleStep2ContinueWrapper,
-          onBack: () => setStep(step - 1),
-          onSubmit: handleSubmit,
-          isSubmitting,
-        })}
+        actions={actions}
         title={isEditMode ? "Edit Project" : "Add project"}
-        handleClose={() => {
-          props?.setOpen && props?.setOpen(false);
-        }}
+        handleClose={handleClose}
       >
         <div className="flex flex-col gap-8">
           {step === 1 ? (
@@ -115,6 +133,12 @@ const ProjectForm = (props: Props) => {
             <ProjectFormStep2
               title={formState.title}
               desc={formState.desc}
+              summary={formState.summary}
+              challengeStatement={formState.challengeStatement}
+              scopeActivities={formState.scopeActivities}
+              teamStructure={formState.teamStructure}
+              duration={formState.duration}
+              expectations={formState.expectations}
               budget={formState.budget}
               deadline={formState.deadline}
               capacity={formState.capacity}
@@ -122,6 +146,12 @@ const ProjectForm = (props: Props) => {
               errors={errors}
               onTitleChange={formActions.setTitle}
               onDescChange={formActions.setDesc}
+              onSummaryChange={formActions.setSummary}
+              onChallengeStatementChange={formActions.setChallengeStatement}
+              onScopeActivitiesChange={formActions.setScopeActivities}
+              onTeamStructureChange={formActions.setTeamStructure}
+              onDurationChange={formActions.setDuration}
+              onExpectationsChange={formActions.setExpectations}
               onBudgetChange={formActions.setBudget}
               onDeadlineChange={formActions.setDeadline}
               onCapacityChange={formActions.setCapacity}

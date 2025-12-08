@@ -71,12 +71,45 @@ async function handleSessionExpiry(): Promise<void> {
 
 /**
  * Build full URL with base path
+ * Ensures the URL is always absolute (starts with http:// or https://)
+ * This prevents Next.js from intercepting the call as a Next.js API route
  */
 function buildUrl(path: string): string {
+  // If path is already an absolute URL, return it as-is
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+
   // Remove leading slash if present
   const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-  // Backend routes: /user/* or /api/v1/*
-  return `${BASE_URL}/${cleanPath}`;
+
+  // Ensure BASE_URL is set and is absolute
+  if (
+    !BASE_URL ||
+    (!BASE_URL.startsWith("http://") && !BASE_URL.startsWith("https://"))
+  ) {
+    console.error(
+      "[api.client] BASE_URL is not set or is not absolute:",
+      BASE_URL
+    );
+    throw new Error(
+      "API base URL is not configured correctly. Please set NEXT_PUBLIC_API_URL environment variable."
+    );
+  }
+
+  // Construct absolute URL
+  const absoluteUrl = `${BASE_URL}/${cleanPath}`;
+
+  // Validate the constructed URL is absolute
+  if (
+    !absoluteUrl.startsWith("http://") &&
+    !absoluteUrl.startsWith("https://")
+  ) {
+    console.error("[api.client] Constructed URL is not absolute:", absoluteUrl);
+    throw new Error("Failed to construct absolute URL for API call");
+  }
+
+  return absoluteUrl;
 }
 
 export const api = {
@@ -159,12 +192,30 @@ export const api = {
     try {
       const token = getAuthToken();
       const fullUrl = buildUrl(url);
+
+      // Validate URL is absolute before making the request
+      if (!fullUrl.startsWith("http://") && !fullUrl.startsWith("https://")) {
+        console.error("[api.client] ERROR: URL is not absolute:", {
+          originalUrl: url,
+          builtUrl: fullUrl,
+          baseUrl: BASE_URL,
+        });
+        throw new Error(
+          `Invalid API URL: ${fullUrl}. URL must be absolute (start with http:// or https://)`
+        );
+      }
+
       console.log("[api.client] POST request:", {
-        url,
+        originalUrl: url,
         fullUrl,
-        data,
+        isAbsolute:
+          fullUrl.startsWith("http://") || fullUrl.startsWith("https://"),
+        baseUrl: BASE_URL,
+        data: data ? JSON.stringify(data).substring(0, 200) + "..." : data,
         hasToken: !!token,
+        timestamp: new Date().toISOString(),
       });
+
       const response = await fetch(fullUrl, {
         ...config,
         method: "POST",
@@ -179,6 +230,8 @@ export const api = {
         status: response.status,
         statusText: response.statusText,
         url: fullUrl,
+        ok: response.ok,
+        timestamp: new Date().toISOString(),
       });
 
       // Check if response is JSON

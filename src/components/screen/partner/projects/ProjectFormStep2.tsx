@@ -8,11 +8,18 @@ import Input from "@/src/components/core/Input";
 import RichTextEditor from "@/src/components/core/RichTextEditor";
 import MergedCurrencyInput from "@/src/components/base/MergedCurrencyInput";
 import DatePicker from "@/src/components/base/DatePicker";
+import Select from "@/src/components/core/Select";
 import { OptionI } from "@/src/components/core/Select";
 
 export interface Props {
   title: string;
-  desc: string;
+  desc: string; // Kept for backward compatibility
+  summary: string;
+  challengeStatement: string;
+  scopeActivities: string;
+  teamStructure: "individuals" | "groups" | "both" | "";
+  duration: string;
+  expectations: string;
   budget: string;
   deadline: string;
   capacity: string;
@@ -20,6 +27,12 @@ export interface Props {
   errors: Record<string, string>;
   onTitleChange: (value: string) => void;
   onDescChange: (value: string) => void;
+  onSummaryChange: (value: string) => void;
+  onChallengeStatementChange: (value: string) => void;
+  onScopeActivitiesChange: (value: string) => void;
+  onTeamStructureChange: (value: "individuals" | "groups" | "both" | "") => void;
+  onDurationChange: (value: string) => void;
+  onExpectationsChange: (value: string) => void;
   onBudgetChange: (value: string) => void;
   onDeadlineChange: (value: string) => void;
   onCapacityChange: (value: string) => void;
@@ -33,6 +46,12 @@ export interface Props {
 const ProjectFormStep2 = ({
   title,
   desc,
+  summary,
+  challengeStatement,
+  scopeActivities,
+  teamStructure,
+  duration,
+  expectations,
   budget,
   deadline,
   capacity,
@@ -40,12 +59,24 @@ const ProjectFormStep2 = ({
   errors,
   onTitleChange,
   onDescChange,
+  onSummaryChange,
+  onChallengeStatementChange,
+  onScopeActivitiesChange,
+  onTeamStructureChange,
+  onDurationChange,
+  onExpectationsChange,
   onBudgetChange,
   onDeadlineChange,
   onCapacityChange,
   onCurrencyChange,
   onClearError,
 }: Props) => {
+  const teamStructureOptions: OptionI[] = [
+    { value: "individuals", label: "Individuals" },
+    { value: "groups", label: "Groups" },
+    { value: "both", label: "Both" },
+  ];
+
   return (
     <>
       <Input
@@ -59,12 +90,58 @@ const ProjectFormStep2 = ({
         error={errors.title}
       />
       <RichTextEditor
-        title="Description *"
-        value={desc}
-        onChange={onDescChange}
-        placeholder="Describe the project requirements, scope, and deliverables..."
-        rows={6}
-        error={errors.desc}
+        title="Project Summary *"
+        value={summary}
+        onChange={onSummaryChange}
+        placeholder="Provide a brief overview of the project..."
+        rows={3}
+        error={errors.summary}
+      />
+      <RichTextEditor
+        title="Project Challenge/Opportunity Statement *"
+        value={challengeStatement}
+        onChange={onChallengeStatementChange}
+        placeholder="Describe the problem or opportunity this project addresses..."
+        rows={4}
+        error={errors.challengeStatement}
+      />
+      <RichTextEditor
+        title="Project Scope/Activities *"
+        value={scopeActivities}
+        onChange={onScopeActivitiesChange}
+        placeholder="Describe what students must work on, including specific tasks and activities..."
+        rows={4}
+        error={errors.scopeActivities}
+      />
+      <Select
+        title="Allowed Team Structure *"
+        options={teamStructureOptions}
+        value={teamStructure || null}
+        onChange={(value) => {
+          const val = typeof value === "string" ? value : value.value;
+          onTeamStructureChange(val as "individuals" | "groups" | "both" | "");
+          onClearError("teamStructure");
+        }}
+        placeHolder="Select team structure"
+        error={errors.teamStructure}
+      />
+      <Input
+        title="Project Duration *"
+        value={duration}
+        onChange={(e) => {
+          onDurationChange(e.target.value);
+          onClearError("duration");
+        }}
+        placeholder="e.g., 12 weeks, 3 months"
+        error={errors.duration}
+      />
+      <RichTextEditor
+        title="Expectations *"
+        value={expectations}
+        onChange={onExpectationsChange}
+        placeholder="Describe expectations for students, deliverables quality, communication, etc..."
+        rows={4}
+        error={errors.expectations}
       />
       <MergedCurrencyInput
         title="Budget *"

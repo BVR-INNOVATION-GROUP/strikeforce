@@ -73,8 +73,16 @@ export const projectService = {
    * Create a new project with validation
    */
   createProject: async (projectData: Partial<ProjectI>): Promise<ProjectI> => {
+    console.log("[projectService] createProject called with data:", {
+      title: projectData.title,
+      descriptionLength: projectData.description?.length || 0,
+      description: projectData.description?.substring(0, 50) + "...",
+      timestamp: new Date().toISOString(),
+    });
+
     // Business validation
     if (!projectData.title || projectData.title.trim().length === 0) {
+      console.error("[projectService] Validation failed: title is required");
       throw new Error("Project title is required");
     }
 
@@ -82,8 +90,14 @@ export const projectService = {
       !projectData.description ||
       projectData.description.trim().length < 10
     ) {
+      console.error("[projectService] Validation failed: description too short", {
+        descriptionLength: projectData.description?.length || 0,
+        description: projectData.description,
+      });
       throw new Error("Project description must be at least 10 characters");
     }
+
+    console.log("[projectService] Validation passed, creating project via repository");
 
     // Transform data for storage
     const transformedData: Partial<ProjectI> = {
@@ -109,17 +123,18 @@ export const projectService = {
     id: string | number,
     projectData: Partial<ProjectI>
   ): Promise<ProjectI> => {
-    // Get existing project
-    const existing = await projectRepository.getById(id);
+    // Clean up the data before sending
+    const cleanedData: any = { ...projectData };
+    
+    // Convert courseId: 0 to undefined (don't send it)
+    if (cleanedData.courseId === 0 || cleanedData.courseId === null) {
+      cleanedData.courseId = undefined;
+    }
+    
+    // Ensure id is included
+    cleanedData.id = typeof id === 'string' ? parseInt(id, 10) : id;
 
-    // Apply business rules for updates
-    const updatedData = {
-      ...existing,
-      ...projectData,
-      updatedAt: new Date().toISOString(),
-    };
-
-    return projectRepository.update(id, updatedData);
+    return projectRepository.update(id, cleanedData);
   },
 
   /**

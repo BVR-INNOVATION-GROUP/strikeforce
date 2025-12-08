@@ -73,8 +73,16 @@ export const userRepository = {
   },
 
   /**
-   * Update user
-   * Note: Backend may need to add this endpoint if not available
+   * Update current authenticated user (uses token's user_id)
+   * Backend endpoint: PUT /user/
+   */
+  updateCurrent: async (user: Partial<UserI>): Promise<UserI> => {
+    return api.put<UserI>("/user/", user);
+  },
+
+  /**
+   * Update user by ID (admin only)
+   * Backend endpoint: PUT /user/:id
    */
   update: async (id: string | number, user: Partial<UserI>): Promise<UserI> => {
     return api.put<UserI>(`/user/${id}`, user);

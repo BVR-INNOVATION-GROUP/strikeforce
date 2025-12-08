@@ -1,6 +1,6 @@
 /**
- * Logo Cropper Component
- * Provides image cropping functionality with a nice UI
+ * Profile Picture Cropper Component
+ * Provides image cropping functionality for profile pictures
  */
 "use client";
 
@@ -9,14 +9,14 @@ import Cropper, { Area } from "react-easy-crop";
 import Button from "@/src/components/core/Button";
 import Modal from "@/src/components/base/Modal";
 
-interface LogoCropperProps {
+interface ProfilePictureCropperProps {
   image: string;
   open: boolean;
   onCropComplete: (croppedImageBlob: Blob) => void;
   onCancel: () => void;
 }
 
-const LogoCropper: React.FC<LogoCropperProps> = ({
+const ProfilePictureCropper: React.FC<ProfilePictureCropperProps> = ({
   image,
   open,
   onCropComplete,
@@ -115,7 +115,7 @@ const LogoCropper: React.FC<LogoCropperProps> = ({
     <Modal
       open={open}
       handleClose={onCancel}
-      title="Crop Your Logo"
+      title="Crop Your Profile Picture"
       actions={[
         <Button
           key="cancel"
@@ -139,20 +139,20 @@ const LogoCropper: React.FC<LogoCropperProps> = ({
     >
       <div className="space-y-4">
         <p className="text-[0.875rem] opacity-60">
-          Adjust the crop area and zoom to get the perfect logo
+          Adjust the crop area and zoom to get the perfect profile picture
         </p>
 
-        {/* Cropper Container - Reduced height */}
-        <div className="relative w-full bg-pale rounded-lg overflow-hidden" style={{ height: "300px" }}>
+        {/* Cropper Container */}
+        <div className="relative w-full bg-pale rounded-lg overflow-hidden" style={{ height: "400px" }}>
           <Cropper
             image={image}
             crop={crop}
             zoom={zoom}
-            aspect={1} // Square aspect ratio for logos
+            aspect={1} // Square aspect ratio for profile pictures
             onCropChange={onCropChange}
             onZoomChange={onZoomChange}
             onCropComplete={onCropAreaComplete}
-            cropShape="rect"
+            cropShape="round" // Round crop for profile pictures
             showGrid={true}
             style={{
               containerStyle: {
@@ -198,7 +198,7 @@ const LogoCropper: React.FC<LogoCropperProps> = ({
           {/* Instructions */}
           <div className="bg-pale rounded-lg p-3 border border-custom">
             <p className="text-xs opacity-80">
-              💡 <strong>Tip:</strong> Drag the image to reposition it. The logo will be cropped to a square format.
+              💡 <strong>Tip:</strong> Drag the image to reposition it. The profile picture will be cropped to a square format.
             </p>
           </div>
         </div>
@@ -207,5 +207,5 @@ const LogoCropper: React.FC<LogoCropperProps> = ({
   );
 };
 
-export default LogoCropper;
+export default ProfilePictureCropper;
 

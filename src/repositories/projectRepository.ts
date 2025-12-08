@@ -239,7 +239,16 @@ export const projectRepository = {
    * Backend endpoint: POST /api/v1/projects
    */
   create: async (project: Partial<ProjectI>): Promise<ProjectI> => {
+    console.log("[projectRepository] Creating project:", {
+      endpoint: "/api/v1/projects",
+      project: project,
+      timestamp: new Date().toISOString(),
+    });
     const created = await api.post<any>("/api/v1/projects", project);
+    console.log("[projectRepository] Project created response:", {
+      created: created,
+      timestamp: new Date().toISOString(),
+    });
     return normalizeProject(created);
   },
 

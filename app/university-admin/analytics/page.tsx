@@ -10,7 +10,7 @@ import { OrganizationI } from "@/src/models/organization";
 import { UserI } from "@/src/models/user";
 import { DepartmentI } from "@/src/models/project";
 import { projectService } from "@/src/services/projectService";
-import { dashboardService, UniversityAdminDashboardStats } from "@/src/services/dashboardService";
+import { dashboardService, UniversityAdminDashboardStats, UniversityAdminAnalytics } from "@/src/services/dashboardService";
 import { useAuthStore } from "@/src/store";
 import { applicationRepository } from "@/src/repositories/applicationRepository";
 import { organizationService } from "@/src/services/organizationService";
@@ -29,6 +29,7 @@ export default function UniversityAdminAnalytics() {
   const [departments, setDepartments] = useState<DepartmentI[]>([]);
   const [organization, setOrganization] = useState<OrganizationI | null>(null);
   const [stats, setStats] = useState<UniversityAdminDashboardStats | null>(null);
+  const [analytics, setAnalytics] = useState<UniversityAdminAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -91,9 +92,16 @@ export default function UniversityAdminAnalytics() {
         const departmentsData = await departmentService.getAllDepartments(numericUniversityId);
         setDepartments(departmentsData);
 
-        // Load dashboard stats
-        const dashboardStats = await dashboardService.getUniversityAdminDashboardStats(universityId.toString());
+        // Load dashboard stats and analytics
+        const [dashboardStats, analyticsData] = await Promise.all([
+          dashboardService.getUniversityAdminDashboardStats(universityId.toString()),
+          dashboardService.getUniversityAdminAnalytics(universityId.toString()).catch((error) => {
+            console.error("Failed to load analytics:", error);
+            return null;
+          }),
+        ]);
         setStats(dashboardStats);
+        setAnalytics(analyticsData);
       } catch (error) {
         console.error("Failed to load analytics data:", error);
       } finally {
@@ -375,6 +383,134 @@ export default function UniversityAdminAnalytics() {
           </div>
         </Card>
       )}
+
+      {/* Revenue & Earnings Analytics */}
+      <Card title="Revenue & Earnings Analytics" className="mb-8">
+        {analytics ? (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <div className="p-4 bg-pale rounded-lg">
+                <p className="text-[0.8125rem] opacity-60 mb-1">Total Revenue</p>
+                <p className="text-[1.5rem] font-[600]">
+                  {new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'UGX',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  }).format(analytics.totalRevenue)}
+                </p>
+                <p className="text-xs text-secondary mt-1">From completed partner projects</p>
+              </div>
+              <div className="p-4 bg-pale rounded-lg">
+                <p className="text-[0.8125rem] opacity-60 mb-1">Total Student Earnings</p>
+                <p className="text-[1.5rem] font-[600]">
+                  {new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'UGX',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  }).format(analytics.totalStudentEarnings)}
+                </p>
+                <p className="text-xs text-secondary mt-1">
+                  {analytics.studentsEarningCount} students earning
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <LineChart
+                title="Revenue Trend"
+                data={analytics.revenueTrend.map((point) => ({
+                  name: point.month,
+                  Revenue: point.value,
+                }))}
+                lines={[
+                  { key: "Revenue", label: "Revenue (UGX)" },
+                ]}
+              />
+              <LineChart
+                title="Student Earnings Trend"
+                data={analytics.earningsTrend.map((point) => ({
+                  name: point.month,
+                  Earnings: point.value,
+                }))}
+                lines={[
+                  { key: "Earnings", label: "Earnings (UGX)" },
+                ]}
+              />
+            </div>
+          </>
+        ) : (
+          <div className="rounded-lg border border-dashed border-custom p-6 text-center text-sm text-muted">
+            Analytics data is loading or unavailable. Please check your connection and try again.
+          </div>
+        )}
+      </Card>
+
+      {/* Demographic Analytics */}
+      <Card title="Demographic Analytics" className="mb-8">
+        <p className="text-sm text-secondary mb-6">
+          Track student demographics for research and reporting purposes
+        </p>
+        {analytics ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {analytics.genderDistribution.length > 0 ? (
+              <BarChart
+                title="Gender Distribution"
+                data={analytics.genderDistribution.map((point) => ({
+                  name: point.gender,
+                  Students: point.count,
+                }))}
+                bars={[
+                  { key: "Students", label: "Students" },
+                ]}
+              />
+            ) : (
+              <div className="rounded-lg border border-dashed border-custom p-4 text-center text-sm text-muted">
+                No gender data available
+              </div>
+            )}
+            {analytics.branchDistribution.length > 0 ? (
+              <BarChart
+                title="Branch Distribution"
+                data={analytics.branchDistribution.map((point) => ({
+                  name: point.branchName,
+                  Students: point.count,
+                }))}
+                bars={[
+                  { key: "Students", label: "Students" },
+                ]}
+              />
+            ) : (
+              <div className="rounded-lg border border-dashed border-custom p-4 text-center text-sm text-muted">
+                No branch data available
+              </div>
+            )}
+            {analytics.districtDistribution.length > 0 ? (
+              <BarChart
+                title="District Distribution"
+                data={analytics.districtDistribution
+                  .sort((a, b) => b.count - a.count)
+                  .slice(0, 10)
+                  .map((point) => ({
+                    name: point.district,
+                    Students: point.count,
+                  }))}
+                bars={[
+                  { key: "Students", label: "Students" },
+                ]}
+              />
+            ) : (
+              <div className="rounded-lg border border-dashed border-custom p-4 text-center text-sm text-muted">
+                No district data available
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-custom p-6 text-center text-sm text-muted">
+            Analytics data is loading or unavailable. Please check your connection and try again.
+          </div>
+        )}
+      </Card>
 
       {/* Summary Stats */}
       {stats && (

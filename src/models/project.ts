@@ -12,7 +12,14 @@ export interface ProjectI {
   courseId: number;
   supervisorId?: number;
   title: string;
-  description: string;
+  description: string; // Kept for backward compatibility
+  summary?: string; // Project summary
+  challengeStatement?: string; // Project challenge/opportunity statement
+  scopeActivities?: string; // Project scope/activities (what students must work on)
+  deliverablesMilestones?: string; // Deliverables/milestones (tracked by days/weeks)
+  teamStructure?: "individuals" | "groups" | "both"; // Allowed team structure
+  duration?: string; // Project duration (e.g., "12 weeks", "3 months")
+  expectations?: string; // Expectations
   status: ProjectStatus;
   skills: string[];
   budget: number | { Currency?: string; Value?: number; currency?: string; value?: number }; // Backend returns Budget object

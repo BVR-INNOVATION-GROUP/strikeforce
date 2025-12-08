@@ -68,7 +68,13 @@ export function useProjectFormSubmission(
   const handleStep2Continue = (formState: unknown): boolean => {
     const validationErrors = validateStep2(
       formState.title,
-      formState.desc,
+      formState.desc || "",
+      formState.summary,
+      formState.challengeStatement,
+      formState.scopeActivities,
+      formState.teamStructure,
+      formState.duration,
+      formState.expectations,
       formState.currency,
       formState.budget,
       formState.deadline,
@@ -106,7 +112,7 @@ export function useProjectFormSubmission(
           ) as File[];
 
           if (filesToUpload.length > 0) {
-            // Upload files and get paths
+            // Upload files to Cloudinary and get URLs (no compression)
             attachmentPaths = await uploadProjectFiles(filesToUpload);
           }
 
@@ -131,11 +137,26 @@ export function useProjectFormSubmission(
         "id" | "createdAt" | "updatedAt" | "partnerId"
       >;
       try {
+        console.log("[useProjectFormSubmission] Building project from form data:", {
+          formState: {
+            ...formState,
+            attachments: attachmentPaths.length,
+          },
+          timestamp: new Date().toISOString(),
+        });
         newProject = buildProjectFromForm({
           ...formState,
           attachments: attachmentPaths,
         });
+        console.log("[useProjectFormSubmission] Project built successfully:", {
+          project: {
+            ...newProject,
+            description: newProject.description?.substring(0, 50) + "...",
+          },
+          timestamp: new Date().toISOString(),
+        });
       } catch (error) {
+        console.error("[useProjectFormSubmission] Error building project:", error);
         showError(
           error instanceof Error
             ? error.message
@@ -145,7 +166,15 @@ export function useProjectFormSubmission(
       }
 
       try {
+        console.log("[useProjectFormSubmission] Calling onSubmit (will make API call):", {
+          hasOnSubmit: !!onSubmit,
+          timestamp: new Date().toISOString(),
+        });
+        // Call onSubmit and wait for it to complete (this makes the network call)
         await onSubmit?.(newProject);
+        console.log("[useProjectFormSubmission] onSubmit completed successfully");
+        
+        // Only show success and close modal if onSubmit completes without error
         showSuccess(
           isEditMode
             ? "Project updated successfully!"
@@ -156,11 +185,13 @@ export function useProjectFormSubmission(
         setErrors({});
         return true;
       } catch (error) {
-        showError(
-          isEditMode
-            ? "Failed to update project. Please try again."
-            : "Failed to create project. Please try again."
-        );
+        // Show error message from the error if available, otherwise generic message
+        const errorMessage = error instanceof Error 
+          ? error.message 
+          : (isEditMode
+              ? "Failed to update project. Please try again."
+              : "Failed to create project. Please try again.");
+        showError(errorMessage);
         return false;
       }
     } finally {

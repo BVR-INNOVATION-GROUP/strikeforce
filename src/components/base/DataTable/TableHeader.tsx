@@ -17,19 +17,22 @@ export interface Props<T> {
     sortDirection: 'asc' | 'desc'
     allSelected: boolean
     showActions: boolean
+    showCheckboxes?: boolean
     onSelectAll: (checked: boolean) => void
     onSort: (columnKey: string) => void
 }
 
 function TableHeader<T>(props: Props<T>) {
-    const { columns, sortColumn, sortDirection, allSelected, showActions, onSelectAll, onSort } = props
+    const { columns, sortColumn, sortDirection, allSelected, showActions, showCheckboxes = true, onSelectAll, onSort } = props
 
     return (
         <thead>
             <tr className="bg-paper border-b border-custom">
-                <th className="text-left p-3 w-12">
-                    <Checkbox checked={allSelected} onChange={onSelectAll} />
-                </th>
+                {showCheckboxes && (
+                    <th className="text-left p-3 w-12">
+                        <Checkbox checked={allSelected} onChange={onSelectAll} />
+                    </th>
+                )}
                 {columns.map((column) => (
                     <th key={column.key} className="text-left p-3 text-sm font-semibold text-secondary">
                         <div className="flex items-center gap-2">

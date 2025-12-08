@@ -19,30 +19,19 @@ const Modal = (props: Props) => {
 
     // Ensure component is mounted (for portal)
     useEffect(() => {
-        console.log('[DEBUG Modal] Component mounting');
         setMounted(true);
         return () => {
-            console.log('[DEBUG Modal] Component unmounting');
             setMounted(false);
         };
     }, []);
 
-    // Debug logging
-    useEffect(() => {
-        console.log('[DEBUG Modal] Props changed - open:', props?.open, 'mounted:', mounted, 'title:', props?.title);
-    }, [props?.open, mounted, props?.title]);
-
     // Don't render if not mounted or not open
     if (!mounted) {
-        console.log('[DEBUG Modal] Not rendering - not mounted');
         return null;
     }
     if (!props?.open) {
-        console.log('[DEBUG Modal] Not rendering - not open');
         return null;
     }
-
-    console.log('[DEBUG Modal] Rendering modal content');
 
     const modalContent = (
         <AnimatePresence mode="wait">
@@ -64,7 +53,6 @@ const Modal = (props: Props) => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 30 }}
                         onClick={(e) => {
-                            console.log('[DEBUG Modal] Content clicked, stopping propagation');
                             e.stopPropagation();
                         }}
                         className="bg-paper shadow-custom rounded-lg min-w-[40%] max-w-[60%] max-h-[90%] flex flex-col"
@@ -76,7 +64,6 @@ const Modal = (props: Props) => {
                                 {props?.title}
                             </div>
                             <IconButton onClick={() => {
-                                console.log('[DEBUG Modal] Close button clicked');
                                 props?.handleClose();
                             }} icon={<X />} className='hover-bg-pale' />
                         </div>

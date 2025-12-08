@@ -202,12 +202,12 @@ const Navbar = () => {
                 {/* Show organization logo if available, otherwise show default logo */}
                 {organization?.logo ? (
                     <div className="flex ml-[1vw] items-center justify-center">
-                        <img 
-                            src={organization.logo.startsWith("http") 
-                                ? organization.logo 
+                        <img
+                            src={organization.logo.startsWith("http")
+                                ? organization.logo
                                 : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/${organization.logo}`}
-                            alt={organization.name || "Organization Logo"} 
-                            className="h-12 w-auto object-contain max-w-[200px]"
+                            alt={organization.name || "Organization Logo"}
+                            className="h-12 w-auto rounded-lg object-contain max-w-[200px]"
                             onError={(e) => {
                                 // Fallback to default logo if image fails to load
                                 const target = e.target as HTMLImageElement;

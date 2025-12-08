@@ -49,7 +49,7 @@ function TablePagination(props: Props) {
     const showLastEllipsis = totalPages > 5 && currentPage < totalPages - 3
 
     return (
-        <div className="border-t border-custom bg-white px-4 py-3 flex items-center justify-between">
+        <div className="border-t border-custom bg-paper px-4 py-3 flex items-center justify-between">
             <div className="text-sm text-secondary">
                 Showing {totalItems === 0 ? 0 : startIndex + 1}-{Math.min(endIndex, totalItems)} of{' '}
                 {totalItems} entries

@@ -7,6 +7,11 @@ export interface ManualEntryFormData {
   email: string;
   department?: string; // Required for supervisors
   course?: string; // Required for students
+  gender?: string; // For students
+  district?: string; // For students
+  universityBranch?: string; // For students
+  birthYear?: string; // For students (as string for form input)
+  enrollmentYear?: string; // For students (as string for form input)
 }
 
 export interface ValidationErrors {
@@ -14,6 +19,7 @@ export interface ValidationErrors {
   email?: string;
   department?: string; // Required for supervisors
   course?: string; // Required for students
+  enrollmentYear?: string; // Required for students
 }
 
 export type UploadType = "student" | "supervisor" | "department" | "course";
@@ -41,6 +47,16 @@ export function validateManualEntry(
       // Course is required and will carry the department information
       if (!data.course) {
         errors.course = "Course is required for students";
+      }
+      // Enrollment year is required for students
+      if (!data.enrollmentYear || data.enrollmentYear.trim().length === 0) {
+        errors.enrollmentYear = "Enrollment year is required for students";
+      } else {
+        const year = parseInt(data.enrollmentYear, 10);
+        const currentYear = new Date().getFullYear();
+        if (isNaN(year) || year < 2000 || year > currentYear + 1) {
+          errors.enrollmentYear = `Enrollment year must be between 2000 and ${currentYear + 1}`;
+        }
       }
     }
 
