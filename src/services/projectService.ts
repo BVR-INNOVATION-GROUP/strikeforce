@@ -140,12 +140,16 @@ export const projectService = {
   /**
    * Update project status
    * Used by university admins to approve/disapprove/suspend projects
+   * @param signature - Optional signature data URL (required for approval)
+   * @param mouUrl - Optional MOU PDF URL from Cloudinary
    */
   updateProjectStatus: async (
     id: string | number,
-    status: string
+    status: string,
+    signature?: string | null,
+    mouUrl?: string | null
   ): Promise<ProjectI> => {
-    return projectRepository.updateStatus(id, status);
+    return projectRepository.updateStatus(id, status, signature, mouUrl);
   },
 
   /**

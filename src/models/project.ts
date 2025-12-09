@@ -2,7 +2,13 @@
  * Project model - represents partner projects posted to universities
  */
 
-export type ProjectStatus = "draft" | "published" | "in-progress" | "on-hold" | "completed" | "cancelled";
+export type ProjectStatus =
+  | "draft"
+  | "published"
+  | "in-progress"
+  | "on-hold"
+  | "completed"
+  | "cancelled";
 
 export interface ProjectI {
   id: number;
@@ -22,11 +28,16 @@ export interface ProjectI {
   expectations?: string; // Expectations
   status: ProjectStatus;
   skills: string[];
-  budget: number | { Currency?: string; Value?: number; currency?: string; value?: number }; // Backend returns Budget object
+  budget:
+    | number
+    | { Currency?: string; Value?: number; currency?: string; value?: number }; // Backend returns Budget object
   currency: string;
   deadline: string;
   capacity: number; // Max number of students/groups
   attachments?: string[]; // URLs to attached files
+  partnerSignature?: string; // Partner signature data URL
+  universityAdminSignature?: string; // University admin signature data URL
+  mouUrl?: string; // URL to MOU PDF on Cloudinary
   createdAt: string;
   updatedAt: string;
 }
@@ -36,6 +47,9 @@ export interface DepartmentI {
   universityId: number;
   name: string;
   createdAt: string;
+  updatedAt?: string;
+  collegeId?: number | null;
+  collegeName?: string;
 }
 
 export interface CourseI {
@@ -44,5 +58,3 @@ export interface CourseI {
   name: string;
   createdAt: string;
 }
-
-

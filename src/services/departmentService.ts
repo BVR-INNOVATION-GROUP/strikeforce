@@ -34,8 +34,8 @@ export const departmentService = {
       throw new Error("Department name is required");
     }
 
-    if (!departmentData.universityId) {
-      throw new Error("University ID is required");
+    if (!departmentData.collegeId) {
+      throw new Error("College ID is required");
     }
 
     // Transform data for storage

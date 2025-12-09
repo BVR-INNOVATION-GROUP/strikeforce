@@ -269,13 +269,25 @@ export const projectRepository = {
   /**
    * Update project status
    * Backend endpoint: PUT /api/v1/projects/update-status?status=...&project=...
+   * @param signature - Optional signature data URL (required for approval)
+   * @param mouUrl - Optional MOU PDF URL from Cloudinary
    */
   updateStatus: async (
     id: string | number,
-    status: string
+    status: string,
+    signature?: string | null,
+    mouUrl?: string | null
   ): Promise<ProjectI> => {
+    const body: any = {};
+    if (signature) {
+      body.universityAdminSignature = signature;
+    }
+    if (mouUrl) {
+      body.mouUrl = mouUrl;
+    }
     const updated = await api.put<any>(
-      `/api/v1/projects/update-status?status=${status}&project=${id}`
+      `/api/v1/projects/update-status?status=${status}&project=${id}`,
+      Object.keys(body).length > 0 ? body : undefined
     );
     return normalizeProject(updated);
   },

@@ -57,6 +57,7 @@ export const sidebarLinks: SideLinkCategory[] = [
         links: [
             { title: "Dashboard", iconComponent: LayoutPanelTop, path: "/university-admin" },
             { title: "Partners", iconComponent: Handshake, path: "/university-admin/partners" },
+            { title: "Colleges", iconComponent: Building2, path: "/university-admin/colleges" },
             { title: "Departments", iconComponent: FolderTree, path: "/university-admin/departments" },
             { title: "Branches", iconComponent: MapPin, path: "/university-admin/branches" },
             { title: "Offers", iconComponent: Briefcase, path: "/university-admin/offers" },

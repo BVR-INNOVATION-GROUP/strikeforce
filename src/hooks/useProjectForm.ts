@@ -23,6 +23,7 @@ export interface ProjectFormState {
   capacity: string;
   selectedSkills: string[];
   attachments: File[];
+  partnerSignature: string | null;
 }
 
 export interface ProjectFormActions {
@@ -44,6 +45,7 @@ export interface ProjectFormActions {
   setCapacity: (value: string) => void;
   setSelectedSkills: React.Dispatch<React.SetStateAction<string[]>>;
   setAttachments: (files: File[]) => void;
+  setPartnerSignature: (signature: string | null) => void;
   toggleSkill: (skill: string) => void;
   resetForm: () => void;
 }
@@ -107,6 +109,7 @@ export function useProjectForm(
   const [capacity, setCapacity] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [partnerSignature, setPartnerSignature] = useState<string | null>(null);
 
   const resetForm = () => {
     setUniversityState(undefined);
@@ -127,6 +130,7 @@ export function useProjectForm(
     setCapacity("");
     setSelectedSkills([]);
     setAttachments([]);
+    setPartnerSignature(null);
   };
 
   useEffect(() => {
@@ -233,6 +237,7 @@ export function useProjectForm(
     capacity,
     selectedSkills,
     attachments,
+    partnerSignature,
   };
 
   const actions: ProjectFormActions = {
@@ -254,6 +259,7 @@ export function useProjectForm(
     setCapacity,
     setSelectedSkills,
     setAttachments,
+    setPartnerSignature,
     toggleSkill,
     resetForm,
   };

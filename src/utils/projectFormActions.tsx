@@ -50,6 +50,17 @@ export function getProjectFormActions({
 
     case 3:
       return [
+        <Button key="back" onClick={onBack} className="bg-pale">
+          Back
+        </Button>,
+        <Button key="continue" onClick={onContinue} className="bg-primary">
+          Continue
+          <ArrowRight size={16} />
+        </Button>,
+      ];
+
+    case 4:
+      return [
         <Button key="back" onClick={onBack} className="bg-pale" disabled={isSubmitting}>
           Back
         </Button>,

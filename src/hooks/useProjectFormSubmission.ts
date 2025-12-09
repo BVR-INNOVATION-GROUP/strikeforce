@@ -18,6 +18,7 @@ export interface UseProjectFormSubmissionResult {
   clearError: (field: string) => void;
   handleStep1Continue: (formState: unknown) => boolean;
   handleStep2Continue: (formState: unknown) => boolean;
+  handleStep3Continue: (formState: unknown) => boolean;
   handleSubmit: (
     formState: unknown,
     onSubmit?: (project: unknown) => void,
@@ -92,6 +93,13 @@ export function useProjectFormSubmission(
     return true;
   };
 
+  const handleStep3Continue = (formState: unknown): boolean => {
+    // Attachments are optional, no validation needed
+    setStep(4);
+    setErrors({});
+    return true;
+  };
+
   const handleSubmit = async (
     formState: unknown,
     onSubmit?: (project: unknown) => void,
@@ -100,6 +108,13 @@ export function useProjectFormSubmission(
     setIsSubmitting(true);
 
     try {
+      // Step 4 validation - signature is required
+      if (!formState.partnerSignature) {
+        setErrors({ partnerSignature: "Partner signature is required" });
+        showError("Please provide your signature before submitting");
+        return false;
+      }
+
       // Step 3 validation - attachments are optional, so no validation needed
       // Upload files first if there are unknown attachments
       let attachmentPaths: string[] = [];
@@ -206,6 +221,7 @@ export function useProjectFormSubmission(
     clearError,
     handleStep1Continue,
     handleStep2Continue,
+    handleStep3Continue,
     handleSubmit,
     isSubmitting,
   };

@@ -8,6 +8,7 @@ import Modal from "@/src/components/base/Modal";
 import ProjectFormStep1 from "./ProjectFormStep1";
 import ProjectFormStep2 from "./ProjectFormStep2";
 import ProjectFormStep3 from "./ProjectFormStep3";
+import ProjectFormStep4 from "./ProjectFormStep4";
 import { useProjectForm } from "@/src/hooks/useProjectForm";
 import { getProjectFormActions } from "@/src/utils/projectFormActions";
 import { useProjectFormSubmission } from "@/src/hooks/useProjectFormSubmission";
@@ -58,6 +59,7 @@ const ProjectForm = (props: Props) => {
     clearError,
     handleStep1Continue,
     handleStep2Continue,
+    handleStep3Continue,
     handleSubmit: handleFormSubmit,
     isSubmitting: internalIsSubmitting,
   } = useProjectFormSubmission(isEditMode);
@@ -99,7 +101,17 @@ const ProjectForm = (props: Props) => {
     return getProjectFormActions({
       step,
       onCancel: handleCancel,
-      onContinue: step === 1 ? handleStep1ContinueWrapper : handleStep2ContinueWrapper,
+      onContinue: step === 1 
+        ? handleStep1ContinueWrapper 
+        : step === 2 
+        ? handleStep2ContinueWrapper 
+        : step === 3
+        ? () => {
+            if (handleStep3Continue(formState)) {
+              // Step transition handled in hook
+            }
+          }
+        : undefined,
       onBack: handleBack,
       onSubmit: handleSubmit,
       isSubmitting,
@@ -158,12 +170,19 @@ const ProjectForm = (props: Props) => {
               onCurrencyChange={formActions.setCurrency}
               onClearError={clearError}
             />
+          ) : step === 3 ? (
+            <ProjectFormStep3
+              attachments={formState.attachments}
+              errors={errors}
+              onAttachmentsChange={formActions.setAttachments}
+              onClearError={clearError}
+            />
           ) : (
-            step === 3 && (
-              <ProjectFormStep3
-                attachments={formState.attachments}
+            step === 4 && (
+              <ProjectFormStep4
+                partnerSignature={formState.partnerSignature}
                 errors={errors}
-                onAttachmentsChange={formActions.setAttachments}
+                onSignatureChange={formActions.setPartnerSignature}
                 onClearError={clearError}
               />
             )

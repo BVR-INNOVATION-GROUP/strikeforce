@@ -28,11 +28,17 @@ export interface SourceDepartment {
   CreatedAt?: string;
   createdAt?: string;
   UpdatedAt?: string;
+  updatedAt?: string;
   DeletedAt?: string | null;
   name: string;
   organization_id?: number;
   organizationId?: number;
   organization?: Record<string, any>;
+  college_id?: number | null;
+  collegeId?: number | null;
+  CollegeID?: number | null;
+  college?: { name?: string };
+  College?: { Name?: string; name?: string };
 }
 
 export interface SourceCourse {
@@ -54,11 +60,18 @@ export function transformDepartment(source: SourceDepartment): DepartmentI {
   const normalizedId = source.ID ?? source.id ?? 0;
   const normalizedOrgId = source.organization_id ?? source.organizationId ?? 0;
   const normalizedCreatedAt = source.CreatedAt ?? source.createdAt ?? "";
+  const normalizedUpdatedAt = source.UpdatedAt ?? source.updatedAt ?? "";
+  const normalizedCollegeId =
+    source.college_id ?? source.collegeId ?? source.CollegeID ?? null;
+  const collegeName = source.college?.name || source.College?.Name || source.College?.name;
   return {
     id: normalizedId,
     universityId: normalizedOrgId,
     name: source.name,
     createdAt: normalizedCreatedAt,
+    updatedAt: normalizedUpdatedAt,
+    collegeId: normalizedCollegeId ?? undefined,
+    collegeName,
   };
 }
 

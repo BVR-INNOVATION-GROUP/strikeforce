@@ -10,11 +10,19 @@ export const groupRepository = {
   /**
    * Get all groups
    * @param courseId - Optional filter by course
+   * @param userId - Optional filter by user ID (for university-admins viewing student details)
    * Note: Backend may need to add this endpoint if not available
    */
-  getAll: async (courseId?: number | string): Promise<GroupI[]> => {
-    const url = courseId
-      ? `/api/v1/groups?courseId=${courseId}`
+  getAll: async (courseId?: number | string, userId?: number): Promise<GroupI[]> => {
+    const params = new URLSearchParams();
+    if (courseId) {
+      params.append("courseId", courseId.toString());
+    }
+    if (userId) {
+      params.append("userId", userId.toString());
+    }
+    const url = params.toString()
+      ? `/api/v1/groups?${params.toString()}`
       : "/api/v1/groups";
     return api.get<GroupI[]>(url);
   },

@@ -58,17 +58,24 @@ const StudentDetailsModal = ({
   const loadStudentData = async () => {
     if (!student?.id) return;
 
-    const studentId = typeof student.id === "number" ? student.id : parseInt(student.id.toString(), 10);
+    // Use userId if available (for group matching), otherwise fall back to student.id
+    // Groups are associated with User IDs, not Student record IDs
+    const userId = (student as any).userId 
+      ? (typeof (student as any).userId === "number" ? (student as any).userId : parseInt((student as any).userId.toString(), 10))
+      : (typeof student.id === "number" ? student.id : parseInt(student.id.toString(), 10));
 
-    // Load groups
+    // Load groups - use userId query parameter for university-admins
     setLoadingGroups(true);
     try {
-      // Get all groups and filter by memberIds
-      const allGroups = await groupRepository.getAll();
-      const studentGroups = allGroups.filter(
-        (g) => g.leaderId === studentId || (g.memberIds && g.memberIds.includes(studentId))
-      );
-      setGroups(studentGroups);
+      // Try to get groups from the user object if it has groups preloaded
+      if ((student as any).groups && Array.isArray((student as any).groups)) {
+        setGroups((student as any).groups);
+      } else {
+        // Fetch groups for the specific user using userId query parameter
+        // Backend allows university-admins to query groups for a specific userId
+        const allGroups = await groupRepository.getAll(undefined, userId);
+        setGroups(allGroups);
+      }
     } catch (error) {
       console.error("Failed to load groups:", error);
     } finally {
@@ -79,26 +86,34 @@ const StudentDetailsModal = ({
     setLoadingProjects(true);
     try {
       // Get all applications from repository
+      // Backend filters by university-admin's organization, returning all applications for their university
       const { applicationRepository } = await import("@/src/repositories/applicationRepository");
       const allApplications = await applicationRepository.getAll();
       
-      // Filter by studentIds
+      // Filter by studentIds - applications store user IDs (not student record IDs)
+      // Convert userId to number for comparison
+      const numericUserId = typeof userId === "number" ? userId : parseInt(userId.toString(), 10);
       const studentApplications = allApplications.filter(
-        (app) => app.studentIds && app.studentIds.includes(studentId)
+        (app) => app.studentIds && Array.isArray(app.studentIds) && app.studentIds.includes(numericUserId)
       );
       setApplications(studentApplications);
 
       // Get projects from applications
-      const projectIds = studentApplications.map((app) => app.projectId);
+      const projectIds = studentApplications.map((app) => app.projectId).filter((id): id is number => id !== undefined && id !== null);
       if (projectIds.length > 0) {
         const allProjects = await projectService.getAllProjects();
-        const studentProjects = allProjects.filter((p) =>
-          projectIds.includes(typeof p.id === "number" ? p.id : parseInt(p.id.toString(), 10))
-        );
+        const studentProjects = allProjects.filter((p) => {
+          const projectId = typeof p.id === "number" ? p.id : parseInt(p.id.toString(), 10);
+          return projectIds.includes(projectId);
+        });
         setProjects(studentProjects);
+      } else {
+        setProjects([]);
       }
     } catch (error) {
       console.error("Failed to load projects:", error);
+      setProjects([]);
+      setApplications([]);
     } finally {
       setLoadingProjects(false);
     }
@@ -246,18 +261,24 @@ const StudentDetailsModal = ({
             <p className="text-[0.8125rem] opacity-60">This student is not part of any groups.</p>
           ) : (
             <div className="space-y-2">
-              {groups.map((group) => (
-                <div key={group.id} className="p-3 bg-pale rounded-lg">
-                  <p className="text-[0.875rem] font-medium mb-1">{group.name}</p>
-                  <p className="text-[0.75rem] opacity-60">
-                    {group.leaderId === (typeof student.id === "number" ? student.id : parseInt(student.id.toString(), 10))
-                      ? "Leader"
-                      : "Member"}
-                    {" • "}
-                    {group.memberIds?.length || 0} member{group.memberIds?.length !== 1 ? "s" : ""}
-                  </p>
-                </div>
-              ))}
+              {groups.map((group) => {
+                // Use userId if available for comparison, otherwise fall back to student.id
+                const userId = (student as any).userId 
+                  ? (typeof (student as any).userId === "number" ? (student as any).userId : parseInt((student as any).userId.toString(), 10))
+                  : (typeof student.id === "number" ? student.id : parseInt(student.id.toString(), 10));
+                return (
+                  <div key={group.id} className="p-3 bg-pale rounded-lg">
+                    <p className="text-[0.875rem] font-medium mb-1">{group.name}</p>
+                    <p className="text-[0.75rem] opacity-60">
+                      {group.leaderId === userId
+                        ? "Leader"
+                        : "Member"}
+                      {" • "}
+                      {group.memberIds?.length || 0} member{group.memberIds?.length !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

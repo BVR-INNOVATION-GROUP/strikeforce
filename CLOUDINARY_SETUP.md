@@ -19,11 +19,15 @@ This project uses Cloudinary for client-side file uploads. All file uploads (log
    - **Preset name**: Choose a name (e.g., `strikeforce_unsigned`)
    - **Signing mode**: Select **Unsigned** (required for client-side uploads)
    - **Folder**: Optional - you can set a default folder (e.g., `strikeforce`)
-   - **Allowed formats**: Select the formats you want to allow
+   - **Allowed formats**: Select the formats you want to allow (include PDF for MOU documents)
    - **Max file size**: Set appropriate limits (e.g., 10MB)
    - **Use filename**: Enable if you want to preserve original filenames
    - **Unique filename**: Enable to prevent filename conflicts
+   - **Access mode**: Set to **Public** (this ensures files are publicly accessible)
+   - **Overwrite**: Set according to your needs (usually disabled for safety)
 5. Click **Save**
+
+**Important**: Make sure the upload preset has **Access mode** set to **Public** to ensure all uploaded files are accessible.
 
 ### 3. Configure Environment Variables
 
@@ -123,11 +127,25 @@ Files are organized in Cloudinary with the following folder structure:
 - Check that your upload preset is set to **Unsigned**
 - Verify your Cloud Name is correct
 - Check Cloudinary dashboard for any restrictions on the upload preset
+- **Ensure Access mode is set to "Public" in your upload preset settings**
 
 ### Files Not Appearing in Cloudinary
 - Check the Cloudinary Media Library
 - Verify the folder structure matches what's configured
 - Check browser console for any error messages
+
+### File Access Denied / "Customer is marked as untrusted"
+This error occurs when:
+1. **PDF/ZIP files are blocked**: Go to **Settings** → **Security** → Enable **"Allow delivery of PDF and ZIP files"**
+2. **Upload preset access mode**: Ensure your upload preset has **Access mode** set to **Public**
+3. **File permissions**: Check the uploaded file in Media Library and ensure it's marked as public
+
+**Steps to fix:**
+1. Go to **Settings** → **Security**
+2. Scroll to **"PDF and ZIP files delivery"** section
+3. Check the box **"Allow delivery of PDF and ZIP files"**
+4. Click **Save**
+5. For existing files, you may need to re-upload them, or manually change their access mode in the Media Library
 
 ## Migration Notes
 

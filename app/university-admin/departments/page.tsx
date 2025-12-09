@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Button from "@/src/components/core/Button";
 import { useToast } from "@/src/hooks/useToast";
 import { DepartmentI } from "@/src/models/project";
+import { CollegeI } from "@/src/models/college";
 import { Plus, Upload } from "lucide-react";
 import Modal from "@/src/components/base/Modal";
 import ConfirmationDialog from "@/src/components/base/ConfirmationDialog";
@@ -13,6 +14,7 @@ import FileUpload from "@/src/components/base/FileUpload";
 import DepartmentCard from "@/src/components/screen/university-admin/departments/DepartmentCard";
 import { downloadDepartmentsTemplate } from "@/src/utils/csvTemplateDownload";
 import { Download } from "lucide-react";
+import Select from "@/src/components/core/Select";
 import {
   GET,
   POST,
@@ -24,6 +26,7 @@ import {
   transformDepartments,
   transformCourses,
 } from "@/base";
+import { collegeService } from "@/src/services/collegeService";
 
 /**
  * University Admin Departments - manage university departments
@@ -33,14 +36,15 @@ export default function UniversityAdminDepartments() {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
   const [departments, setDepartments] = useState<DepartmentI[]>([]);
+  const [colleges, setColleges] = useState<CollegeI[]>([]);
   const [programmeCounts, setProgrammeCounts] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBulkUploadModalOpen, setIsBulkUploadModalOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [editingDepartment, setEditingDepartment] = useState<DepartmentI | null>(null);
-  const [formData, setFormData] = useState({ name: "" });
-  const [errors, setErrors] = useState<{ name?: string }>({});
+  const [formData, setFormData] = useState<{ name: string; collegeId?: number | string | null }>({ name: "", collegeId: null });
+  const [errors, setErrors] = useState<{ name?: string; collegeId?: string }>({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [departmentToDelete, setDepartmentToDelete] = useState<string | null>(null);
 
@@ -55,15 +59,31 @@ export default function UniversityAdminDepartments() {
     try {
       setLoading(true);
 
-      const { data, status, msg } = await GET<SourceDepartment[]>("api/v1/departments");
-      const normalizedData = Array.isArray(data) ? data : [];
+      const [departmentsResponse, collegesResponse] = await Promise.all([
+        GET<SourceDepartment[]>("api/v1/departments"),
+        collegeService.getAllColleges(),
+      ]);
+
+      const normalizedColleges = Array.isArray(collegesResponse) ? collegesResponse : [];
+      setColleges(normalizedColleges);
+
+      const normalizedData = Array.isArray(departmentsResponse.data) ? departmentsResponse.data : [];
       const transformedDepartments = transformDepartments(normalizedData);
-      setDepartments(transformedDepartments);
+
+      // Enrich department college names if not returned
+      const collegeMap = new Map<number, string>();
+      normalizedColleges.forEach((col) => collegeMap.set(col.id, col.name));
+      const enrichedDepartments = transformedDepartments.map((dept) => ({
+        ...dept,
+        collegeName: dept.collegeName || (dept.collegeId ? collegeMap.get(dept.collegeId) : undefined),
+      }));
+
+      setDepartments(enrichedDepartments);
 
       // Fetch programme counts for each department
       const counts: Record<number, number> = {};
       await Promise.all(
-        transformedDepartments.map(async (dept) => {
+        enrichedDepartments.map(async (dept) => {
           try {
             const coursesResponse = await GET<SourceCourse[]>(`api/v1/courses?dept=${dept.id}`);
             const courses = Array.isArray(coursesResponse.data) ? coursesResponse.data : [];
@@ -76,10 +96,6 @@ export default function UniversityAdminDepartments() {
       );
       setProgrammeCounts(counts);
 
-      if (status != 200) {
-        // showError(msg)
-        // return
-      }
     } catch (error) {
       console.error("Failed to load departments:", error);
       showError("Failed to load departments");
@@ -92,9 +108,12 @@ export default function UniversityAdminDepartments() {
    * Validate department form
    */
   const validate = (): boolean => {
-    const newErrors: { name?: string } = {};
+    const newErrors: { name?: string; collegeId?: string } = {};
     if (!formData.name || formData.name.trim().length === 0) {
       newErrors.name = "Department name is required";
+    }
+    if (!formData.collegeId) {
+      newErrors.collegeId = "College is required";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -105,6 +124,8 @@ export default function UniversityAdminDepartments() {
    */
   const handleSubmit = async () => {
     if (!validate()) return;
+
+    const collegeId = formData.collegeId ? Number(formData.collegeId) : null;
 
     try {
       if (editingDepartment) {
@@ -117,20 +138,13 @@ export default function UniversityAdminDepartments() {
           : editingDepartment.id;
         const response = await PUT<SourceDepartment>(
           `api/v1/departments/${deptId}`,
-          { name: formData.name }
-        );
-        const updatedDepartment = response.data
-          ? transformDepartment(response.data)
-          : { ...editingDepartment, name: formData.name };
-        setDepartments((prev) =>
-          prev.map((d) =>
-            d.id === updatedDepartment.id ? updatedDepartment : d
-          )
+          { name: formData.name, collegeId }
         );
         showSuccess("Department updated successfully");
       } else {
         const { data, status, msg } = await POST<SourceDepartment>("api/v1/departments", {
           name: formData.name,
+          collegeId,
         });
 
         if (status != 201) {
@@ -138,11 +152,11 @@ export default function UniversityAdminDepartments() {
           return;
         }
 
-        const newDepartment = transformDepartment(data);
-        setDepartments((prev) => [...prev, newDepartment]);
         showSuccess("Department created successfully");
       }
       handleClose();
+      // Reload departments to ensure college data is properly loaded
+      await loadDepartments();
     } catch (error) {
       console.error("Failed to save department:", error);
       showError("Failed to save department. Please try again.");
@@ -205,7 +219,7 @@ export default function UniversityAdminDepartments() {
    */
   const handleEdit = (department: DepartmentI) => {
     setEditingDepartment(department);
-    setFormData({ name: department.name });
+    setFormData({ name: department.name, collegeId: department.collegeId ?? null });
     setIsModalOpen(true);
   };
 
@@ -214,7 +228,7 @@ export default function UniversityAdminDepartments() {
    */
   const handleCreate = () => {
     setEditingDepartment(null);
-    setFormData({ name: "" });
+    setFormData({ name: "", collegeId: null });
     setErrors({});
     setIsModalOpen(true);
   };
@@ -225,7 +239,7 @@ export default function UniversityAdminDepartments() {
   const handleClose = () => {
     setIsModalOpen(false);
     setEditingDepartment(null);
-    setFormData({ name: "" });
+    setFormData({ name: "", collegeId: null });
     setErrors({});
   };
 
@@ -339,6 +353,26 @@ export default function UniversityAdminDepartments() {
             }}
             placeholder="e.g., Computer Science"
             error={errors.name}
+          />
+          <Select
+            title="College *"
+            placeHolder="Select a college"
+            options={colleges.map((c) => ({ label: c.name, value: c.id }))}
+            value={
+              colleges
+                .map((c) => ({ label: c.name, value: c.id }))
+                .find((o) => o.value === formData.collegeId) || formData.collegeId
+            }
+            onChange={(option) => {
+              const value = typeof option === "string" ? option : option.value;
+              const numericValue = typeof value === "string" ? Number(value) : (value as number);
+              setFormData({ ...formData, collegeId: numericValue });
+              if (errors.collegeId) {
+                setErrors({ ...errors, collegeId: undefined });
+              }
+            }}
+            error={errors.collegeId}
+            searchable
           />
           <p className="text-[0.8125rem] opacity-60">
             Once created, programmes can be added to this department. Students will be assigned to departments and programmes.

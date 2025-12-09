@@ -86,7 +86,8 @@ export async function uploadToCloudinary(
   // Add resource type
   formData.append("resource_type", resourceType);
 
-  // Note: 'eager' parameter is not allowed with unsigned uploads
+  // Note: 'eager' and 'access_mode' parameters are not allowed with unsigned uploads
+  // Files uploaded with unsigned presets are public by default
   // Transformations will be applied to the URL after upload
 
   // Add public_id if specified
@@ -109,6 +110,18 @@ export async function uploadToCloudinary(
         errorData.error?.message ||
         errorData.error ||
         `Upload failed: ${response.statusText}`;
+      
+      // Check for Cloudinary security restriction on PDF/ZIP files
+      if (errorData.error?.code === "show_original_customer_untrusted" || 
+          errorMessage.includes("untrusted") ||
+          (resourceType === "raw" && errorMessage.includes("Customer"))) {
+        throw new Error(
+          "PDF delivery is blocked by Cloudinary security settings. " +
+          "Please enable PDF delivery in Cloudinary: Settings > Security > " +
+          "Allow delivery of PDF and ZIP files"
+        );
+      }
+      
       throw new Error(errorMessage);
     }
 

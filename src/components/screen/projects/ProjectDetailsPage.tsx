@@ -1,3 +1,4 @@
+
 /**
  * Unified Project Details Page Component
  * Works for all user roles (partner, student, supervisor, etc.)
@@ -17,6 +18,7 @@ import RecommendModal from "@/src/components/screen/partner/projects/RecommendMo
 import ConfirmationDialog from "@/src/components/base/ConfirmationDialog";
 import RequestSupervisorModal from "@/src/components/screen/student/supervisor-request/RequestSupervisorModal";
 import UniversityAdminProjectActions from "@/src/components/screen/university-admin/UniversityAdminProjectActions";
+import ProjectApprovalModal from "@/src/components/screen/university-admin/ProjectApprovalModal";
 import ScreeningApplicationDetailsModal from "@/src/components/screen/university-admin/screening/ScreeningApplicationDetailsModal";
 import ScoreApplicationModal from "@/src/components/screen/university-admin/screening/ScoreApplicationModal";
 import IssueOfferModal from "@/src/components/screen/university-admin/IssueOfferModal";
@@ -270,20 +272,23 @@ export default function ProjectDetailsPage({ projectId }: Props) {
 
   // University admin project status management
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [approvalModalOpen, setApprovalModalOpen] = useState(false);
 
-  const handleApproveProject = async () => {
+  const handleApproveProject = async (signature: string, mouUrl: string) => {
     if (!projectId || !projectData) return;
     setIsUpdatingStatus(true);
     try {
-      const updatedProject = await projectService.updateProjectStatus(projectId, "published");
+      const updatedProject = await projectService.updateProjectStatus(projectId, "published", signature, mouUrl);
       // Update local project data
       setProjectData(updatedProject);
-      toast.showSuccess("Project approved successfully");
+      toast.showSuccess("Project approved successfully! MOU has been generated and uploaded.");
+      setApprovalModalOpen(false);
       // Reload page to refresh all data
       router.refresh();
     } catch (error) {
       console.error("Failed to approve project:", error);
       toast.showError(error instanceof Error ? error.message : "Failed to approve project");
+      throw error; // Re-throw to let modal handle it
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -802,13 +807,23 @@ export default function ProjectDetailsPage({ projectId }: Props) {
 
           {/* University Admin Actions */}
           {canManageProjectStatus && projectData && (
-            <UniversityAdminProjectActions
-              projectStatus={projectData.status || project?.status || "pending"}
-              onApprove={handleApproveProject}
-              onDisapprove={handleDisapproveProject}
-              onSuspend={handleSuspendProject}
-              isProcessing={isUpdatingStatus}
-            />
+            <>
+              <UniversityAdminProjectActions
+                projectStatus={projectData.status || project?.status || "pending"}
+                onApprove={() => setApprovalModalOpen(true)}
+                onDisapprove={handleDisapproveProject}
+                onSuspend={handleSuspendProject}
+                isProcessing={isUpdatingStatus}
+              />
+              <ProjectApprovalModal
+                open={approvalModalOpen}
+                onClose={() => setApprovalModalOpen(false)}
+                onApprove={handleApproveProject}
+                project={projectData || project}
+                universityAdminName={user?.name}
+                isProcessing={isUpdatingStatus}
+              />
+            </>
           )}
         </div>
       </div>

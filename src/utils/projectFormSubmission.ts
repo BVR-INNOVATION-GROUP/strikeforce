@@ -22,6 +22,7 @@ export interface ProjectFormData {
   capacity: string;
   selectedSkills: string[];
   attachments?: string[]; // File paths from uploaded files
+  partnerSignature?: string | null; // Partner signature data URL
 }
 
 /**
@@ -78,6 +79,7 @@ export function buildProjectFromForm(data: ProjectFormData): Omit<
     deadline: new Date(data.deadline).toISOString(),
     capacity: parseInt(data.capacity) || 1,
     attachments: data.attachments || [], // Include uploaded file paths
+    partnerSignature: data.partnerSignature || null, // Partner signature
   };
 
   // Only include courseId if course is selected (not null and value is valid)

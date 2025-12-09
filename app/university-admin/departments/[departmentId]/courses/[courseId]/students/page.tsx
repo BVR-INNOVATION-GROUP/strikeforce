@@ -47,6 +47,7 @@ interface StudentApiResponse {
 
 interface ProgrammeStudent {
   id: number;
+  userId?: number;
   name: string;
   email: string;
   avatar?: string;
@@ -224,6 +225,7 @@ export default function ProgrammeStudentsPage() {
     
     return {
       id: studentId,
+      userId: userId,
       name,
       email: student.user?.email || "No email",
       avatar: student.user?.profile?.avatar,
@@ -934,8 +936,10 @@ export default function ProgrammeStudentsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {students.map((student) => {
             // Convert ProgrammeStudent to UserI for the modal
+            // Use userId if available (for group matching), otherwise fall back to student.id
+            const userId = student.userId || student.id;
             const userStudent: UserI & ProgrammeStudent = {
-              id: student.id,
+              id: userId,
               name: student.name,
               email: student.email,
               role: "student",
@@ -951,6 +955,7 @@ export default function ProgrammeStudentsPage() {
               createdAt: "",
               updatedAt: "",
               // Include all student-specific fields
+              userId: student.userId,
               branchId: student.branchId,
               branch: student.branch,
               gender: student.gender,

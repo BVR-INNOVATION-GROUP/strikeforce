@@ -10,6 +10,7 @@ import ApplicationCard from './ApplicationCard'
 import MilestoneCard from './MilestoneCard'
 import ChatSection from './ChatSection'
 import AttachmentsCard from './AttachmentsCard'
+import MOUDocumentCard from './MOUDocumentCard'
 import ScreeningApplicationCard from '@/src/components/screen/university-admin/screening/ScreeningApplicationCard'
 import { ApplicationI } from '@/src/models/application'
 import { ProjectI } from '@/src/models/project'
@@ -530,6 +531,14 @@ const ProjectContent = (props: Props) => {
                     )}
                 </div>
             </Card>
+
+            {/* MOU Document - show if available */}
+            {props.projectData?.mouUrl && (
+                <MOUDocumentCard 
+                    mouUrl={props.projectData.mouUrl}
+                    projectTitle={props.projectData.title || (project as any).title}
+                />
+            )}
 
             {attachments && attachments.length > 0 && (
                 <AttachmentsCard attachments={attachments} />
