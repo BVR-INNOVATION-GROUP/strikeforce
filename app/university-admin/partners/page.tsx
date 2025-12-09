@@ -5,6 +5,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import Card from "@/src/components/core/Card";
 import { organizationService } from "@/src/services/organizationService";
 import { projectService } from "@/src/services/projectService";
@@ -28,7 +29,7 @@ export default function UniversityPartnersPage() {
         ]);
 
         // Filter for partners only
-        const partnerOrgs = allOrgs.filter((org) => org.type === "PARTNER" || org.type === "company");
+        const partnerOrgs = allOrgs.filter((org) => org.type === "PARTNER");
         setPartners(partnerOrgs);
         setProjects(allProjects.projects || []);
       } catch (error) {
@@ -53,16 +54,18 @@ export default function UniversityPartnersPage() {
         collaborationCount: 0,
       };
     }
-    const partnerProjects = projects.filter(
-      (p) => p.partnerId === partnerId.toString() || p.partnerId === partnerId
-    );
+    const partnerProjects = projects.filter((p) => {
+      const projectPartnerId = typeof p.partnerId === 'string' ? parseInt(p.partnerId, 10) : p.partnerId;
+      const numericPartnerId = typeof partnerId === 'string' ? parseInt(partnerId, 10) : partnerId;
+      return projectPartnerId === numericPartnerId;
+    });
     const activeProjects = partnerProjects.filter((p) => p.status === "in-progress");
-    
+
     return {
       projectCount: partnerProjects.length,
-      recentActivity: activeProjects.length > 0 
+      recentActivity: activeProjects.length > 0
         ? `${activeProjects.length} active project${activeProjects.length !== 1 ? 's' : ''}`
-        : partnerProjects.length > 0 
+        : partnerProjects.length > 0
           ? `${partnerProjects.length} project${partnerProjects.length !== 1 ? 's' : ''} posted`
           : "No activity yet",
       collaborationCount: partnerProjects.length, // Simplified - in production would count unique universities
@@ -72,11 +75,11 @@ export default function UniversityPartnersPage() {
   // Filter partners
   const filteredPartners = filterNewThisMonth
     ? partners.filter((partner) => {
-        const createdAt = new Date(partner.createdAt);
-        const now = new Date();
-        const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-        return createdAt >= oneMonthAgo;
-      })
+      const createdAt = new Date(partner.createdAt);
+      const now = new Date();
+      const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+      return createdAt >= oneMonthAgo;
+    })
     : partners;
 
   if (loading) {
@@ -100,11 +103,10 @@ export default function UniversityPartnersPage() {
           </div>
           <button
             onClick={() => setFilterNewThisMonth(!filterNewThisMonth)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
-              filterNewThisMonth
-                ? "bg-primary text-white border-primary"
-                : "bg-paper text-secondary border-custom hover-bg-very-pale"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${filterNewThisMonth
+              ? "bg-primary text-white border-primary"
+              : "bg-paper text-secondary border-custom hover-bg-very-pale"
+              }`}
           >
             <Filter size={16} />
             <span className="text-sm font-medium">New this month</span>
@@ -124,58 +126,63 @@ export default function UniversityPartnersPage() {
           })();
 
           return (
-            <Card key={partner.id} className="hover:shadow-lg transition-shadow">
-              <div className="flex items-start gap-4 mb-4">
-                {partner.logo ? (
-                  <img
-                    src={partner.logo.startsWith("http") ? partner.logo : `${BASE_URL}/${partner.logo}`}
-                    alt={partner.name}
-                    className="w-16 h-16 object-contain rounded-lg border border-custom bg-paper p-2"
-                  />
-                ) : (
-                  <div className="w-16 h-16 rounded-lg border border-custom bg-pale flex items-center justify-center">
-                    <Building2 size={24} className="text-muted-light" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-lg font-semibold text-default truncate">{partner.name}</h3>
-                    {isNewThisMonth && (
-                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-                        New
-                      </span>
+            <Link href={`/university-admin/partners/${partner.id}`}>
+              <Card key={partner.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="flex items-start gap-4 mb-4">
+                  {partner.logo ? (
+                    <img
+                      src={partner.logo.startsWith("http") ? partner.logo : `${BASE_URL}/${partner.logo}`}
+                      alt={partner.name}
+                      className="w-16 h-16 object-contain rounded-lg border border-custom bg-paper p-2"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-lg border border-custom bg-pale flex items-center justify-center">
+                      <Building2 size={24} className="text-muted-light" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-lg font-semibold text-default truncate hover:text-primary transition-colors">
+                        {partner.name}
+                      </h3>
+                      {isNewThisMonth && (
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                          New
+                        </span>
+                      )}
+                    </div>
+                    {partner.website && (
+                      <a
+                        href={partner.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-xs text-muted hover:text-default hover:underline"
+                      >
+                        {partner.website.replace(/^https?:\/\//, '')}
+                      </a>
                     )}
                   </div>
-                  {partner.website && (
-                    <a
-                      href={partner.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-muted hover:text-default hover:underline"
-                    >
-                      {partner.website.replace(/^https?:\/\//, '')}
-                    </a>
-                  )}
                 </div>
-              </div>
 
-              {/* Activity Snapshot */}
-              <div className="space-y-3 pt-4 border-t border-custom">
-                <div className="flex items-center gap-2 text-sm text-secondary">
-                  <Briefcase size={16} className="text-muted-light" />
-                  <span>{activity.recentActivity}</span>
+                {/* Activity Snapshot */}
+                <div className="space-y-3 pt-4 border-t border-custom">
+                  <div className="flex items-center gap-2 text-sm text-secondary">
+                    <Briefcase size={16} className="text-muted-light" />
+                    <span>{activity.recentActivity}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-secondary">
+                    <Calendar size={16} className="text-muted-light" />
+                    <span>Joined {createdAt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                  </div>
+                  <div className="pt-2">
+                    <p className="text-xs text-muted">
+                      <span className="font-semibold text-default">{activity.collaborationCount}</span> collaboration{activity.collaborationCount !== 1 ? 's' : ''}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-secondary">
-                  <Calendar size={16} className="text-muted-light" />
-                  <span>Joined {createdAt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-                </div>
-                <div className="pt-2">
-                  <p className="text-xs text-muted">
-                    <span className="font-semibold text-default">{activity.collaborationCount}</span> collaboration{activity.collaborationCount !== 1 ? 's' : ''}
-                  </p>
-                </div>
-              </div>
-            </Card>
+              </Card>
+            </Link>
           );
         })}
       </div>

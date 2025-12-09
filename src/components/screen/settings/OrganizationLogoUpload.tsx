@@ -116,13 +116,13 @@ const OrganizationLogoUpload = () => {
           organization.id.toString(),
           { logo: logoUrl }
         );
-        
+
         // Update the organization in the store
         setOrganization(updatedOrg);
-        
+
         // Update preview with the new logo URL
         setPreview(logoUrl);
-        
+
         showSuccess("Logo uploaded successfully!");
         setSelectedFile(null);
         setCroppedFile(null);

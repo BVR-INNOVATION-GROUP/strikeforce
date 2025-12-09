@@ -56,15 +56,32 @@ export default function PartnerDashboard() {
 
   // Chart data - projects over time
   const projectTrendData = useMemo(() => {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
-    return months.map((month, index) => {
+    // Get last 6 months
+    const months: string[] = [];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const now = new Date();
+
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push(`${monthNames[date.getMonth()]} ${date.getFullYear().toString().slice(-2)}`);
+    }
+
+    return months.map((monthLabel, index) => {
+      // Calculate the target month (same as used for label generation)
+      const monthOffset = 5 - index;
+      const monthStart = new Date(now.getFullYear(), now.getMonth() - monthOffset, 1);
+      // Calculate the end of the target month (last moment of that month)
+      const targetDate = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0, 23, 59, 59, 999);
+      // Count cumulative projects created on or before the end of this month
       const monthProjects = safeProjects.filter((p) => {
         if (!p || !p.createdAt) return false;
-        const created = new Date(p.createdAt).getMonth();
-        return created <= index;
+        const createdDate = new Date(p.createdAt);
+        // Check if date is valid
+        if (isNaN(createdDate.getTime())) return false;
+        return createdDate <= targetDate;
       });
       return {
-        name: month,
+        name: monthLabel,
         "Total Projects": monthProjects.length,
         "Active Projects": monthProjects.filter((p) => p.status === "in-progress").length,
       };
@@ -75,9 +92,23 @@ export default function PartnerDashboard() {
   const budgetByStatusData = useMemo(() => {
     const statusMap = safeProjects.reduce((acc, project) => {
       if (!project) return acc;
-      const status = project.status === "in-progress" ? "In Progress" :
-        project.status === "completed" ? "Completed" :
-          project.status === "on-hold" ? "On Hold" : "Draft";
+      const status = (() => {
+        const value = (project.status || "").toLowerCase();
+        switch (value) {
+          case "in-progress":
+            return "In Progress";
+          case "completed":
+            return "Completed";
+          case "on-hold":
+            return "On Hold";
+          case "published":
+            return "Published";
+          case "pending":
+            return "Pending";
+          default:
+            return "Draft";
+        }
+      })();
       // Handle budget - can be number or object
       const budgetValue = typeof project.budget === "number"
         ? project.budget

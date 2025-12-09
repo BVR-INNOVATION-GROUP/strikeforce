@@ -11,13 +11,14 @@ import Input from "@/src/components/core/Input";
 import Select from "@/src/components/core/Select";
 import Checkbox from "@/src/components/core/Checkbox";
 import ApplicationForm from "@/src/components/screen/student/ApplicationForm";
-import { Search, Filter, X, Clock, CheckCircle2, Bookmark, Share2, Eye, Send } from "lucide-react";
+import { Search, Filter, X, Clock, CheckCircle2, Bookmark, Share2, Eye, Send, Users, Building2 } from "lucide-react";
 import Link from "next/link";
 import { useAuthStore } from "@/src/store";
 import { useToast } from "@/src/hooks/useToast";
 import { currenciesArray } from "@/src/constants/currencies";
 import { GroupI } from "@/src/models/group";
 import { stripHtmlTags } from "@/src/utils/htmlUtils";
+import { BASE_URL } from "@/src/api/client";
 
 /**
  * Student Find Projects - Upwork-style layout with Google-like search
@@ -31,19 +32,21 @@ export default function StudentProjects() {
   const [filteredProjects, setFilteredProjects] = useState<ProjectI[]>([]);
   const [userApplications, setUserApplications] = useState<ApplicationI[]>([]);
   const [organizations, setOrganizations] = useState<Record<string, string>>({});
+  const [organizationLogos, setOrganizationLogos] = useState<Record<string, string>>({});
   const [groups, setGroups] = useState<GroupI[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  
+  const [logoErrors, setLogoErrors] = useState<Set<string>>(new Set());
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProjects, setTotalProjects] = useState(0);
   const [pageSize, setPageSize] = useState(10); // Projects per page
-  
+
   // Saved projects in local storage
   const [savedProjects, setSavedProjects] = useState<Set<string>>(new Set());
-  
+
   // Load saved projects from local storage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -58,7 +61,7 @@ export default function StudentProjects() {
       }
     }
   }, []);
-  
+
   // Save project to local storage
   const saveProjectToStorage = (projectId: string | number) => {
     const id = projectId.toString();
@@ -69,7 +72,7 @@ export default function StudentProjects() {
       localStorage.setItem("savedProjects", JSON.stringify(Array.from(newSaved)));
     }
   };
-  
+
   // Remove project from local storage
   const removeProjectFromStorage = (projectId: string | number) => {
     const id = projectId.toString();
@@ -164,6 +167,21 @@ export default function StudentProjects() {
     return organizations[partnerId] || "Company";
   };
 
+  // Get organization logo from project
+  const getOrganizationLogo = (partnerId: string): string | null => {
+    return organizationLogos[partnerId] || null;
+  };
+
+  // Get team structure label
+  const getTeamStructureLabel = (structure?: string): string => {
+    switch (structure) {
+      case "individuals": return "Individuals Only";
+      case "groups": return "Groups Only";
+      case "both": return "Individuals or Groups";
+      default: return "";
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -190,22 +208,37 @@ export default function StudentProjects() {
           setGroups([]);
         }
 
-        // Build organization map from users
+        // Build organization map and logo map from users
         const users = usersData.default as Array<{ id: number | string; orgId?: number | string; name: string }>;
         const orgsData = await import("@/src/data/mockOrganizations.json");
-        const orgs = orgsData.default as Array<{ id: number | string; name: string }>;
+        const orgs = orgsData.default as Array<{ id: number | string; name: string; logo?: string }>;
 
         const orgMap: Record<string, string> = {};
+        const logoMap: Record<string, string> = {};
         projectsResult.projects.forEach((project) => {
           const user = users.find((u) => u.id.toString() === project.partnerId.toString());
           if (user?.orgId) {
             const org = orgs.find((o) => o.id.toString() === user.orgId?.toString());
             if (org) {
               orgMap[project.partnerId.toString()] = org.name;
+              if (org.logo) {
+                logoMap[project.partnerId.toString()] = org.logo;
+              }
+            }
+          }
+          // Also check if project has user data with organization
+          if ((project as any).user?.orgId) {
+            const org = orgs.find((o) => o.id.toString() === (project as any).user.orgId?.toString());
+            if (org) {
+              orgMap[project.partnerId.toString()] = org.name;
+              if (org.logo) {
+                logoMap[project.partnerId.toString()] = org.logo;
+              }
             }
           }
         });
         setOrganizations(orgMap);
+        setOrganizationLogos(logoMap);
       } catch (error) {
         console.error("Failed to fetch data:", error);
       } finally {
@@ -398,17 +431,42 @@ export default function StudentProjects() {
               const hasApplied = !!application;
               const currencySymbol = getCurrencySymbol(project.currency);
               const companyName = getOrganizationName(project.partnerId.toString());
+              const companyLogo = getOrganizationLogo(project.partnerId.toString());
+              const logoUrl = companyLogo
+                ? (companyLogo.startsWith("http") ? companyLogo : `${BASE_URL}/${companyLogo}`)
+                : null;
+              const projectKey = project.id?.toString() || "";
+              const hasLogoError = logoErrors.has(projectKey);
 
               return (
                 <Card key={project.id} className="hover:shadow-md transition-all cursor-pointer border-0 bg-paper">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
-                      <Link href={`/student/projects/${project.id}`}>
-                        <h3 className="font-semibold text-lg mb-1 hover:text-primary transition-colors">
-                          {project.title}
-                        </h3>
-                      </Link>
-                      <p className="text-sm text-secondary mb-2">{companyName}</p>
+                      <div className="flex items-start gap-3">
+                        {/* Company Logo */}
+                        <div className="flex-shrink-0 w-12 h-12 rounded-lg border border-custom bg-pale flex items-center justify-center overflow-hidden">
+                          {logoUrl && !hasLogoError ? (
+                            <img
+                              src={logoUrl}
+                              alt={companyName}
+                              className="w-full h-full object-contain"
+                              onError={() => {
+                                setLogoErrors(prev => new Set(prev).add(projectKey));
+                              }}
+                            />
+                          ) : (
+                            <Building2 size={20} className="text-secondary" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <Link href={`/student/projects/${project.id}`}>
+                            <h3 className="font-semibold text-lg mb-1 hover:text-primary transition-colors">
+                              {project.title}
+                            </h3>
+                          </Link>
+                          <p className="text-sm text-secondary mb-2">{companyName}</p>
+                        </div>
+                      </div>
                       <div className="flex items-center gap-2 flex-wrap">
                         {hasApplied && (
                           <div className="flex items-center gap-1 px-2 py-1 bg-pale-primary rounded text-xs text-primary w-fit">
@@ -442,9 +500,9 @@ export default function StudentProjects() {
                     </div>
 
                     <div className="flex items-center justify-between pt-4 border-t border-custom">
-                      <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-4 text-sm flex-wrap">
                         <div className="flex items-center gap-1">
-                          <span className="font-semibold">{currencySymbol}{project.budget.toLocaleString()}</span>
+                          <span className="font-semibold">{currencySymbol}{typeof project.budget === 'number' ? project.budget.toLocaleString() : (project.budget?.value || project.budget?.Value || 0).toLocaleString()}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock size={16} className="text-secondary" />
@@ -452,6 +510,14 @@ export default function StudentProjects() {
                             {new Date(project.deadline).toLocaleDateString()}
                           </span>
                         </div>
+                        {project.teamStructure && (
+                          <div className="flex items-center gap-1">
+                            <Users size={16} className="text-secondary" />
+                            <span className="text-secondary">
+                              {getTeamStructureLabel(project.teamStructure)}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </Link>
@@ -523,7 +589,7 @@ export default function StudentProjects() {
                 </div>
               </Card>
             )}
-            
+
             {/* Pagination Controls */}
             {totalProjects > 0 && (
               <div className="mt-6 space-y-4">
@@ -591,11 +657,10 @@ export default function StudentProjects() {
                           <Button
                             key={pageNum}
                             onClick={() => setCurrentPage(pageNum)}
-                            className={`text-sm py-2 px-3 min-w-[40px] ${
-                              currentPage === pageNum
-                                ? "bg-primary text-white"
-                                : "bg-pale text-primary hover:bg-pale-primary"
-                            }`}
+                            className={`text-sm py-2 px-3 min-w-[40px] ${currentPage === pageNum
+                              ? "bg-primary text-white"
+                              : "bg-pale text-primary hover:bg-pale-primary"
+                              }`}
                           >
                             {pageNum}
                           </Button>

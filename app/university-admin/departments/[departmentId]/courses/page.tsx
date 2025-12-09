@@ -917,7 +917,6 @@ export default function DepartmentProgrammesPage() {
                 }`}
             >
               {tab.label}
-              <span className="ml-2 text-xs opacity-70">{tab.count}</span>
             </button>
           );
         })}

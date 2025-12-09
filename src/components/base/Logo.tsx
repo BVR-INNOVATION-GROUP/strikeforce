@@ -10,15 +10,15 @@ const Logo = () => {
 
     // If organization has a logo, display it
     if (organization?.logo && !imageError) {
-        const logoUrl = organization.logo.startsWith("http") 
-            ? organization.logo 
+        const logoUrl = organization.logo.startsWith("http")
+            ? organization.logo
             : `${BASE_URL}/${organization.logo}`;
-        
+
         return (
             <div className='flex ml-[1vw] items-center justify-center'>
-                <img 
-                    src={logoUrl} 
-                    alt={organization.name || "Organization Logo"} 
+                <img
+                    src={logoUrl}
+                    alt={organization.name || "Organization Logo"}
                     className="h-12 w-auto object-contain max-w-[200px]"
                     onError={() => {
                         setImageError(true);

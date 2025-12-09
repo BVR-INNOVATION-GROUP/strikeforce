@@ -145,31 +145,47 @@ export default function StudentAnalytics() {
    * Shows earnings trend from completed projects
    */
   const earningsTrendData = useMemo(() => {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
-    const currentMonth = new Date().getMonth();
-    
-    return months.map((month, index) => {
-      // Calculate earnings from completed projects up to this month
-      const monthIndex = (currentMonth - (5 - index) + 12) % 12;
+    // Get last 6 months
+    const months: string[] = [];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const now = new Date();
+
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push(`${monthNames[date.getMonth()]} ${date.getFullYear().toString().slice(-2)}`);
+    }
+
+    return months.map((monthLabel, index) => {
+      // Calculate the target month (same as used for label generation)
+      const monthOffset = 5 - index;
+      const monthStart = new Date(now.getFullYear(), now.getMonth() - monthOffset, 1);
+      // Calculate the end of the target month (last moment of that month)
+      const targetDate = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0, 23, 59, 59, 999);
+      // Count cumulative projects created on or before the end of this month
       const monthProjects = projects.filter((project) => {
-        if (project.status !== "completed") return false;
+        if (!project || (!project.createdAt && !project.updatedAt)) return false;
         const projectDate = new Date(project.createdAt || project.updatedAt);
-        return projectDate.getMonth() <= monthIndex;
+        return projectDate <= targetDate;
       });
       
-      const earnings = monthProjects.reduce((sum, project) => {
-        return sum + (project.budget || 0);
-      }, 0);
+      const earnings = monthProjects
+        .filter((project) => project.status === "completed")
+        .reduce((sum, project) => {
+          const budgetValue = typeof project.budget === "number"
+            ? project.budget
+            : (project.budget?.Value ?? project.budget?.value ?? 0);
+          return sum + budgetValue;
+        }, 0);
       
-      const budget = projects.filter((project) => {
-        const projectDate = new Date(project.createdAt || project.updatedAt);
-        return projectDate.getMonth() <= monthIndex;
-      }).reduce((sum, project) => {
-        return sum + (project.budget || 0);
+      const budget = monthProjects.reduce((sum, project) => {
+        const budgetValue = typeof project.budget === "number"
+          ? project.budget
+          : (project.budget?.Value ?? project.budget?.value ?? 0);
+        return sum + budgetValue;
       }, 0);
       
       return {
-        name: month,
+        name: monthLabel,
         "Earnings": earnings,
         "Budget": budget,
       };

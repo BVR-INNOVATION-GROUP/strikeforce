@@ -94,6 +94,8 @@ export function validateStep2(
 
   if (!teamStructure || teamStructure === "") {
     errors.teamStructure = "Team structure is required";
+  } else if (!["individuals", "groups", "both"].includes(teamStructure)) {
+    errors.teamStructure = "Team structure must be one of: individuals, groups, both";
   }
 
   if (!duration || duration.trim().length === 0) {

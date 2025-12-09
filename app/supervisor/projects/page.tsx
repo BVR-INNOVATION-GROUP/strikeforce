@@ -78,14 +78,30 @@ export default function SupervisorProjects() {
 
   // Chart data - milestone status over time
   const milestoneTrendData = useMemo(() => {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
-    return months.map((month, index) => {
+    // Get last 6 months
+    const months: string[] = [];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const now = new Date();
+
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push(`${monthNames[date.getMonth()]} ${date.getFullYear().toString().slice(-2)}`);
+    }
+
+    return months.map((monthLabel, index) => {
+      // Calculate the target month (same as used for label generation)
+      const monthOffset = 5 - index;
+      const monthStart = new Date(now.getFullYear(), now.getMonth() - monthOffset, 1);
+      // Calculate the end of the target month (last moment of that month)
+      const targetDate = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0, 23, 59, 59, 999);
+      // Count cumulative milestones created on or before the end of this month
       const monthMilestones = milestones.filter((m) => {
-        const created = new Date(m.createdAt).getMonth();
-        return created <= index;
+        if (!m || !m.createdAt) return false;
+        const createdDate = new Date(m.createdAt);
+        return createdDate <= targetDate;
       });
       return {
-        name: month,
+        name: monthLabel,
         "Total Milestones": monthMilestones.length,
         "Completed": monthMilestones.filter((m) => m.status === "COMPLETED").length,
       };
@@ -95,9 +111,23 @@ export default function SupervisorProjects() {
   // Chart data - projects by status
   const projectsByStatusData = useMemo(() => {
     const statusMap = projects.reduce((acc, project) => {
-      const status = project.status === "in-progress" ? "In Progress" : 
-                     project.status === "completed" ? "Completed" : 
-                     project.status === "on-hold" ? "On Hold" : "Draft";
+      const status = (() => {
+        const value = (project.status || "").toLowerCase();
+        switch (value) {
+          case "in-progress":
+            return "In Progress";
+          case "completed":
+            return "Completed";
+          case "on-hold":
+            return "On Hold";
+          case "published":
+            return "Published";
+          case "pending":
+            return "Pending";
+          default:
+            return "Draft";
+        }
+      })();
       acc[status] = (acc[status] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
