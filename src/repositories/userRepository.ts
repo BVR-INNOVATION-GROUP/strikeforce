@@ -43,15 +43,17 @@ export const userRepository = {
 
   /**
    * Search users with filters
-   * Backend endpoint: GET /user/search?role={role}&search={query}&limit={limit}
+   * Backend endpoint: GET /user/search?role={role}&search={query}&limit={limit}&universityId={universityId}
    * @param role - Required: user role to filter by
    * @param search - Optional: search query for name/email
    * @param limit - Optional: max results (default 50, max 100)
+   * @param universityId - Optional: filter students by university/organization ID
    */
   search: async (params: {
     role: string;
     search?: string;
     limit?: number;
+    universityId?: number;
   }): Promise<UserI[]> => {
     const queryParams = new URLSearchParams();
     queryParams.append("role", params.role);
@@ -60,6 +62,9 @@ export const userRepository = {
     }
     if (params.limit) {
       queryParams.append("limit", params.limit.toString());
+    }
+    if (params.universityId) {
+      queryParams.append("universityId", params.universityId.toString());
     }
     return api.get<UserI[]>(`/user/search?${queryParams.toString()}`);
   },

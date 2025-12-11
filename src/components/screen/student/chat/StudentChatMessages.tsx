@@ -55,8 +55,25 @@ const StudentChatMessages = ({
     <Card className="lg:col-span-2 flex flex-col h-[600px]">
       <div className="flex-1 overflow-y-auto space-y-4 mb-4 p-4">
         {messages.map((message) => {
-          const sender = users[message.senderId];
-          if (!sender) return null;
+          // Use sender from message if available, otherwise fallback to users map
+          const sender = message.sender || users[message.senderId] || users[String(message.senderId)];
+          if (!sender) {
+            // Don't hide messages - show with fallback info
+            const fallbackSender = {
+              id: message.senderId,
+              name: `User ${message.senderId}`,
+              email: "",
+              profile: {},
+            };
+            return (
+              <ChatMessage
+                key={message.id}
+                message={message}
+                sender={fallbackSender}
+                isOwn={String(message.senderId) === currentUserId}
+              />
+            );
+          }
 
           // Show ProposalCard for PROPOSAL type messages
           if (
@@ -67,15 +84,31 @@ const StudentChatMessages = ({
             return (
               <div
                 key={message.id}
-                className={`flex ${
-                  message.senderId === currentUserId ? "justify-end" : "justify-start"
-                }`}
+                className={`flex ${message.senderId === currentUserId ? "justify-end" : "justify-start"
+                  }`}
               >
                 <div className="max-w-[80%]">
                   <div className="mb-2 text-xs text-muted flex items-center gap-2">
                     <span>{sender.name}</span>
                     <span>
-                      {new Date(message.createdAt).toLocaleTimeString()}
+                      {(() => {
+                        const dateStr = message.createdAt;
+                        if (!dateStr) return "Unknown time";
+
+                        try {
+                          const date = new Date(dateStr);
+                          if (isNaN(date.getTime())) {
+                            return "Unknown time";
+                          }
+                          return date.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          });
+                        } catch (error) {
+                          console.warn("Failed to parse date:", dateStr, error);
+                          return "Unknown time";
+                        }
+                      })()}
                     </span>
                   </div>
                   <ProposalCard

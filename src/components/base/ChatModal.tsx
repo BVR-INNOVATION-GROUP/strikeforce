@@ -16,6 +16,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChatMessageI } from '@/src/models/chat';
 import { UserI } from '@/src/models/user';
 import { useToast } from '@/src/hooks/useToast';
+import { chatService } from '@/src/services/chatService';
+import { userRepository } from '@/src/repositories/userRepository';
 
 export interface Props {
   open: boolean;
@@ -24,8 +26,8 @@ export interface Props {
   projectTitle?: string;
   applicationId?: number | null;
   applicationName?: string;
-  messages?: ChatMessageI[];
-  users?: Record<string, UserI>;
+  messages?: ChatMessageI[]; // Optional - will be fetched if not provided
+  users?: Record<string, UserI>; // Optional - will be fetched if not provided
   currentUserId?: string;
   onSendMessage?: (text: string) => Promise<void>;
 }
@@ -41,14 +43,17 @@ const ChatModal = ({
   projectTitle,
   applicationId,
   applicationName,
-  messages = [],
-  users = {},
+  messages: propMessages,
+  users: propUsers,
   currentUserId,
   onSendMessage,
 }: Props) => {
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [messages, setMessages] = useState<ChatMessageI[]>(propMessages || []);
+  const [users, setUsers] = useState<Record<string, UserI>>(propUsers || {});
+  const [loadingMessages, setLoadingMessages] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const toast = useToast();
 
@@ -57,6 +62,69 @@ const ChatModal = ({
     setMounted(true);
     return () => setMounted(false);
   }, []);
+
+  // Load messages when modal opens
+  useEffect(() => {
+    if (!open || !projectId) return;
+
+    const loadMessages = async () => {
+      setLoadingMessages(true);
+      try {
+        // Fetch messages using the new project endpoint
+        const projectMessages = await chatService.getProjectMessages(projectId);
+        setMessages(projectMessages);
+
+        // Extract senders from messages and load users if needed
+        const usersMap: Record<string, UserI> = { ...propUsers };
+
+        // Add senders from messages
+        projectMessages.forEach((msg) => {
+          if (msg.sender) {
+            const idStr = String(msg.sender.id);
+            usersMap[idStr] = msg.sender;
+            usersMap[msg.sender.id] = msg.sender;
+          }
+        });
+
+        // If we still need more users, fetch all users
+        if (Object.keys(usersMap).length === 0) {
+          try {
+            const allUsers = await userRepository.getAll();
+            allUsers.forEach((u) => {
+              const idStr = String(u.id);
+              usersMap[idStr] = u;
+              usersMap[u.id] = u;
+            });
+          } catch (error) {
+            console.warn("Failed to load users:", error);
+          }
+        }
+
+        setUsers(usersMap);
+      } catch (error) {
+        console.error("Failed to load messages:", error);
+        toast.showError("Failed to load messages. Please try again.");
+        setMessages([]);
+      } finally {
+        setLoadingMessages(false);
+      }
+    };
+
+    loadMessages();
+  }, [open, projectId]);
+
+  // Update messages/users when props change
+  useEffect(() => {
+    if (propMessages) {
+      setMessages(propMessages);
+    }
+  }, [propMessages]);
+
+  useEffect(() => {
+    if (propUsers && Object.keys(propUsers).length > 0) {
+      setUsers(propUsers);
+    }
+  }, [propUsers]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -75,6 +143,26 @@ const ChatModal = ({
     try {
       await onSendMessage(messageText.trim());
       setMessageText('');
+
+      // Refresh messages after sending (plain HTTP, no websockets)
+      try {
+        const refreshedMessages = await chatService.getProjectMessages(projectId);
+        setMessages(refreshedMessages);
+
+        // Extract senders from refreshed messages
+        const updatedUsersMap = { ...users };
+        refreshedMessages.forEach((msg) => {
+          if (msg.sender) {
+            const idStr = String(msg.sender.id);
+            updatedUsersMap[idStr] = msg.sender;
+            updatedUsersMap[msg.sender.id] = msg.sender;
+          }
+        });
+        setUsers(updatedUsersMap);
+      } catch (refreshError) {
+        console.warn("Failed to refresh messages after sending:", refreshError);
+        // Don't show error - message was sent successfully
+      }
     } catch (error) {
       console.error('Failed to send message:', error);
       // Show error to user
@@ -139,7 +227,14 @@ const ChatModal = ({
 
             {/* Messages area - scrollable */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0">
-              {messages.length === 0 ? (
+              {loadingMessages ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+                    <p className="text-[0.875rem] opacity-60">Loading messages...</p>
+                  </div>
+                </div>
+              ) : messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <p className="text-[0.875rem] opacity-60">
                     No messages yet. Start the conversation!
@@ -147,9 +242,29 @@ const ChatModal = ({
                 </div>
               ) : (
                 messages.map((message) => {
-                  const sender = users[message.senderId];
-                  const isOwn = message.senderId === currentUserId;
-                  const senderName = sender?.name || 'Unknown User';
+                  // Use sender from message if available, otherwise fallback to users map
+                  const sender = message.sender || users[message.senderId] || users[String(message.senderId)];
+                  const isOwn = String(message.senderId) === String(currentUserId);
+                  const senderName = sender?.name || `User ${message.senderId}`;
+
+                  const messageDate = (() => {
+                    const dateStr = message.createdAt;
+                    if (!dateStr) return "Unknown time";
+
+                    try {
+                      const date = new Date(dateStr);
+                      if (isNaN(date.getTime())) {
+                        return "Unknown time";
+                      }
+                      return date.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      });
+                    } catch (error) {
+                      console.warn("Failed to parse date:", dateStr, error);
+                      return "Unknown time";
+                    }
+                  })();
 
                   return (
                     <div
@@ -174,16 +289,13 @@ const ChatModal = ({
                             </Badge>
                           )}
                           <span className="text-[0.8125rem] opacity-60">
-                            {new Date(message.createdAt).toLocaleTimeString('en-US', {
-                              hour: 'numeric',
-                              minute: '2-digit',
-                            })}
+                            {messageDate}
                           </span>
                         </div>
                         <div
                           className={`rounded-lg px-6 py-4 ${isOwn
-                              ? 'bg-primary text-white'
-                              : 'bg-pale'
+                            ? 'bg-primary text-white'
+                            : 'bg-pale'
                             }`}
                         >
                           <p className="text-[0.875rem] leading-relaxed whitespace-pre-wrap">

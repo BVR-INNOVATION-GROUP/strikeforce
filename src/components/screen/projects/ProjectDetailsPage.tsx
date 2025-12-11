@@ -6,7 +6,7 @@
  */
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import ProjectHeader from "@/src/components/screen/partner/projects/ProjectHeader";
 import ProjectContent from "@/src/components/screen/partner/projects/ProjectContent";
@@ -17,6 +17,7 @@ import ChatModal from "@/src/components/base/ChatModal";
 import RecommendModal from "@/src/components/screen/partner/projects/RecommendModal";
 import ConfirmationDialog from "@/src/components/base/ConfirmationDialog";
 import RequestSupervisorModal from "@/src/components/screen/student/supervisor-request/RequestSupervisorModal";
+import ApplicationForm from "@/src/components/screen/student/ApplicationForm";
 import UniversityAdminProjectActions from "@/src/components/screen/university-admin/UniversityAdminProjectActions";
 import ProjectApprovalModal from "@/src/components/screen/university-admin/ProjectApprovalModal";
 import ScreeningApplicationDetailsModal from "@/src/components/screen/university-admin/screening/ScreeningApplicationDetailsModal";
@@ -49,6 +50,11 @@ export default function ProjectDetailsPage({ projectId }: Props) {
   const [userLoading, setUserLoading] = useState(true);
   const [isRequestSupervisorModalOpen, setIsRequestSupervisorModalOpen] = useState(false);
 
+  // Application form state
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
+  const [submittingApplication, setSubmittingApplication] = useState(false);
+  const [userGroups, setUserGroups] = useState<GroupI[]>([]);
+
   // Wait for hydration before checking user
   useEffect(() => {
     if (_hasHydrated) {
@@ -60,6 +66,23 @@ export default function ProjectDetailsPage({ projectId }: Props) {
       }
     }
   }, [user, _hasHydrated, router]);
+
+  // Load user groups for application form (only for students)
+  useEffect(() => {
+    const loadGroups = async () => {
+      if (user?.role === "student" && user?.id) {
+        try {
+          const { groupService } = await import("@/src/services/groupService");
+          const groups = await groupService.getUserGroups();
+          setUserGroups(groups);
+        } catch (error) {
+          console.error("Failed to load groups for application form:", error);
+          setUserGroups([]);
+        }
+      }
+    };
+    loadGroups();
+  }, [user?.role, user?.id]);
 
   // Convert user ID to string for hook
   const userId = user?.id !== undefined ? String(user.id) : undefined;
@@ -246,6 +269,269 @@ export default function ProjectDetailsPage({ projectId }: Props) {
   const canSeeQuickActions =
     (user?.role === "partner" && isProjectOwner) ||
     user?.role === "super-admin";
+
+  // Cast applications to proper type for TypeScript
+  const typedApplications = applications as ApplicationI[];
+
+  // For students, filter out DECLINED applications (withdrawn applications)
+  // They shouldn't see their own withdrawn applications
+  const filteredApplications = user?.role === "student"
+    ? typedApplications.filter((app: ApplicationI) => {
+      // If it's the student's own application and it's DECLINED, filter it out
+      if (app.status === "DECLINED" && user?.id) {
+        const userIdStr = user.id.toString();
+        const userIdNum = typeof user.id === "number" ? user.id : parseInt(userIdStr, 10);
+        const isStudentApp = app.studentIds.some((id: string | number) => {
+          const idStr = id.toString();
+          const idNum = typeof id === "number" ? id : parseInt(idStr, 10);
+          return idStr === userIdStr || idNum === userIdNum || id === userIdNum || id === userIdStr;
+        });
+        // Filter out if it's the student's own DECLINED application
+        return !isStudentApp;
+      }
+      return true;
+    })
+    : typedApplications;
+
+  // Find ALL student's applications for this project (including DECLINED)
+  // This is used to determine if they can apply again after withdrawal
+  const allStudentApplications = user?.role === "student" && user?.id
+    ? typedApplications.filter((app: ApplicationI) => {
+      const userIdStr = user.id.toString();
+      const userIdNum = typeof user.id === "number" ? user.id : parseInt(userIdStr, 10);
+      return app.studentIds.some((id: string | number) => {
+        const idStr = id.toString();
+        const idNum = typeof id === "number" ? id : parseInt(idStr, 10);
+        return idStr === userIdStr || idNum === userIdNum || id === userIdNum || id === userIdStr;
+      });
+    })
+    : [];
+
+  // Find active student application (not DECLINED) for display and withdrawal
+  // Use filteredApplications to ensure we don't find DECLINED applications
+  const studentApplication: ApplicationI | undefined = user?.role === "student" && user?.id
+    ? filteredApplications.find((app: ApplicationI) => {
+      const userIdStr = user.id.toString();
+      const userIdNum = typeof user.id === "number" ? user.id : parseInt(userIdStr, 10);
+      const matches = app.studentIds.some((id: string | number) => {
+        const idStr = id.toString();
+        const idNum = typeof id === "number" ? id : parseInt(idStr, 10);
+        return idStr === userIdStr || idNum === userIdNum || id === userIdNum || id === userIdStr;
+      });
+      if (matches) {
+        console.log("Found active student application:", {
+          appId: app.id,
+          appIdType: typeof app.id,
+          appStatus: app.status,
+          userId: user.id,
+          userIdType: typeof user.id,
+          studentIds: app.studentIds,
+          studentIdsTypes: app.studentIds.map(id => typeof id),
+          fullApplicationObject: app,
+          allApplicationKeys: Object.keys(app),
+          applicationHasId: 'id' in app,
+          applicationIdValue: (app as any).id
+        });
+      }
+      return matches;
+    })
+    : undefined;
+
+  // Check if student can apply
+  // Can apply if:
+  // 1. User is a student
+  // 2. Has no application at all, OR
+  // 3. Only has DECLINED applications (withdrawn) - allows re-applying after withdrawal
+  const canApply = user?.role === "student" &&
+    (allStudentApplications.length === 0 ||
+      allStudentApplications.every(app => app.status === "DECLINED"));
+
+  // Log all student applications for debugging
+  if (user?.role === "student" && user?.id) {
+    console.log("Student application analysis:", {
+      totalApplications: allStudentApplications.length,
+      allApplicationStatuses: allStudentApplications.map(app => ({
+        id: app.id,
+        status: app.status,
+        appIdType: typeof app.id
+      })),
+      activeApplication: studentApplication ? {
+        id: studentApplication.id,
+        status: studentApplication.status
+      } : null,
+      hasOnlyDeclined: allStudentApplications.length > 0 && allStudentApplications.every(app => app.status === "DECLINED"),
+      canApply
+    });
+  }
+
+  console.log("Student application lookup:", {
+    userRole: user?.role,
+    userId: user?.id,
+    userIdType: typeof user?.id,
+    applicationsCount: filteredApplications.length,
+    allStudentApplicationsCount: allStudentApplications.length,
+    foundActiveApplication: !!studentApplication,
+    applicationId: studentApplication?.id,
+    applicationIdType: studentApplication?.id ? typeof studentApplication.id : "undefined",
+    applicationStatus: studentApplication?.status,
+    canApply,
+    allStudentApplicationStatuses: allStudentApplications.map(a => a.status),
+    allApplications: filteredApplications.map(a => ({
+      id: a.id,
+      idType: typeof a.id,
+      projectId: a.projectId,
+      studentIds: a.studentIds,
+      studentIdsTypes: a.studentIds.map(id => typeof id),
+      allKeys: Object.keys(a),
+      hasId: 'id' in a,
+      rawId: (a as any).id
+    })),
+    rawApplications: typedApplications
+  });
+
+  // Check if student's application can be withdrawn
+  // Can withdraw if status is SUBMITTED, SHORTLISTED, or WAITLIST
+  const canWithdrawApplication = studentApplication &&
+    (studentApplication.status === "SUBMITTED" ||
+      studentApplication.status === "SHORTLISTED" ||
+      studentApplication.status === "WAITLIST");
+
+  // Handler for withdraw application from quick actions
+  // Re-find the student application dynamically to avoid closure issues
+  const handleWithdrawFromQuickActions = async () => {
+    // Re-find the student application in case it changed or wasn't found initially
+    // Use typedApplications (not filtered) to find the application even if it's DECLINED
+    let currentStudentApp = user?.role === "student" && user?.id
+      ? typedApplications.find((app: ApplicationI) => {
+        const userIdStr = user.id.toString();
+        const userIdNum = typeof user.id === "number" ? user.id : parseInt(userIdStr, 10);
+        return app.studentIds.some((id: string | number) => {
+          const idStr = id.toString();
+          const idNum = typeof id === "number" ? id : parseInt(idStr, 10);
+          return idStr === userIdStr || idNum === userIdNum || id === userIdNum || id === userIdStr;
+        });
+      })
+      : undefined;
+
+    console.log("handleWithdrawFromQuickActions called", {
+      studentApplication: currentStudentApp,
+      hasStudentApplication: !!currentStudentApp,
+      studentApplicationId: currentStudentApp?.id,
+      applicationsCount: filteredApplications.length,
+      userId: user?.id,
+      allApplicationIds: filteredApplications.map(a => ({ id: a.id, studentIds: a.studentIds }))
+    });
+
+    if (!currentStudentApp) {
+      console.error("No student application found! Cannot withdraw.", {
+        applications: filteredApplications,
+        userId: user?.id,
+        userRole: user?.role,
+        applicationsList: filteredApplications.map(a => ({ id: a.id, projectId: a.projectId, studentIds: a.studentIds }))
+      });
+      toast.showError("Application not found. Please refresh the page and try again.");
+      return;
+    }
+
+    // If application doesn't have an ID, try to fetch it from getUserApplications
+    let appId = currentStudentApp.id ||
+      (currentStudentApp as any).ID ||
+      (currentStudentApp as any).applicationId ||
+      (currentStudentApp as any)._id;
+
+    // Fallback: If ID is missing, fetch user's applications to get the full application with ID
+    if (!appId && user?.role === "student" && user?.id && currentStudentApp) {
+      console.log("Application ID missing, fetching user applications to get full application data...");
+      try {
+        const { applicationService } = await import("@/src/services/applicationService");
+        const userApplications = await applicationService.getUserApplications();
+        const fullApplication = userApplications.find(
+          (app: ApplicationI) =>
+            app.projectId === currentStudentApp.projectId &&
+            app.studentIds.some((id: string | number) => {
+              const userIdStr = user.id.toString();
+              const userIdNum = typeof user.id === "number" ? user.id : parseInt(userIdStr, 10);
+              const idStr = id.toString();
+              const idNum = typeof id === "number" ? id : parseInt(idStr, 10);
+              return idStr === userIdStr || idNum === userIdNum || id === userIdNum || id === userIdStr;
+            })
+        );
+
+        if (fullApplication?.id) {
+          console.log("Found application with ID from getUserApplications:", fullApplication.id);
+          appId = fullApplication.id;
+          // Update currentStudentApp with the ID
+          currentStudentApp = fullApplication;
+        } else {
+          console.warn("Could not find application with ID in getUserApplications");
+        }
+      } catch (error) {
+        console.error("Failed to fetch user applications for ID lookup:", error);
+      }
+    }
+
+    console.log("Validating application ID:", {
+      appId,
+      appIdType: typeof appId,
+      isUndefined: appId === undefined,
+      isNull: appId === null,
+      isNaN: typeof appId === "number" && isNaN(appId),
+      isZeroOrNegative: typeof appId === "number" && appId <= 0,
+      fullApplication: currentStudentApp,
+      allKeys: Object.keys(currentStudentApp),
+      hasId: 'id' in currentStudentApp,
+      hasID: 'ID' in currentStudentApp,
+      hasApplicationId: 'applicationId' in currentStudentApp,
+      rawId: (currentStudentApp as any).id,
+      rawID: (currentStudentApp as any).ID,
+      rawApplicationId: (currentStudentApp as any).applicationId
+    });
+
+    // Check if ID exists and is valid
+    if (appId === undefined || appId === null) {
+      console.error("Student application has no ID!", {
+        appId,
+        appIdType: typeof appId,
+        fullApplication: currentStudentApp
+      });
+      toast.showError("Application ID is missing. Please refresh the page and try again.");
+      return;
+    }
+
+    // Ensure ID is a number (handle both string and number types)
+    let numericAppId: number;
+    if (typeof appId === "string") {
+      numericAppId = parseInt(appId, 10);
+      if (isNaN(numericAppId)) {
+        console.error("Cannot parse application ID as number!", { appId, parsed: numericAppId });
+        toast.showError("Invalid application ID format. Please refresh the page and try again.");
+        return;
+      }
+    } else if (typeof appId === "number") {
+      numericAppId = appId;
+    } else {
+      console.error("Application ID is not a string or number!", { appId, appIdType: typeof appId });
+      toast.showError("Invalid application ID type. Please refresh the page and try again.");
+      return;
+    }
+
+    // Final validation - must be a positive number
+    if (isNaN(numericAppId) || numericAppId <= 0) {
+      console.error("Application ID is not a valid positive number!", {
+        appId,
+        numericAppId,
+        isNaN: isNaN(numericAppId),
+        isZeroOrNegative: numericAppId <= 0
+      });
+      toast.showError("Invalid application ID. Please refresh the page and try again.");
+      return;
+    }
+
+    console.log("Application ID validated successfully:", numericAppId, "Type:", typeof numericAppId);
+    console.log("Calling handleWithdrawApplication with ID:", numericAppId);
+    handleWithdrawApplication(numericAppId);
+  };
+
   // Only project owner (partner) can manage applications
   const canManageApplications = user?.role === "partner" && isProjectOwner;
   // Only partners who own the project and super-admins can add milestones
@@ -334,6 +620,8 @@ export default function ProjectDetailsPage({ projectId }: Props) {
   const [withdrawConfirmOpen, setWithdrawConfirmOpen] = useState(false);
   const [terminateConfirmOpen, setTerminateConfirmOpen] = useState(false);
   const [selectedApplicationId, setSelectedApplicationId] = useState<number | null>(null);
+  const selectedApplicationIdRef = useRef<number | null>(null);
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
 
   // University admin screening state
   const [scoringModalOpen, setScoringModalOpen] = useState(false);
@@ -353,21 +641,95 @@ export default function ProjectDetailsPage({ projectId }: Props) {
   const [rejectedApplicationPreviousStatus, setRejectedApplicationPreviousStatus] = useState<Record<number, string>>({});
 
   const handleWithdrawApplication = (applicationId: number) => {
+    console.log("handleWithdrawApplication called", {
+      applicationId,
+      applicationIdType: typeof applicationId,
+      isValid: applicationId && !isNaN(applicationId) && applicationId > 0
+    });
+
+    // Validate application ID - must be a positive number
+    if (!applicationId || isNaN(applicationId) || applicationId <= 0) {
+      console.error("Invalid applicationId provided:", applicationId, "Type:", typeof applicationId);
+      toast.showError("Invalid application ID. Please try again.");
+      return;
+    }
+
+    // Store in both state and ref for reliability
+    console.log("Setting selectedApplicationId to:", applicationId);
     setSelectedApplicationId(applicationId);
+    selectedApplicationIdRef.current = applicationId;
+    console.log("selectedApplicationIdRef.current set to:", selectedApplicationIdRef.current);
     setWithdrawConfirmOpen(true);
+    console.log("Modal should now be open");
   };
 
   const confirmWithdrawApplication = async () => {
-    if (!selectedApplicationId) return;
+    // Use ref first (always current), fallback to state
+    const applicationId = selectedApplicationIdRef.current || selectedApplicationId;
+    console.log("confirmWithdrawApplication called", {
+      selectedApplicationId,
+      refValue: selectedApplicationIdRef.current,
+      applicationId
+    });
 
+    if (!applicationId) {
+      console.warn("No selectedApplicationId, cannot withdraw");
+      toast.showError("No application selected. Please try again.");
+      setWithdrawConfirmOpen(false);
+      setSelectedApplicationId(null);
+      selectedApplicationIdRef.current = null;
+      return;
+    }
+
+    setIsWithdrawing(true);
     try {
+      console.log("Calling withdrawApplication API with ID:", applicationId, "Type:", typeof applicationId);
       const { applicationService } = await import("@/src/services/applicationService");
-      await applicationService.withdrawApplication(selectedApplicationId);
+      console.log("applicationService imported, calling withdrawApplication...");
+      const result = await applicationService.withdrawApplication(applicationId);
+      console.log("Withdraw application API call completed, result:", result);
 
-      // Reload applications to reflect the status change
+      // Update the local application state immediately to reflect the withdrawal
+      // For students, we remove the application entirely (since DECLINED apps are filtered out)
+      // For other roles, we update the status to DECLINED
+      const currentApplications = applications as ApplicationI[];
+      let updatedApplications: ApplicationI[];
+
+      if (user?.role === "student") {
+        // For students, remove the withdrawn application from the list
+        updatedApplications = currentApplications.filter((app: ApplicationI) => {
+          const appId = app.id || (app as any).ID;
+          return appId !== applicationId;
+        });
+        console.log("Removed withdrawn application from list for student");
+      } else {
+        // For other roles (partners, admins), update the status
+        updatedApplications = currentApplications.map((app: ApplicationI) => {
+          const appId = app.id || (app as any).ID;
+          if (appId === applicationId) {
+            return { ...app, id: appId, status: "DECLINED" as const };
+          }
+          return app;
+        });
+        console.log("Updated application status to DECLINED for other roles");
+      }
+
+      setApplications(updatedApplications);
+      console.log("Updated applications state after withdrawal:", updatedApplications);
+
+      // Also refetch from server to ensure we have the latest data
       const numericProjectId = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
-      await applicationService.getProjectApplications(numericProjectId);
-      // The page will refresh to show updated status
+      try {
+        const serverApplications = await applicationService.getProjectApplications(numericProjectId);
+        console.log("Refetched applications from server after withdrawal:", serverApplications);
+        setApplications(serverApplications);
+      } catch (refetchError) {
+        console.warn("Failed to refetch applications, using local update:", refetchError);
+        // Continue with local update if refetch fails
+      }
+
+      // Trigger router refresh to ensure all data is up to date
+      router.refresh();
       const projectTitle = projectData?.title || project?.title || "Project";
       if (projectData?.partnerId) {
         await notificationService.createNotification({
@@ -379,14 +741,71 @@ export default function ProjectDetailsPage({ projectId }: Props) {
         });
       }
 
+      console.log("Withdraw application successful");
       toast.showSuccess("Application withdrawn successfully");
       setWithdrawConfirmOpen(false);
       setSelectedApplicationId(null);
+      selectedApplicationIdRef.current = null;
       // Reload page to refresh applications
       router.refresh();
     } catch (error) {
-      console.error("Failed to withdraw application:", error);
+      console.error("Failed to withdraw application - Full error:", error);
+      console.error("Error type:", typeof error);
+      console.error("Error message:", error instanceof Error ? error.message : String(error));
+      console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
       toast.showError(error instanceof Error ? error.message : "Failed to withdraw application");
+      // Close modal even on error so user can try again
+      setWithdrawConfirmOpen(false);
+      setSelectedApplicationId(null);
+      selectedApplicationIdRef.current = null;
+    } finally {
+      setIsWithdrawing(false);
+    }
+  };
+
+  // Handler for opening application form
+  const handleOpenApplicationForm = () => {
+    if (!projectId) {
+      toast.showError("Invalid project ID");
+      return;
+    }
+    setShowApplicationForm(true);
+  };
+
+  // Handler for submitting application
+  const handleApplicationSubmit = async (applicationData: Partial<ApplicationI>) => {
+    setSubmittingApplication(true);
+    try {
+      // Ensure projectId is set
+      const numericProjectId = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
+      if (!numericProjectId || isNaN(numericProjectId)) {
+        toast.showError("Invalid project ID");
+        return;
+      }
+
+      const { applicationService } = await import("@/src/services/applicationService");
+      const newApplication = await applicationService.submitApplication({
+        ...applicationData,
+        projectId: numericProjectId,
+      });
+
+      toast.showSuccess("Application submitted successfully!");
+
+      // Refetch applications to show the new application
+      const updatedApplications = await applicationService.getProjectApplications(numericProjectId);
+      setApplications(updatedApplications);
+
+      // Close form after successful submission
+      setShowApplicationForm(false);
+
+      // Refresh router to ensure all data is up to date
+      router.refresh();
+    } catch (error) {
+      console.error("Failed to submit application:", error);
+      toast.showError(error instanceof Error ? error.message : "Failed to submit application. Please try again.");
+      throw error; // Re-throw so form can handle it
+    } finally {
+      setSubmittingApplication(false);
     }
   };
 
@@ -711,7 +1130,7 @@ export default function ProjectDetailsPage({ projectId }: Props) {
           createdAt={project.createdAt}
           onBack={() => router.back()}
           onOpenChat={
-            applications.some((a) => a.status === "ASSIGNED")
+            filteredApplications.some((a) => a.status === "ASSIGNED")
               ? actions.handleOpenChat
               : undefined
           }
@@ -724,7 +1143,7 @@ export default function ProjectDetailsPage({ projectId }: Props) {
         <div className="lg:col-span-2 overflow-y-auto">
           <ProjectContent
             project={project}
-            applications={applications}
+            applications={filteredApplications}
             milestones={milestones}
             currencySymbol={currencySymbol}
             messages={messages}
@@ -799,6 +1218,8 @@ export default function ProjectDetailsPage({ projectId }: Props) {
               setFormData({ ...formData, projectId: projectId });
               setIsRequestSupervisorModalOpen(true);
             } : undefined}
+            onApply={canApply ? handleOpenApplicationForm : undefined}
+            onWithdrawApplication={canWithdrawApplication ? handleWithdrawFromQuickActions : undefined}
             userRole={user?.role}
             isProjectOwner={isProjectOwner}
             canEditProject={canEditProject}
@@ -875,7 +1296,7 @@ export default function ProjectDetailsPage({ projectId }: Props) {
         isDeleting={isDeleting}
         onReassignProject={handleReassignProject}
         currentAssignedApplicationId={
-          applications.find((a) => a.status === "ASSIGNED")?.id || null
+          filteredApplications.find((a) => a.status === "ASSIGNED")?.id || null
         }
       />
 
@@ -1017,15 +1438,22 @@ export default function ProjectDetailsPage({ projectId }: Props) {
       <ConfirmationDialog
         open={withdrawConfirmOpen}
         onClose={() => {
-          setWithdrawConfirmOpen(false);
-          setSelectedApplicationId(null);
+          if (!isWithdrawing) {
+            setWithdrawConfirmOpen(false);
+            setSelectedApplicationId(null);
+            selectedApplicationIdRef.current = null;
+          }
         }}
-        onConfirm={confirmWithdrawApplication}
+        onConfirm={async () => {
+          console.log("onConfirm prop called directly, selectedApplicationId:", selectedApplicationId);
+          await confirmWithdrawApplication();
+        }}
         title="Withdraw Application"
         message="Are you sure you want to withdraw this application? This action cannot be undone."
         type="warning"
         confirmText="Withdraw"
         cancelText="Cancel"
+        loading={isWithdrawing}
       />
 
       {/* Terminate Contract Confirmation */}
@@ -1094,6 +1522,18 @@ export default function ProjectDetailsPage({ projectId }: Props) {
             setSelectedApplicationForAction(null);
           }}
           onSubmit={handleSendOffer}
+        />
+      )}
+
+      {/* Application Form Modal (only for students) */}
+      {user?.role === "student" && (
+        <ApplicationForm
+          open={showApplicationForm}
+          projectId={projectId}
+          onClose={() => setShowApplicationForm(false)}
+          onSubmit={handleApplicationSubmit}
+          groups={userGroups}
+          submitting={submittingApplication}
         />
       )}
 

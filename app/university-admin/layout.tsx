@@ -7,7 +7,7 @@ export default function UniversityAdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <RouteProtector allowedRoles={["university-admin"]}>
+    <RouteProtector allowedRoles={["university-admin", "delegated-admin"]}>
       <KYCRouteProtector>{children}</KYCRouteProtector>
     </RouteProtector>
   );

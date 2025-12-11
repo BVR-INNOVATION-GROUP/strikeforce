@@ -411,14 +411,28 @@ export const transformApplications = (
     // Get group name
     let groupName = "Individual Applicant";
     if (app.applicantType === "GROUP" && app.groupId && groups) {
-      const group = groups.find((g) => g.id === app.groupId);
+      // Normalize ID comparison
+      const normalizedGroupId =
+        typeof app.groupId === "string" ? Number(app.groupId) : app.groupId;
+      const group = groups.find((g) => {
+        const groupId = typeof g.id === "string" ? Number(g.id) : g.id;
+        return groupId === normalizedGroupId;
+      });
       groupName = group?.name ?? `Group ${app.groupId}`;
     } else if (
       app.applicantType === "INDIVIDUAL" &&
       app.studentIds.length > 0 &&
       users
     ) {
-      const student = users.find((u) => u.id === app.studentIds[0]);
+      // Normalize ID comparison
+      const normalizedStudentId =
+        typeof app.studentIds[0] === "string"
+          ? Number(app.studentIds[0])
+          : app.studentIds[0];
+      const student = users.find((u) => {
+        const userId = typeof u.id === "string" ? Number(u.id) : u.id;
+        return userId === normalizedStudentId;
+      });
       groupName = student?.name ?? "Individual Applicant";
     }
 
@@ -427,12 +441,16 @@ export const transformApplications = (
 
     // Map members to display format
     const members = memberIds.map((studentId) => {
-      const user = users?.find((u) => u.id === studentId);
+      // Normalize ID comparison to handle both string and number types
+      const normalizedStudentId =
+        typeof studentId === "string" ? Number(studentId) : studentId;
+      const user = users?.find((u) => {
+        const userId = typeof u.id === "string" ? Number(u.id) : u.id;
+        return userId === normalizedStudentId;
+      });
       return {
         name: user?.name ?? "Team Member",
-        avatar:
-          user?.profile?.avatar ??
-          "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg",
+        avatar: user?.profile?.avatar ?? "", // Empty string triggers initials fallback in UI
       };
     });
 
@@ -482,14 +500,52 @@ export const transformTeamMembers = (
   currentUserId?: string | number
 ): TeamMember[] => {
   const assignedApps = applications.filter((app) => app.status === "ASSIGNED");
-  const roles = [
-    "Lead Developer",
-    "UI/UX Designer",
-    "Backend Developer",
-    "Frontend Developer",
-    "Full Stack Developer",
-    "QA Engineer",
-  ];
+
+  // Extract users from groups if they have member data (backend preloads Members)
+  const usersFromGroups: User[] = [];
+  const groupUsersMap = new Map<string | number, User>();
+
+  groups?.forEach((group) => {
+    // Check if group has members array (from backend preload)
+    const groupWithMembers = group as any;
+    if (groupWithMembers.members && Array.isArray(groupWithMembers.members)) {
+      groupWithMembers.members.forEach((member: any) => {
+        if (member && member.id) {
+          const memberId =
+            typeof member.id === "string" ? Number(member.id) : member.id;
+          if (!groupUsersMap.has(memberId)) {
+            groupUsersMap.set(memberId, member);
+            usersFromGroups.push(member);
+          }
+        }
+      });
+    }
+    // Also check for leader if available
+    if (groupWithMembers.user && groupWithMembers.user.id) {
+      const leaderId =
+        typeof groupWithMembers.user.id === "string"
+          ? Number(groupWithMembers.user.id)
+          : groupWithMembers.user.id;
+      if (!groupUsersMap.has(leaderId)) {
+        groupUsersMap.set(leaderId, groupWithMembers.user);
+        usersFromGroups.push(groupWithMembers.user);
+      }
+    }
+  });
+
+  // Merge users from groups with provided users array
+  const allUsers = [...(users || [])];
+  usersFromGroups.forEach((groupUser) => {
+    const userId =
+      typeof groupUser.id === "string" ? Number(groupUser.id) : groupUser.id;
+    const exists = allUsers.some((u) => {
+      const uId = typeof u.id === "string" ? Number(u.id) : u.id;
+      return uId === userId;
+    });
+    if (!exists) {
+      allUsers.push(groupUser);
+    }
+  });
 
   // Create map for quick group lookup by student ID
   const studentToGroupMap = new Map<string | number, Group>();
@@ -507,7 +563,13 @@ export const transformTeamMembers = (
 
   assignedApps.forEach((app) => {
     if (app.applicantType === "GROUP" && app.groupId && groups) {
-      const group = groups.find((g) => g.id === app.groupId);
+      // Normalize ID comparison
+      const normalizedGroupId =
+        typeof app.groupId === "string" ? Number(app.groupId) : app.groupId;
+      const group = groups.find((g) => {
+        const groupId = typeof g.id === "string" ? Number(g.id) : g.id;
+        return groupId === normalizedGroupId;
+      });
       if (group) {
         group.memberIds?.forEach((memberId) => {
           allStudentIds.add(memberId);
@@ -526,16 +588,50 @@ export const transformTeamMembers = (
   // Transform student members
   const studentMembers: TeamMember[] = Array.from(allStudentIds).map(
     (studentId, idx) => {
-      const user = users?.find((u) => u.id === studentId);
+      // Normalize ID comparison
+      const normalizedStudentId =
+        typeof studentId === "string" ? Number(studentId) : studentId;
+
+      // Try to find user in merged users array (includes users from groups)
+      const user =
+        allUsers.find((u) => {
+          const userId = typeof u.id === "string" ? Number(u.id) : u.id;
+          return userId === normalizedStudentId;
+        }) || groupUsersMap.get(studentId);
       const group = studentToGroupMap.get(studentId);
-      const isLeader = Boolean(group?.leaderId === studentId);
-      const isSupervisor = Boolean(supervisorId === studentId);
-      const isYou = Boolean(currentUserId === studentId);
+      // Normalize leaderId for comparison
+      const normalizedLeaderId = group?.leaderId
+        ? typeof group.leaderId === "string"
+          ? Number(group.leaderId)
+          : group.leaderId
+        : undefined;
+      const isLeader = Boolean(normalizedLeaderId === normalizedStudentId);
+      // Normalize supervisorId and currentUserId for comparison
+      const normalizedSupervisorId = supervisorId
+        ? typeof supervisorId === "string"
+          ? Number(supervisorId)
+          : supervisorId
+        : undefined;
+      const normalizedCurrentUserId = currentUserId
+        ? typeof currentUserId === "string"
+          ? Number(currentUserId)
+          : currentUserId
+        : undefined;
+      const isSupervisor = Boolean(
+        normalizedSupervisorId === normalizedStudentId
+      );
+      const isYou = Boolean(normalizedCurrentUserId === normalizedStudentId);
+
+      // Determine role based on actual data
+      let role = "Team Member";
+      if (isLeader) {
+        role = "Group Leader";
+      }
 
       return {
         id: studentId,
         name: user?.name ?? "Team Member",
-        role: roles[idx] ?? "Developer",
+        role: role,
         avatar: user?.profile?.avatar ?? "", // Empty string for fallback to initials
         badges: {
           isLeader,
@@ -550,20 +646,37 @@ export const transformTeamMembers = (
   const teamMembers = [...studentMembers];
   const studentIds = studentMembers.map((m) => m.id);
 
-  if (supervisorId && !studentIds.includes(supervisorId)) {
-    const supervisorUser = users?.find((u) => u.id === supervisorId);
-    if (supervisorUser) {
-      teamMembers.push({
-        id: supervisorId,
-        name: supervisorUser.name ?? "Supervisor",
-        role: "Project Supervisor",
-        avatar: supervisorUser.profile?.avatar ?? "", // Empty string for fallback to initials
-        badges: {
-          isLeader: false,
-          isSupervisor: true,
-          isYou: Boolean(currentUserId === supervisorId),
-        },
+  if (supervisorId) {
+    // Normalize supervisorId for comparison
+    const normalizedSupervisorId =
+      typeof supervisorId === "string" ? Number(supervisorId) : supervisorId;
+    const supervisorInList = studentIds.some((id) => {
+      const normalizedId = typeof id === "string" ? Number(id) : id;
+      return normalizedId === normalizedSupervisorId;
+    });
+    if (!supervisorInList) {
+      const supervisorUser = allUsers.find((u) => {
+        const userId = typeof u.id === "string" ? Number(u.id) : u.id;
+        return userId === normalizedSupervisorId;
       });
+      if (supervisorUser) {
+        const normalizedCurrentUserId = currentUserId
+          ? typeof currentUserId === "string"
+            ? Number(currentUserId)
+            : currentUserId
+          : undefined;
+        teamMembers.push({
+          id: supervisorId,
+          name: supervisorUser.name ?? "Supervisor",
+          role: "Project Supervisor",
+          avatar: supervisorUser.profile?.avatar ?? "", // Empty string for fallback to initials
+          badges: {
+            isLeader: false,
+            isSupervisor: true,
+            isYou: Boolean(normalizedCurrentUserId === normalizedSupervisorId),
+          },
+        });
+      }
     }
   }
 
@@ -581,11 +694,28 @@ export const transformTeamMembers = (
  */
 function getMemberIds(app: Application, groups?: Group[]): (string | number)[] {
   if (app.applicantType === "GROUP" && app.groupId && groups) {
-    const group = groups.find((g) => g.id === app.groupId);
+    // Normalize ID comparison
+    const normalizedGroupId =
+      typeof app.groupId === "string" ? Number(app.groupId) : app.groupId;
+    const group = groups.find((g) => {
+      const groupId = typeof g.id === "string" ? Number(g.id) : g.id;
+      return groupId === normalizedGroupId;
+    });
     if (group) {
       const memberIds = [...(group.memberIds ?? [])];
-      if (group.leaderId && !memberIds.includes(group.leaderId)) {
-        memberIds.push(group.leaderId);
+      // Normalize leaderId for comparison
+      const normalizedLeaderId =
+        typeof group.leaderId === "string"
+          ? Number(group.leaderId)
+          : group.leaderId;
+      if (
+        normalizedLeaderId &&
+        !memberIds.some((id) => {
+          const normalizedId = typeof id === "string" ? Number(id) : id;
+          return normalizedId === normalizedLeaderId;
+        })
+      ) {
+        memberIds.push(normalizedLeaderId);
       }
       return memberIds;
     }

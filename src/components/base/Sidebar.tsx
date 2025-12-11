@@ -9,7 +9,7 @@ import { usePathname } from "next/navigation";
 import { useSidebarLinks } from "@/src/hooks/useSidebarLinks";
 import React from "react";
 
-type Role = "partner" | "student" | "supervisor" | "university-admin" | "super-admin";
+type Role = "partner" | "student" | "supervisor" | "university-admin" | "delegated-admin" | "super-admin";
 
 const Sidebar = () => {
     // Get user role from auth store (in production, from NextAuth session)

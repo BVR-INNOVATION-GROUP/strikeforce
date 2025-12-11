@@ -15,16 +15,22 @@ export interface ChatThreadI {
 
 export interface ChatMessageI {
   id: number;
-  threadId: number;
+  threadId?: number;
   senderId: number;
+  sender?: {
+    id: number;
+    name: string;
+    email: string;
+    profile?: {
+      avatar?: string;
+      bio?: string;
+      phone?: string;
+      location?: string;
+    };
+  };
   type: MessageType;
   body: string;
   proposalId?: number; // If type is PROPOSAL (numeric milestone proposal ID)
   attachments?: string[];
   createdAt: string;
 }
-
-
-
-
-

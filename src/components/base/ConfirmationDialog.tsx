@@ -71,8 +71,28 @@ const ConfirmationDialog = (props: Props) => {
     }
   }
 
-  const handleConfirm = async () => {
-    await onConfirm()
+  const handleConfirm = async (e?: React.MouseEvent<HTMLButtonElement>) => {
+    console.log("handleConfirm called", { loading, hasOnConfirm: !!onConfirm });
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (loading) {
+      console.log("Already loading, ignoring click");
+      return;
+    }
+    if (!onConfirm) {
+      console.warn("No onConfirm handler provided");
+      return;
+    }
+    try {
+      console.log("Calling onConfirm...");
+      await onConfirm();
+      console.log("onConfirm completed");
+    } catch (error) {
+      console.error("Error in confirmation dialog:", error);
+      // Error handling is typically done in the onConfirm function
+    }
   }
 
   return (
@@ -91,7 +111,11 @@ const ConfirmationDialog = (props: Props) => {
         </Button>,
         <Button
           key="confirm"
-          onClick={handleConfirm}
+          type="button"
+          onClick={(e) => {
+            console.log("Button onClick triggered", e);
+            handleConfirm(e);
+          }}
           className={getConfirmButtonClass()}
           disabled={loading}
         >

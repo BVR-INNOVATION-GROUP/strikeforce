@@ -21,3 +21,6 @@ export default function UniversityAdminProfile() {
   return <UnifiedProfile user={user} />;
 }
 
+
+
+

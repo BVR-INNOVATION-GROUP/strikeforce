@@ -57,6 +57,10 @@ const ProjectApprovalModal: React.FC<Props> = ({
         departmentName: project.department?.name,
         courseName: project.course?.name,
         summary: project.summary,
+        challengeStatement: project.challengeStatement,
+        scopeActivities: project.scopeActivities,
+        expectations: project.expectations,
+        skills: project.skills || [],
         budget: typeof project.budget === "object" && project.budget !== null
           ? {
               currency: (project.budget as any).currency || project.currency || "UGX",

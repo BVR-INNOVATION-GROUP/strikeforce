@@ -4,7 +4,7 @@
 import React from 'react'
 import Card from '@/src/components/core/Card'
 import Button from '@/src/components/core/Button'
-import { Download, Share2, RefreshCw, Trash2, UserPlus } from 'lucide-react'
+import { Download, Share2, RefreshCw, Trash2, UserPlus, X, Send } from 'lucide-react'
 
 export interface Props {
     onEditProject?: () => void
@@ -13,10 +13,12 @@ export interface Props {
     onReassignProject?: () => void
     onDeleteProject?: () => void
     onRequestSupervisor?: () => void
+    onWithdrawApplication?: () => void
+    onApply?: () => void
 }
 
 const QuickActionsCard = (props: Props) => {
-    const { onEditProject, onExportDetails, onShareProject, onReassignProject, onDeleteProject, onRequestSupervisor } = props
+    const { onEditProject, onExportDetails, onShareProject, onReassignProject, onDeleteProject, onRequestSupervisor, onWithdrawApplication, onApply } = props
 
     return (
         <Card title="Quick Actions">
@@ -56,6 +58,24 @@ const QuickActionsCard = (props: Props) => {
                     >
                         <UserPlus size={18} />
                         Request Supervisor
+                    </Button>
+                )}
+                {onApply && (
+                    <Button
+                        onClick={onApply}
+                        className="bg-primary w-full flex items-center justify-center gap-2 text-[0.875rem] py-2.5 text-white"
+                    >
+                        <Send size={18} />
+                        Apply
+                    </Button>
+                )}
+                {onWithdrawApplication && (
+                    <Button
+                        onClick={onWithdrawApplication}
+                        className="bg-pale w-full flex items-center justify-center gap-2 text-[0.875rem] py-2.5 text-red-600 hover:text-red-700"
+                    >
+                        <X size={18} />
+                        Withdraw Application
                     </Button>
                 )}
                 {onDeleteProject && (

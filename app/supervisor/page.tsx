@@ -13,6 +13,7 @@ import PendingRequestsList from "@/src/components/screen/supervisor/PendingReque
 import Card from "@/src/components/core/Card";
 import { Users } from "lucide-react";
 import Link from "next/link";
+import Skeleton from "@/src/components/core/Skeleton";
 
 /**
  * Supervisor Dashboard - overview of requests and projects
@@ -134,7 +135,48 @@ export default function SupervisorDashboard() {
   };
 
   if (loading) {
-    return <div className="p-4">Loading...</div>;
+    return (
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div>
+          <Skeleton width={200} height={32} rounded="md" className="mb-2" />
+          <Skeleton width={300} height={16} rounded="md" />
+        </div>
+
+        {/* Stats Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-paper rounded-lg p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <Skeleton width={24} height={24} rounded="md" />
+                <Skeleton width={120} height={16} rounded="md" />
+              </div>
+              <Skeleton width={80} height={32} rounded="md" />
+            </div>
+          ))}
+        </div>
+
+        {/* Capacity and Quick Actions Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-paper rounded-lg p-6">
+              <Skeleton width={200} height={24} rounded="md" className="mb-4" />
+              <Skeleton width="100%" height={100} rounded="md" />
+            </div>
+          ))}
+        </div>
+
+        {/* Charts Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-paper rounded-lg p-6">
+              <Skeleton width={200} height={24} rounded="md" className="mb-4" />
+              <Skeleton width="100%" height={300} rounded="md" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (

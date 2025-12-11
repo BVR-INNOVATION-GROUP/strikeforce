@@ -20,15 +20,32 @@ const ChatMessage = ({ message, sender, isOwn }: Props) => {
       <Avatar src={sender.profile.avatar} name={sender.name} size="sm" />
       <div className={`flex flex-col ${isOwn ? "items-end" : "items-start"} flex-1`}>
         <div className="flex items-center gap-3 mb-2">
-          <span className="text-[0.875rem] font-[600]">{sender.name}</span>
+          <span className="text-[0.875rem] font-[600]">{sender.name || `User ${message.senderId}`}</span>
           <span className="text-[0.8125rem] opacity-60">
-            {new Date(message.createdAt).toLocaleTimeString()}
+            {(() => {
+              const dateStr = message.createdAt;
+              if (!dateStr) return "Unknown time";
+
+              try {
+                // Try parsing the date - handle various formats
+                const date = new Date(dateStr);
+                if (isNaN(date.getTime())) {
+                  return "Unknown time";
+                }
+                return date.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+              } catch (error) {
+                console.warn("Failed to parse date:", dateStr, error);
+                return "Unknown time";
+              }
+            })()}
           </span>
         </div>
         <div
-          className={`rounded-lg px-6 py-4 max-w-[70%] ${
-            isOwn ? "bg-primary text-white" : "bg-pale"
-          }`}
+          className={`rounded-lg px-6 py-4 max-w-[70%] ${isOwn ? "bg-primary text-white" : "bg-pale"
+            }`}
         >
           <p className="text-[0.875rem] leading-relaxed">{message.body}</p>
           {message.type === "PROPOSAL" && (

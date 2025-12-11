@@ -6,3 +6,6 @@ export interface CollegeI {
   updatedAt?: string;
 }
 
+
+
+

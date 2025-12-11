@@ -1480,23 +1480,45 @@ export function useProjectDetailPage(
     }
 
     try {
-      const newMessage = await chatService.sendMessage(
-        threadIdToUse,
-        currentUserId,
-        text
-      );
-      setChatMessages((prev) => [...prev, newMessage]);
+      await chatService.sendMessage(threadIdToUse, currentUserId, text);
 
-      // Update legacy messages format
-      const sender = chatUsers[currentUserId];
-      const formattedMessage = {
-        id: newMessage.id,
-        sender: sender?.name || "You",
-        text: newMessage.body,
-        timestamp: newMessage.createdAt,
-        avatar: sender?.profile?.avatar,
-      };
-      setMessages((prev) => [...prev.slice(-1), formattedMessage]);
+      // Refresh messages after sending (plain HTTP, no websockets)
+      try {
+        const refreshedMessages = await chatService.getProjectMessages(
+          projectId
+        );
+        setChatMessages(refreshedMessages);
+
+        // Update legacy messages format
+        const formattedMessages = refreshedMessages.slice(-2).map((msg) => {
+          const sender =
+            chatUsers[msg.senderId] ||
+            chatUsers[String(msg.senderId)] ||
+            msg.sender;
+          return {
+            id: msg.id,
+            sender: sender?.name || "Unknown User",
+            text: msg.body,
+            timestamp: msg.createdAt,
+            avatar: sender?.profile?.avatar,
+          };
+        });
+        setMessages(formattedMessages);
+
+        // Extract senders from refreshed messages and update users map
+        const updatedUsersMap = { ...chatUsers };
+        refreshedMessages.forEach((msg) => {
+          if (msg.sender) {
+            const idStr = String(msg.sender.id);
+            updatedUsersMap[idStr] = msg.sender;
+            updatedUsersMap[msg.sender.id] = msg.sender;
+          }
+        });
+        setChatUsers(updatedUsersMap);
+      } catch (refreshError) {
+        console.warn("Failed to refresh messages after sending:", refreshError);
+        // Don't throw - message was sent successfully, just failed to refresh
+      }
     } catch (error) {
       console.error("Failed to send message:", error);
       const errorMessage =

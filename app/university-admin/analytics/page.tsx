@@ -16,6 +16,7 @@ import { applicationRepository } from "@/src/repositories/applicationRepository"
 import { organizationService } from "@/src/services/organizationService";
 import { userRepository } from "@/src/repositories/userRepository";
 import { departmentService } from "@/src/services/departmentService";
+import Skeleton from "@/src/components/core/Skeleton";
 
 /**
  * University Admin Analytics - comprehensive analytics dashboard
@@ -283,8 +284,49 @@ export default function UniversityAdminAnalytics() {
   if (loading) {
     return (
       <div className="w-full flex flex-col min-h-full">
-        <div className="flex items-center justify-center h-full">
-          <p className="text-[0.875rem] opacity-60">Loading analytics...</p>
+        {/* Header Skeleton */}
+        <div className="flex-shrink-0 mb-8">
+          <Skeleton width={200} height={24} rounded="md" className="mb-2" />
+          <Skeleton width={300} height={16} rounded="md" />
+        </div>
+
+        {/* Overview Card Skeleton */}
+        <div className="bg-paper rounded-lg p-6 mb-8">
+          <Skeleton width={150} height={24} rounded="md" className="mb-6" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {[1, 2].map((i) => (
+              <div key={i}>
+                <Skeleton width={200} height={24} rounded="md" className="mb-4" />
+                <Skeleton width="100%" height={300} rounded="md" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Applications Analytics Skeleton */}
+        <div className="bg-paper rounded-lg p-6 mb-8">
+          <Skeleton width={200} height={24} rounded="md" className="mb-6" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {[1, 2].map((i) => (
+              <div key={i}>
+                <Skeleton width={200} height={24} rounded="md" className="mb-4" />
+                <Skeleton width="100%" height={300} rounded="md" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Additional Analytics Skeleton */}
+        <div className="bg-paper rounded-lg p-6">
+          <Skeleton width={200} height={24} rounded="md" className="mb-6" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {[1, 2].map((i) => (
+              <div key={i}>
+                <Skeleton width={200} height={24} rounded="md" className="mb-4" />
+                <Skeleton width="100%" height={300} rounded="md" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );

@@ -10,6 +10,7 @@ import { Plus, Building2 } from "lucide-react";
 import { CollegeI } from "@/src/models/college";
 import { collegeService } from "@/src/services/collegeService";
 import { useToast } from "@/src/hooks/useToast";
+import Skeleton from "@/src/components/core/Skeleton";
 
 export default function UniversityAdminColleges() {
   const { showError, showSuccess } = useToast();
@@ -120,8 +121,30 @@ export default function UniversityAdminColleges() {
 
   if (loading) {
     return (
-      <div className="w-full flex flex-col items-center justify-center min-h-[400px]">
-        <p className="text-secondary">Loading colleges...</p>
+      <div className="w-full flex flex-col gap-6">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <Skeleton width={200} height={32} rounded="md" className="mb-2" />
+            <Skeleton width={400} height={16} rounded="md" />
+          </div>
+          <Skeleton width={160} height={40} rounded="md" />
+        </div>
+
+        {/* Table Skeleton */}
+        <div className="bg-paper rounded-lg border border-custom p-4">
+          <Skeleton width={150} height={24} rounded="md" className="mb-4" />
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton width="30%" height={20} rounded="md" />
+                <Skeleton width="25%" height={20} rounded="md" />
+                <Skeleton width="25%" height={20} rounded="md" />
+                <Skeleton width="20%" height={36} rounded="md" className="ml-auto" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

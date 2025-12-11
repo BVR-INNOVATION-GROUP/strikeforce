@@ -10,6 +10,8 @@ import { formatDateShort } from '@/src/utils/dateFormatters'
 import { transformApplications } from '@/src/utils/projectTransformers'
 import { getInitials, hasAvatar } from '@/src/utils/avatarUtils'
 import { stripHtmlTags, safeRender } from '@/src/utils/htmlUtils'
+import { groupRepository } from '@/src/repositories/groupRepository'
+import { userRepository } from '@/src/repositories/userRepository'
 
 export interface UserI {
     avatar: string
@@ -59,7 +61,7 @@ const convertProjectToDisplay = async (
     // Handle budget - extract from Budget object if needed
     let budgetValue: number = 0;
     let currencyValue: string = '';
-    
+
     if (project.budget && typeof project.budget === 'object' && !Array.isArray(project.budget)) {
         const budgetObj = project.budget as any;
         budgetValue = budgetObj.Value !== undefined ? budgetObj.Value : (budgetObj.value !== undefined ? budgetObj.value : 0);
@@ -71,7 +73,7 @@ const convertProjectToDisplay = async (
         budgetValue = typeof project.budget === 'string' ? parseFloat(project.budget) || 0 : 0;
         currencyValue = project.currency || '';
     }
-    
+
     // Format currency
     const currencyInfo = currenciesArray.find((c) => c.code === currencyValue)
     const currencySymbol = currencyInfo?.symbol || currencyValue
@@ -87,13 +89,17 @@ const convertProjectToDisplay = async (
     }
 
     if (applications && applications.length > 0) {
-        // Load groups and users data (same as detail page transformation)
-        const [groupsModule, usersModule] = await Promise.all([
-            import("@/src/data/mockGroups.json"),
-            import("@/src/data/mockUsers.json")
+        // Load groups and users data from API
+        const [groupsData, usersData] = await Promise.all([
+            groupRepository.getAll().catch((error) => {
+                console.error("Failed to load groups:", error);
+                return [];
+            }),
+            userRepository.getAll().catch((error) => {
+                console.error("Failed to load users:", error);
+                return [];
+            }),
         ])
-        const groupsData = groupsModule.default
-        const usersData = usersModule.default
 
         // Transform applications (same as detail page)
         const transformedApps = transformApplications(applications, groupsData, usersData)

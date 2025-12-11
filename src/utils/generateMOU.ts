@@ -59,6 +59,10 @@ export interface MOUData {
   departmentName?: string;
   courseName?: string;
   summary?: string;
+  challengeStatement?: string; // Challenges/opportunities
+  scopeActivities?: string; // Activities
+  expectations?: string; // Expectations
+  skills?: string[]; // Required skills
   budget?: {
     currency: string;
     value: number;
@@ -168,6 +172,127 @@ export async function generateMOUPDF(data: MOUData): Promise<Blob> {
     }
     
     yPos += 5; // Extra spacing after summary
+  }
+
+  // Challenges/Opportunities
+  if (data.challengeStatement) {
+    // Check if we need a new page
+    if (yPos + 15 > doc.internal.pageSize.getHeight() - margin) {
+      doc.addPage();
+      yPos = margin;
+    }
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Challenges/Opportunities:", margin, yPos);
+    yPos += 8;
+    
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    
+    const plainTextChallenges = htmlToPlainText(data.challengeStatement);
+    const challengeParagraphs = plainTextChallenges.split(/\n+/).filter(p => p.trim());
+    
+    for (const paragraph of challengeParagraphs) {
+      if (yPos + 8 > doc.internal.pageSize.getHeight() - margin) {
+        doc.addPage();
+        yPos = margin;
+      }
+      
+      const lines = doc.splitTextToSize(paragraph.trim(), contentWidth);
+      doc.text(lines, margin, yPos);
+      yPos += lines.length * 6 + 3;
+    }
+    
+    yPos += 5;
+  }
+
+  // Activities
+  if (data.scopeActivities) {
+    // Check if we need a new page
+    if (yPos + 15 > doc.internal.pageSize.getHeight() - margin) {
+      doc.addPage();
+      yPos = margin;
+    }
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Activities:", margin, yPos);
+    yPos += 8;
+    
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    
+    const plainTextActivities = htmlToPlainText(data.scopeActivities);
+    const activityParagraphs = plainTextActivities.split(/\n+/).filter(p => p.trim());
+    
+    for (const paragraph of activityParagraphs) {
+      if (yPos + 8 > doc.internal.pageSize.getHeight() - margin) {
+        doc.addPage();
+        yPos = margin;
+      }
+      
+      const lines = doc.splitTextToSize(paragraph.trim(), contentWidth);
+      doc.text(lines, margin, yPos);
+      yPos += lines.length * 6 + 3;
+    }
+    
+    yPos += 5;
+  }
+
+  // Expectations
+  if (data.expectations) {
+    // Check if we need a new page
+    if (yPos + 15 > doc.internal.pageSize.getHeight() - margin) {
+      doc.addPage();
+      yPos = margin;
+    }
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Expectations:", margin, yPos);
+    yPos += 8;
+    
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    
+    const plainTextExpectations = htmlToPlainText(data.expectations);
+    const expectationParagraphs = plainTextExpectations.split(/\n+/).filter(p => p.trim());
+    
+    for (const paragraph of expectationParagraphs) {
+      if (yPos + 8 > doc.internal.pageSize.getHeight() - margin) {
+        doc.addPage();
+        yPos = margin;
+      }
+      
+      const lines = doc.splitTextToSize(paragraph.trim(), contentWidth);
+      doc.text(lines, margin, yPos);
+      yPos += lines.length * 6 + 3;
+    }
+    
+    yPos += 5;
+  }
+
+  // Required Skills
+  if (data.skills && data.skills.length > 0) {
+    // Check if we need a new page
+    if (yPos + 15 > doc.internal.pageSize.getHeight() - margin) {
+      doc.addPage();
+      yPos = margin;
+    }
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Required Skills:", margin, yPos);
+    yPos += 8;
+    
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    
+    const skillsText = data.skills.join(", ");
+    const skillsLines = doc.splitTextToSize(skillsText, contentWidth);
+    doc.text(skillsLines, margin, yPos);
+    yPos += skillsLines.length * 6 + 5;
   }
 
   // Budget and Deadline

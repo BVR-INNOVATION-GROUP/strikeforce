@@ -6,6 +6,8 @@ import { ProjectI as ModelProjectI } from "@/src/models/project";
 import { ApplicationI } from "@/src/models/application";
 import { projectService } from "@/src/services/projectService";
 import { applicationService } from "@/src/services/applicationService";
+import { groupRepository } from "@/src/repositories/groupRepository";
+import { userRepository } from "@/src/repositories/userRepository";
 import { useAuthStore } from "@/src/store";
 import IconButton from "@/src/components/core/IconButton";
 import Card from "@/src/components/core/Card";
@@ -39,20 +41,20 @@ export default function StudentMyProjects() {
       try {
         // Get all projects and user's applications
         // Fetch with high limit to get all projects student has applied to
-        const [allProjectsResult, userApplications] = await Promise.all([
+        const [allProjectsResult, userApplications, groupsData, usersData] = await Promise.all([
           projectService.getAllProjects({ limit: 1000 }),
           applicationService.getUserApplications(),
+          groupRepository.getAll().catch((error) => {
+            console.error("Failed to load groups:", error);
+            return [];
+          }),
+          userRepository.getAll().catch((error) => {
+            console.error("Failed to load users:", error);
+            return [];
+          }),
         ]);
-        
-        const allProjects = allProjectsResult.projects;
 
-        // Load groups and users data for member information
-        const [groupsModule, usersModule] = await Promise.all([
-          import("@/src/data/mockGroups.json"),
-          import("@/src/data/mockUsers.json"),
-        ]);
-        const groupsData = groupsModule.default;
-        const usersData = usersModule.default;
+        const allProjects = allProjectsResult.projects;
 
         setApplications(userApplications);
 

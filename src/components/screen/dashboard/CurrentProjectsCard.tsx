@@ -9,12 +9,14 @@ import Card from "@/src/components/core/Card";
 import { ProjectI } from "@/src/models/project";
 import { useRouter } from "next/navigation";
 import { Briefcase, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import Skeleton from "@/src/components/core/Skeleton";
 
 export interface CurrentProjectsCardProps {
   projects: ProjectI[];
   userRole: "university-admin" | "partner" | "student";
   organizationName?: string;
   onViewAll?: () => void;
+  loading?: boolean;
 }
 
 const CurrentProjectsCard: React.FC<CurrentProjectsCardProps> = ({
@@ -22,8 +24,45 @@ const CurrentProjectsCard: React.FC<CurrentProjectsCardProps> = ({
   userRole,
   organizationName,
   onViewAll,
+  loading = false,
 }) => {
   const router = useRouter();
+
+  if (loading) {
+    return (
+      <Card className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex-1">
+            <Skeleton width={250} height={24} rounded="md" className="mb-2" />
+            <Skeleton width={300} height={16} rounded="md" />
+          </div>
+          {onViewAll && <Skeleton width={80} height={20} rounded="md" />}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center gap-3 p-4 bg-pale rounded-lg border border-custom">
+              <Skeleton width={24} height={24} rounded="md" />
+              <div className="flex-1">
+                <Skeleton width={60} height={32} rounded="md" className="mb-2" />
+                <Skeleton width={120} height={14} rounded="md" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-custom">
+          <Skeleton width={180} height={18} rounded="md" className="mb-2" />
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center justify-between p-2 mb-2">
+              <Skeleton width="60%" height={16} rounded="md" />
+              <Skeleton width={60} height={14} rounded="md" />
+            </div>
+          ))}
+        </div>
+      </Card>
+    );
+  }
 
   // Filter projects by status
   const activeProjects = projects.filter((p) => p.status === "in-progress");

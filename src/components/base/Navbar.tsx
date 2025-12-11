@@ -156,6 +156,7 @@ const Navbar = () => {
             student: '/student/profile',
             supervisor: '/supervisor/profile',
             'university-admin': '/university-admin/profile',
+            'delegated-admin': '/university-admin/profile',
             'super-admin': '/super-admin/profile',
         }
         return roleRoutes[user.role] || '/partner/profile'
@@ -171,6 +172,7 @@ const Navbar = () => {
             student: '/student/settings',
             supervisor: '/supervisor/settings',
             'university-admin': '/university-admin/settings',
+            'delegated-admin': '/university-admin/settings',
             'super-admin': '/super-admin/settings',
         }
         return roleRoutes[user.role] || '/partner/settings'

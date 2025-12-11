@@ -37,14 +37,14 @@ const OnboardingPage = () => {
   useEffect(() => {
     const checkAuth = async () => {
       let currentUser = user;
-      
+
       // Wait for auth store to hydrate
       if (!currentUser) {
         // Try to get user from cookie/storage
         const cookieUser = document.cookie
           .split(";")
           .find((c) => c.trim().startsWith("user="));
-        
+
         if (cookieUser) {
           try {
             const userData = JSON.parse(
@@ -64,8 +64,8 @@ const OnboardingPage = () => {
 
       setCheckingAuth(false);
 
-      // Redirect if not authenticated or not partner/university-admin
-      if (!currentUser || (currentUser.role !== "partner" && currentUser.role !== "university-admin")) {
+      // Redirect if not authenticated or not partner/university-admin/delegated-admin
+      if (!currentUser || (currentUser.role !== "partner" && currentUser.role !== "university-admin" && currentUser.role !== "delegated-admin")) {
         showError("Onboarding is only available for partners and university administrators");
         router.push("/auth/login");
         return;
@@ -159,9 +159,10 @@ const OnboardingPage = () => {
       }
 
       showSuccess("Profile completed successfully!");
-      
+
       // Redirect based on role
       const roleRoutes: Record<string, string> = {
+        "delegated-admin": "/university-admin",
         partner: "/partner",
         "university-admin": "/university-admin",
       };
@@ -203,8 +204,8 @@ const OnboardingPage = () => {
     );
   }
 
-  // Don't render if user is not partner/university-admin (will redirect)
-  if (!user || (user.role !== "partner" && user.role !== "university-admin")) {
+  // Don't render if user is not partner/university-admin/delegated-admin (will redirect)
+  if (!user || (user.role !== "partner" && user.role !== "university-admin" && user.role !== "delegated-admin")) {
     return null;
   }
 
@@ -328,8 +329,8 @@ const OnboardingPage = () => {
             {loading
               ? "Saving..."
               : step === 2
-              ? "Complete Setup"
-              : "Continue"}
+                ? "Complete Setup"
+                : "Continue"}
           </Button>
         </div>
       </div>

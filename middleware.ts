@@ -11,6 +11,7 @@ const roleRoutes: Record<string, string[]> = {
   student: ["/student"],
   supervisor: ["/supervisor"],
   "university-admin": ["/university-admin"],
+  "delegated-admin": ["/university-admin"],
   "super-admin": ["/super-admin"],
 };
 
@@ -110,8 +111,3 @@ export const config = {
     "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
-
-
-
-
-

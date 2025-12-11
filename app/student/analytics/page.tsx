@@ -12,6 +12,7 @@ import { ProjectI } from "@/src/models/project";
 import { ApplicationI } from "@/src/models/application";
 import { useAuthStore } from "@/src/store";
 import { Briefcase, DollarSign, Award, FileText } from "lucide-react";
+import Skeleton from "@/src/components/core/Skeleton";
 
 /**
  * Student Analytics - detailed graphs and statistics for performance tracking
@@ -193,7 +194,48 @@ export default function StudentAnalytics() {
   }, [projects, stats]);
 
   if (loading || !stats) {
-    return <div className="p-4">Loading...</div>;
+    return (
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div>
+          <Skeleton width={200} height={32} rounded="md" className="mb-2" />
+          <Skeleton width={400} height={16} rounded="md" />
+        </div>
+
+        {/* Stats Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-paper rounded-lg p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <Skeleton width={24} height={24} rounded="md" />
+                <Skeleton width={120} height={16} rounded="md" />
+              </div>
+              <Skeleton width={80} height={32} rounded="md" />
+            </div>
+          ))}
+        </div>
+
+        {/* Charts Row 1 Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-paper rounded-lg p-6">
+              <Skeleton width={200} height={24} rounded="md" className="mb-4" />
+              <Skeleton width="100%" height={300} rounded="md" />
+            </div>
+          ))}
+        </div>
+
+        {/* Charts Row 2 Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-paper rounded-lg p-6">
+              <Skeleton width={200} height={24} rounded="md" className="mb-4" />
+              <Skeleton width="100%" height={300} rounded="md" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (

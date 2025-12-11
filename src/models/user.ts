@@ -6,6 +6,7 @@ export type UserRole =
   | "student"
   | "supervisor"
   | "university-admin"
+  | "delegated-admin"
   | "super-admin";
 
 export interface UserI {

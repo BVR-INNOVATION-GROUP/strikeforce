@@ -39,7 +39,7 @@ const IssueOfferModal = ({
         </Button>,
         <Button key="assign" onClick={onSubmit} className="bg-primary">
           <Check size={16} className="mr-2" />
-          Assign Group
+          Assign
         </Button>,
       ]}
     >

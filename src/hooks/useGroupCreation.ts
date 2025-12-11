@@ -13,6 +13,7 @@ import {
 import { useToast } from "@/src/hooks/useToast";
 import { groupService } from "@/src/services/groupService";
 import { userRepository } from "@/src/repositories/userRepository";
+import { useAuthStore } from "@/src/store";
 
 export interface UseGroupCreationResult {
   formData: GroupFormData;
@@ -41,6 +42,7 @@ export function useGroupCreation(
   isModalOpen: boolean,
   currentUserId?: string | null
 ): UseGroupCreationResult {
+  const { organization, user } = useAuthStore();
   const [formData, setFormData] = useState<GroupFormData>({
     name: "",
     capacity: 5,
@@ -57,42 +59,91 @@ export function useGroupCreation(
    * Load students via search endpoint
    * Only called when user types (not on page load)
    * Uses search endpoint to fetch students with search query
+   * Filters by same university as logged-in user
+   * Always excludes the logged-in user from results
    */
-  const loadStudents = useCallback(async (query: string) => {
-    // Don't search if query is empty - wait for user input
-    if (!query || query.trim().length === 0) {
-      setUsersMap({});
-      setLoadingMembers(false);
-      return;
-    }
+  const loadStudents = useCallback(
+    async (query: string) => {
+      // Don't search if query is empty - wait for user input
+      if (!query || query.trim().length === 0) {
+        setUsersMap({});
+        setLoadingMembers(false);
+        return;
+      }
 
-    setLoadingMembers(true);
-    try {
-      // Use search endpoint to fetch students
-      const students = await userRepository.search({
-        role: "student",
-        search: query.trim(), // Search query is required
-        limit: 100, // Get up to 100 students
-      });
+      setLoadingMembers(true);
+      try {
+        // Get university/organization ID from auth store
+        const universityId = organization?.id;
+        const currentUserIdStr = currentUserId ? String(currentUserId) : null;
 
-      // Create users map for quick lookup
-      const map: Record<string, UserI> = {};
-      students.forEach((u) => {
-        const userIdStr = String(u.id);
-        map[userIdStr] = u;
+        // Use search endpoint to fetch students from same university
+        const students = await userRepository.search({
+          role: "student",
+          search: query.trim(), // Search query is required
+          limit: 100, // Get up to 100 students
+          universityId: universityId, // Filter by same university
+        });
+
+        // Create users map for quick lookup, excluding current user
+        // But preserve current user if already in map (for leader avatar display)
+        setUsersMap((prevMap) => {
+          const map: Record<string, UserI> = {};
+          const currentUserInMap = currentUserIdStr
+            ? prevMap[currentUserIdStr]
+            : null;
+
+          students.forEach((u) => {
+            const userIdStr = String(u.id);
+            // Always exclude the logged-in user from search results
+            if (currentUserIdStr && userIdStr === currentUserIdStr) {
+              return; // Skip current user
+            }
+            map[userIdStr] = u;
+          });
+
+          // Preserve current user in map if it exists (for leader avatar)
+          if (currentUserInMap) {
+            map[currentUserIdStr!] = currentUserInMap;
+          }
+
+          return map;
+        });
+        console.log("Loaded students for group creation:", {
+          query,
+          universityId,
+          count: students.length,
+          filteredCount: Object.keys(map).length,
+        });
+      } catch (error) {
+        console.error("Failed to load available students:", error);
+        setUsersMap({});
+      } finally {
+        setLoadingMembers(false);
+      }
+    },
+    [organization, currentUserId]
+  );
+
+  /**
+   * Preload current user into usersMap when modal opens
+   * This ensures the leader avatar is displayed immediately
+   */
+  useEffect(() => {
+    if (isModalOpen && user && currentUserId) {
+      const userIdStr = String(user.id);
+      setUsersMap((prev) => {
+        // Only add if not already present
+        if (!prev[userIdStr]) {
+          return {
+            ...prev,
+            [userIdStr]: user,
+          };
+        }
+        return prev;
       });
-      setUsersMap(map);
-      console.log("Loaded students for group creation:", {
-        query,
-        count: students.length,
-      });
-    } catch (error) {
-      console.error("Failed to load available students:", error);
-      setUsersMap({});
-    } finally {
-      setLoadingMembers(false);
     }
-  }, []);
+  }, [isModalOpen, user, currentUserId]);
 
   /**
    * Reset state when modal closes

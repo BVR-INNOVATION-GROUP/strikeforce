@@ -146,10 +146,14 @@ export default function StudentProjects() {
   }, []);
 
   // Check if user has applied to a project
+  // Exclude DECLINED applications (withdrawn applications) - students can re-apply after withdrawal
   const getApplicationStatus = (projectId: string | number | undefined): ApplicationI | null => {
     if (!projectId) return null;
     return userApplications.find(
-      (app) => app.projectId && app.projectId.toString() === projectId.toString()
+      (app) =>
+        app.projectId &&
+        app.projectId.toString() === projectId.toString() &&
+        app.status !== "DECLINED" // Exclude withdrawn applications
     ) || null;
   };
 
@@ -186,15 +190,21 @@ export default function StudentProjects() {
     const fetchData = async () => {
       try {
         // Fetch projects with pagination, applications, and groups
+        // Only fetch published projects for discoverability
         const [projectsResult, applicationsData, usersData] = await Promise.all([
-          projectService.getAllProjects({ page: currentPage, limit: pageSize }),
+          projectService.getAllProjects({ page: currentPage, limit: pageSize, status: "published" }),
           applicationService.getUserApplications(),
           import("@/src/data/mockUsers.json"),
         ]);
 
-        setProjects(projectsResult.projects);
-        setTotalPages(projectsResult.totalPages);
-        setTotalProjects(projectsResult.total);
+        // Filter to only published projects as a safety measure
+        const publishedProjects = projectsResult.projects.filter(p => p.status === "published");
+        setProjects(publishedProjects);
+        // Recalculate pagination based on published projects only
+        const totalPublished = publishedProjects.length;
+        const calculatedTotalPages = Math.ceil(totalPublished / pageSize);
+        setTotalPages(calculatedTotalPages);
+        setTotalProjects(totalPublished);
         setUserApplications(applicationsData);
 
         // Load groups from backend API for application form
@@ -251,6 +261,9 @@ export default function StudentProjects() {
   // Apply filters and search
   useEffect(() => {
     let filtered = [...projects];
+
+    // Only show published projects (safety filter)
+    filtered = filtered.filter((p) => p.status === "published");
 
     // Search filter - Google-like (searches title, description, skills)
     if (search.trim()) {

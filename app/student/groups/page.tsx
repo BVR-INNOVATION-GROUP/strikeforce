@@ -266,11 +266,13 @@ export default function StudentGroups() {
         errors={errors}
         availableMembers={availableMembers}
         usersMap={usersMap}
+        loadingMembers={loadingMembers}
         currentUserId={user?.id ? String(user.id) : undefined}
         onClose={() => setIsCreateModalOpen(false)}
         onChange={(field, value) => setFormData({ ...formData, [field]: value })}
         onMembersChange={updateMembers}
         onClearError={clearError}
+        onSearchMembers={handleSearchMembers}
         onSubmit={handleCreate}
       />
 

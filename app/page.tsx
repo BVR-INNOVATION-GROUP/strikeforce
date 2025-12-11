@@ -34,6 +34,7 @@ const dashboardRoutes: Record<string, string> = {
   student: "/student/find",
   supervisor: "/supervisor",
   "university-admin": "/university-admin",
+  "delegated-admin": "/university-admin",
   "super-admin": "/super-admin",
 };
 

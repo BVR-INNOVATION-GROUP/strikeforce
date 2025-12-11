@@ -12,6 +12,7 @@ import { useAuthStore } from "@/src/store";
 import { Search, Briefcase, Award, DollarSign, TrendingUp, FileText, Download } from "lucide-react";
 import { ProjectI } from "@/src/models/project";
 import { ApplicationI } from "@/src/models/application";
+import Skeleton from "@/src/components/core/Skeleton";
 
 /**
  * Student Dashboard - overview with stats and quick access to Find Projects
@@ -60,7 +61,73 @@ export default function StudentDashboard() {
   }, [applications]);
 
   if (loading || !stats) {
-    return <div className="p-4">Loading...</div>;
+    return (
+      <div className="w-full flex flex-col min-h-full">
+        {/* Header Skeleton */}
+        <div className="flex-shrink-0 mb-6">
+          <Skeleton width={200} height={32} rounded="md" className="mb-2" />
+          <Skeleton width={300} height={16} rounded="md" />
+        </div>
+
+        {/* Current Projects Card Skeleton */}
+        <div className="bg-paper rounded-lg p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex-1">
+              <Skeleton width={250} height={24} rounded="md" className="mb-2" />
+              <Skeleton width={300} height={16} rounded="md" />
+            </div>
+            <Skeleton width={80} height={20} rounded="md" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-3 p-4 bg-pale rounded-lg">
+                <Skeleton width={24} height={24} rounded="md" />
+                <div className="flex-1">
+                  <Skeleton width={60} height={32} rounded="md" className="mb-2" />
+                  <Skeleton width={120} height={14} rounded="md" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="pt-4 border-t border-custom">
+            <Skeleton width={180} height={18} rounded="md" className="mb-2" />
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center justify-between p-2 mb-2">
+                <Skeleton width="60%" height={16} rounded="md" />
+                <Skeleton width={60} height={14} rounded="md" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Cards Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-paper rounded-lg p-6">
+              <div className="flex items-center gap-3 mb-3">
+                <Skeleton width={48} height={48} rounded="lg" />
+                <Skeleton width={150} height={20} rounded="md" />
+              </div>
+              <Skeleton width="100%" height={16} rounded="md" className="mb-4" />
+              <Skeleton width={120} height={16} rounded="md" className="ml-auto" />
+            </div>
+          ))}
+        </div>
+
+        {/* Stats Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-paper rounded-lg p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <Skeleton width={24} height={24} rounded="md" />
+                <Skeleton width={120} height={16} rounded="md" />
+              </div>
+              <Skeleton width={80} height={32} rounded="md" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -76,6 +143,7 @@ export default function StudentDashboard() {
         projects={studentProjects}
         userRole="student"
         onViewAll={() => {}}
+        loading={loading}
       />
 
       {/* Purposeful Student Sections */}

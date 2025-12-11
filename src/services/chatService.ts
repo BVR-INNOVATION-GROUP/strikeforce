@@ -27,6 +27,21 @@ export const chatService = {
   },
 
   /**
+   * Get messages for a project
+   * Finds ASSIGNED application, gets group ID, then fetches messages
+   */
+  getProjectMessages: async (
+    projectId: string | number
+  ): Promise<ChatMessageI[]> => {
+    const messages = await chatRepository.getMessagesByProjectId(projectId);
+    // Sort by creation date (oldest first)
+    return messages.sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+  },
+
+  /**
    * Send a message with validation
    * Note: threadId can be a thread ID or a group ID (backend uses group IDs)
    * Note: senderId parameter is kept for API compatibility but backend gets it from JWT token

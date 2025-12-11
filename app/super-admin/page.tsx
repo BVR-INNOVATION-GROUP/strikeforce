@@ -8,6 +8,7 @@ import { useToast } from "@/src/hooks/useToast";
 import BarChart from "@/src/components/base/BarChart";
 import LineChart from "@/src/components/base/LineChart";
 import { Building2, GraduationCap, ShieldCheck, Clock } from "lucide-react";
+import Skeleton from "@/src/components/core/Skeleton";
 
 /**
  * Super Admin Dashboard - Approve partner and university admin requests
@@ -99,8 +100,39 @@ export default function SuperAdminDashboard() {
   if (loading) {
     return (
       <div className="w-full flex flex-col min-h-full">
-        <div className="flex items-center justify-center h-full">
-          <p className="text-[0.875rem] opacity-60">Loading...</p>
+        {/* Header Skeleton */}
+        <div className="flex-shrink-0 mb-8">
+          <Skeleton width={200} height={24} rounded="md" className="mb-2" />
+          <Skeleton width={300} height={16} rounded="md" />
+        </div>
+
+        {/* Stats Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-paper rounded-lg p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <Skeleton width={24} height={24} rounded="md" />
+                <Skeleton width={120} height={16} rounded="md" />
+              </div>
+              <Skeleton width={80} height={32} rounded="md" />
+            </div>
+          ))}
+        </div>
+
+        {/* Charts Row Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-paper rounded-lg p-6">
+              <Skeleton width={200} height={24} rounded="md" className="mb-4" />
+              <Skeleton width="100%" height={300} rounded="md" />
+            </div>
+          ))}
+        </div>
+
+        {/* Line Chart Skeleton */}
+        <div className="bg-paper rounded-lg p-6">
+          <Skeleton width={300} height={24} rounded="md" className="mb-4" />
+          <Skeleton width="100%" height={300} rounded="md" />
         </div>
       </div>
     );

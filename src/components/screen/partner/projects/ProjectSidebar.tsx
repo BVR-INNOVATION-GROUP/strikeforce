@@ -40,6 +40,7 @@ export interface Props {
     onReassignProject?: () => void
     onDeleteProject: () => void
     onRequestSupervisor?: () => void
+    onWithdrawApplication?: () => void
     userRole?: string
     isProjectOwner?: boolean
     canEditProject?: boolean
@@ -58,6 +59,7 @@ const ProjectSidebar = (props: Props) => {
         onReassignProject,
         onDeleteProject,
         onRequestSupervisor,
+        onWithdrawApplication,
         canEditProject = false,
         canSeeQuickActions = false
     } = props
@@ -87,6 +89,7 @@ const ProjectSidebar = (props: Props) => {
                     onReassignProject={onReassignProject}
                     onDeleteProject={canEditProject ? (onDeleteProject || (() => { })) : undefined}
                     onRequestSupervisor={onRequestSupervisor}
+                    onWithdrawApplication={onWithdrawApplication}
                 />
             )}
         </div>

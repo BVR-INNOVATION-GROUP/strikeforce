@@ -20,8 +20,14 @@ export interface UseChatHandlersResult {
   users: Record<string, UserI>;
   proposals: Record<string, MilestoneProposalI>;
   loading: boolean;
-  handleSendMessage: (messageText: string, threads: ChatThreadI[], setThreads: (threads: ChatThreadI[]) => void) => Promise<void>;
-  handleProposalSubmit: (proposalData: Partial<MilestoneProposalI>) => Promise<void>;
+  handleSendMessage: (
+    messageText: string,
+    threads: ChatThreadI[],
+    setThreads: (threads: ChatThreadI[]) => void
+  ) => Promise<void>;
+  handleProposalSubmit: (
+    proposalData: Partial<MilestoneProposalI>
+  ) => Promise<void>;
   handleFinalizeProposal: (proposalId: string) => Promise<void>;
   finalizingProposalId: string | null;
   refreshMessages: () => Promise<void>;
@@ -36,9 +42,13 @@ export function useChatHandlers({
 }: UseChatHandlersParams): UseChatHandlersResult {
   const [messages, setMessages] = useState<ChatMessageI[]>([]);
   const [users, setUsers] = useState<Record<string, UserI>>({});
-  const [proposals, setProposals] = useState<Record<string, MilestoneProposalI>>({});
+  const [proposals, setProposals] = useState<
+    Record<string, MilestoneProposalI>
+  >({});
   const [loading, setLoading] = useState(true);
-  const [finalizingProposalId, setFinalizingProposalId] = useState<string | null>(null);
+  const [finalizingProposalId, setFinalizingProposalId] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -46,6 +56,9 @@ export function useChatHandlers({
         const usersData = await userRepository.getAll();
         const usersMap: Record<string, UserI> = {};
         usersData.forEach((u) => {
+          // Store with both string and number keys for compatibility
+          const idStr = String(u.id);
+          usersMap[idStr] = u;
           usersMap[u.id] = u;
         });
         setUsers(usersMap);
@@ -63,8 +76,22 @@ export function useChatHandlers({
           chatService.getThreadMessages(selectedThread.id),
           proposalRepository.getAll(selectedThread.projectId),
         ]);
+
+        // Extract senders from messages and add to users map
+        const updatedUsersMap = { ...users };
+        threadMessages.forEach((msg) => {
+          if (msg.sender) {
+            const idStr = String(msg.sender.id);
+            updatedUsersMap[idStr] = msg.sender;
+            updatedUsersMap[msg.sender.id] = msg.sender;
+          }
+        });
+        if (Object.keys(updatedUsersMap).length > Object.keys(users).length) {
+          setUsers(updatedUsersMap);
+        }
+
         setMessages(threadMessages);
-        
+
         const proposalsMap: Record<string, MilestoneProposalI> = {};
         proposalsData.forEach((p) => {
           proposalsMap[p.id] = p;
@@ -104,7 +131,9 @@ export function useChatHandlers({
     }
   };
 
-  const handleProposalSubmit = async (proposalData: Partial<MilestoneProposalI>) => {
+  const handleProposalSubmit = async (
+    proposalData: Partial<MilestoneProposalI>
+  ) => {
     if (!selectedThread || !userId) {
       throw new Error("Please select a conversation first");
     }
@@ -137,9 +166,11 @@ export function useChatHandlers({
       await milestoneProposalService.finalizeProposal(proposalId, userId);
       const updatedProposal = await proposalRepository.getById(proposalId);
       setProposals((prev) => ({ ...prev, [proposalId]: updatedProposal }));
-      
+
       if (selectedThread) {
-        const threadMessages = await chatService.getThreadMessages(selectedThread.id);
+        const threadMessages = await chatService.getThreadMessages(
+          selectedThread.id
+        );
         setMessages(threadMessages);
       }
     } finally {
@@ -159,9 +190,3 @@ export function useChatHandlers({
     refreshMessages,
   };
 }
-
-
-
-
-
-

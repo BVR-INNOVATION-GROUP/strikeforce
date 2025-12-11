@@ -70,6 +70,9 @@ export function useStudentChat(
         try {
           const usersData = await userRepository.getAll();
           usersData.forEach((u) => {
+            // Store with both string and number keys for compatibility
+            const idStr = String(u.id);
+            usersMap[idStr] = u;
             usersMap[u.id] = u;
           });
           setUsers(usersMap);
@@ -117,13 +120,30 @@ export function useStudentChat(
 
   useEffect(() => {
     const loadMessages = async () => {
-      if (!selectedThread) return;
+      if (!selectedThread) {
+        setMessages([]);
+        return;
+      }
 
       try {
         const [threadMessages, proposalsData] = await Promise.all([
           chatService.getThreadMessages(selectedThread.id),
           proposalRepository.getAll(selectedThread.projectId),
         ]);
+
+        // Extract senders from messages and add to users map
+        const updatedUsersMap = { ...users };
+        threadMessages.forEach((msg) => {
+          if (msg.sender) {
+            const idStr = String(msg.sender.id);
+            updatedUsersMap[idStr] = msg.sender;
+            updatedUsersMap[msg.sender.id] = msg.sender;
+          }
+        });
+        if (Object.keys(updatedUsersMap).length > Object.keys(users).length) {
+          setUsers(updatedUsersMap);
+        }
+
         setMessages(threadMessages);
 
         const proposalsMap: Record<string, MilestoneProposalI> = {};

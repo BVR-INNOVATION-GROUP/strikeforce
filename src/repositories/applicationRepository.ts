@@ -8,6 +8,21 @@ import { ApplicationI } from "@/src/models/application";
 
 export const applicationRepository = {
   /**
+   * Transform backend application format (ID) to frontend format (id)
+   */
+  transformApplication: (app: any): ApplicationI => {
+    return {
+      ...app,
+      id: app.id || app.ID || app.applicationId || app._id,
+      projectId: app.projectId || app.projectID,
+      groupId: app.groupId || app.groupID,
+      studentIds: app.studentIds || app.studentIDs || [],
+      createdAt: app.createdAt || app.CreatedAt,
+      updatedAt: app.updatedAt || app.UpdatedAt,
+    } as ApplicationI;
+  },
+
+  /**
    * Get all applications
    * @param projectId - Optional filter by project
    */
@@ -15,14 +30,27 @@ export const applicationRepository = {
     const url = projectId
       ? `/api/v1/applications?projectId=${projectId}`
       : "/api/v1/applications";
-    return api.get<ApplicationI[]>(url);
+    const applications = await api.get<any[]>(url);
+    // Transform backend format (ID) to frontend format (id)
+    return applications.map((app) =>
+      applicationRepository.transformApplication(app)
+    );
   },
 
   /**
    * Get application by ID
    */
   getById: async (id: number): Promise<ApplicationI> => {
-    return api.get<ApplicationI>(`/api/v1/applications/${id}`);
+    console.log(
+      "[applicationRepository.getById] Fetching application with ID:",
+      id
+    );
+    const url = `/api/v1/applications/${id}`;
+    console.log("[applicationRepository.getById] URL:", url);
+    const result = await api.get<any>(url);
+    console.log("[applicationRepository.getById] Result:", result);
+    // Transform backend format (ID) to frontend format (id)
+    return applicationRepository.transformApplication(result);
   },
 
   /**
@@ -30,7 +58,11 @@ export const applicationRepository = {
    * Backend uses JWT token's user_id - never pass userId parameter
    */
   getByUserId: async (): Promise<ApplicationI[]> => {
-    return api.get<ApplicationI[]>("/api/v1/applications");
+    const applications = await api.get<any[]>("/api/v1/applications");
+    // Transform backend format (ID) to frontend format (id)
+    return applications.map((app) =>
+      applicationRepository.transformApplication(app)
+    );
   },
 
   /**
@@ -39,8 +71,12 @@ export const applicationRepository = {
   getProjectApplications: async (
     projectId: number
   ): Promise<ApplicationI[]> => {
-    return api.get<ApplicationI[]>(
+    const applications = await api.get<any[]>(
       `/api/v1/applications?projectId=${projectId}`
+    );
+    // Transform backend format (ID) to frontend format (id)
+    return applications.map((app) =>
+      applicationRepository.transformApplication(app)
     );
   },
 
@@ -87,7 +123,9 @@ export const applicationRepository = {
     }
 
     // API client's extractData will handle { data: ApplicationI, msg: string } response format
-    return api.post<ApplicationI>("/api/v1/applications", backendData);
+    const result = await api.post<any>("/api/v1/applications", backendData);
+    // Transform backend format (ID) to frontend format (id)
+    return applicationRepository.transformApplication(result);
   },
 
   /**
@@ -97,7 +135,18 @@ export const applicationRepository = {
     id: number,
     application: Partial<ApplicationI>
   ): Promise<ApplicationI> => {
-    return api.put<ApplicationI>(`/api/v1/applications/${id}`, application);
+    console.log(
+      "[applicationRepository.update] Updating application with ID:",
+      id,
+      "Data:",
+      application
+    );
+    const url = `/api/v1/applications/${id}`;
+    console.log("[applicationRepository.update] URL:", url);
+    const result = await api.put<any>(url, application);
+    console.log("[applicationRepository.update] Result:", result);
+    // Transform backend format (ID) to frontend format (id)
+    return applicationRepository.transformApplication(result);
   },
 
   /**
@@ -112,10 +161,11 @@ export const applicationRepository = {
    * Changes status from OFFERED to ASSIGNED
    */
   acceptOffer: async (id: number): Promise<ApplicationI> => {
-    return api.post<ApplicationI>(
+    const result = await api.post<any>(
       `/api/v1/applications/${id}/accept-offer`,
       {}
     );
+    return applicationRepository.transformApplication(result);
   },
 
   /**
@@ -123,10 +173,11 @@ export const applicationRepository = {
    * Changes status from OFFERED to DECLINED
    */
   declineOffer: async (id: number): Promise<ApplicationI> => {
-    return api.post<ApplicationI>(
+    const result = await api.post<any>(
       `/api/v1/applications/${id}/decline-offer`,
       {}
     );
+    return applicationRepository.transformApplication(result);
   },
 
   /**
@@ -134,7 +185,11 @@ export const applicationRepository = {
    * Changes status to SHORTLISTED
    */
   shortlist: async (id: number): Promise<ApplicationI> => {
-    return api.post<ApplicationI>(`/api/v1/applications/${id}/shortlist`, {});
+    const result = await api.post<any>(
+      `/api/v1/applications/${id}/shortlist`,
+      {}
+    );
+    return applicationRepository.transformApplication(result);
   },
 
   /**
@@ -142,7 +197,8 @@ export const applicationRepository = {
    * Changes status to REJECTED
    */
   reject: async (id: number): Promise<ApplicationI> => {
-    return api.post<ApplicationI>(`/api/v1/applications/${id}/reject`, {});
+    const result = await api.post<any>(`/api/v1/applications/${id}/reject`, {});
+    return applicationRepository.transformApplication(result);
   },
 
   /**
@@ -153,9 +209,10 @@ export const applicationRepository = {
     previousStatus: string = "SUBMITTED"
   ): Promise<ApplicationI> => {
     // Use update to restore the previous status
-    return api.put<ApplicationI>(`/api/v1/applications/${id}`, {
+    const result = await api.put<any>(`/api/v1/applications/${id}`, {
       status: previousStatus,
     });
+    return applicationRepository.transformApplication(result);
   },
 
   /**
@@ -163,7 +220,8 @@ export const applicationRepository = {
    * Changes status to ASSIGNED immediately (no offer/accept flow)
    */
   offer: async (id: number): Promise<ApplicationI> => {
-    return api.post<ApplicationI>(`/api/v1/applications/${id}/offer`, {});
+    const result = await api.post<any>(`/api/v1/applications/${id}/offer`, {});
+    return applicationRepository.transformApplication(result);
   },
 
   /**
@@ -184,8 +242,9 @@ export const applicationRepository = {
       reworkRate?: number;
     }
   ): Promise<ApplicationI> => {
-    return api.post<ApplicationI>(`/api/v1/applications/${id}/score`, {
+    const result = await api.post<any>(`/api/v1/applications/${id}/score`, {
       score,
     });
+    return applicationRepository.transformApplication(result);
   },
 };

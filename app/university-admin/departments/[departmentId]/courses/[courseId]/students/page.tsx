@@ -18,6 +18,7 @@ import { GET, POST, PUT, SourceDepartment, SourceCourse, transformDepartment, tr
 import { getInitials } from "@/src/utils/avatarUtils";
 import { userRepository } from "@/src/repositories/userRepository";
 import { branchService } from "@/src/services/branchService";
+import Skeleton from "@/src/components/core/Skeleton";
 
 interface StudentApiResponse {
   ID?: number;
@@ -843,8 +844,37 @@ export default function ProgrammeStudentsPage() {
 
   if (loading) {
     return (
-      <div className="w-full flex flex-col h-full overflow-hidden p-4">
-        Loading...
+      <div className="w-full flex flex-col min-h-full">
+        {/* Header Skeleton */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <Skeleton width={160} height={40} rounded="md" />
+            <Skeleton width={120} height={40} rounded="md" />
+            <Skeleton width={140} height={40} rounded="md" />
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <Skeleton width={300} height={24} rounded="md" className="mb-2" />
+          <Skeleton width={400} height={16} rounded="md" />
+        </div>
+
+        {/* Students Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="bg-paper rounded-lg p-6 shadow-custom">
+              <div className="flex items-center gap-3 mb-4">
+                <Skeleton width={48} height={48} rounded="full" />
+                <div className="flex-1">
+                  <Skeleton width={150} height={18} rounded="md" className="mb-2" />
+                  <Skeleton width={200} height={14} rounded="md" />
+                </div>
+              </div>
+              <Skeleton width="100%" height={14} rounded="md" className="mb-2" />
+              <Skeleton width="80%" height={14} rounded="md" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
