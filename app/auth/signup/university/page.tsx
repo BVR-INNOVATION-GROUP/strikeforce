@@ -11,12 +11,9 @@ import Button from "@/src/components/core/Button";
 import { useToast } from "@/src/hooks/useToast";
 import { ApiError, POST } from "@/base/index"
 
-import { organizationService } from "@/src/services/organizationService";
 import MultiStepOrganizationForm from "@/src/components/screen/auth/signup/MultiStepOrganizationForm";
 import { validateOrganizationSignup, OrganizationSignupFormData, ValidationErrors } from "@/src/utils/organizationSignupValidation";
-import { BackendUser, mapBackendUserToFrontend } from "@/src/lib/server";
-import { useAuthStore } from "@/src/store";
-import { UserI } from "@/src/models/user";
+import { BackendLoginResponse } from "@/src/lib/server";
 import { BASE_URL } from "@/src/api/client";
 
 const errorFieldSteps: (keyof ValidationErrors)[][] = [
@@ -108,6 +105,7 @@ export default function UniversitySignUpPage() {
       //   },
       // });
 
+      // Create user account
       const userResponse = await POST<BackendLoginResponse>("user/signup", {
         email: formData.email,
         password: formData.password,
@@ -117,7 +115,7 @@ export default function UniversitySignUpPage() {
 
       const authData = userResponse.data;
 
-      // create the organization 
+      // Create the organization 
       interface OrgRequest {
         name: string
         type: "university"
@@ -127,10 +125,6 @@ export default function UniversitySignUpPage() {
         name: formData.orgName,
         type: "university"
       }, authData?.token)
-
-      // Set token FIRST
-      const { setUser, setAccessToken } = useAuthStore.getState();
-      setAccessToken(authData?.token ?? "");
 
       // Upload logo if provided
       if (logoFile && authData?.token) {
@@ -157,14 +151,15 @@ export default function UniversitySignUpPage() {
         }
       }
 
-      if (authData?.user) {
-        await setUser(mapBackendUserToFrontend(authData.user));
-      }
-
-      showSuccess("University registered! Your application is pending Super Admin approval.");
+      // Show comprehensive success notification with account state and next actions
+      const notificationMessage = `Account created successfully! Your university account "${formData.orgName}" has been registered and is pending Super Admin approval. You will receive an email notification once your account is approved. Please log in with your credentials to check your approval status.`;
+      
+      showSuccess(notificationMessage);
+      
+      // Redirect to login page after showing notification
       setTimeout(() => {
         router.push("/auth/login");
-      }, 2000);
+      }, 3000);
     } catch (error: any) {
       console.error("Failed to register university:", error);
       if (error instanceof ApiError) {

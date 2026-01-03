@@ -34,9 +34,8 @@ export const userProfileService = {
     // Get existing user (uses token's user_id)
     const existing = await userRepository.getCurrent();
 
-    // Transform data for update
-    const updatedUser: UserI = {
-      ...existing,
+    // Transform data for update - only send fields that are being updated
+    const updatePayload: Partial<UserI> = {
       name: profileData.name || existing.name,
       email: profileData.email || existing.email,
       profile: {
@@ -46,11 +45,25 @@ export const userProfileService = {
         location: profileData.location ?? existing.profile.location,
         avatar: profileData.avatar ?? existing.profile.avatar,
       },
-      updatedAt: new Date().toISOString(),
     };
 
     // Update current user (backend extracts user_id from token)
-    return userRepository.updateCurrent(updatedUser);
+    const updatedUser = await userRepository.updateCurrent(updatePayload);
+    
+    // Merge with existing user to preserve fields that backend might not return
+    // This ensures we don't lose important fields like orgId, role, etc.
+    return {
+      ...existing,
+      ...updatedUser,
+      // Preserve orgId if backend didn't return it
+      orgId: updatedUser.orgId ?? existing.orgId,
+      // Preserve role if backend didn't return it
+      role: updatedUser.role || existing.role,
+      // Preserve other important fields
+      id: updatedUser.id || existing.id,
+      email: updatedUser.email || existing.email,
+      name: updatedUser.name || existing.name,
+    };
   },
 
   /**

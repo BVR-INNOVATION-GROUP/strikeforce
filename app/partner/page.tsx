@@ -45,9 +45,22 @@ export default function PartnerDashboard() {
           dashboardService.getPartnerDashboardStats(user.id.toString(), user?.orgId?.toString()),
         ]);
         setProjects(projectsResponse.projects || []);
-        setStats(dashboardStats);
+        // Set stats with default values if API returns null/undefined
+        setStats(dashboardStats || {
+          totalProjects: 0,
+          activeProjects: 0,
+          totalBudget: 0,
+          completedProjects: 0,
+        });
       } catch (error) {
         console.error("Failed to fetch data:", error);
+        // Set default stats on error so the page can still render
+        setStats({
+          totalProjects: 0,
+          activeProjects: 0,
+          totalBudget: 0,
+          completedProjects: 0,
+        });
       } finally {
         setLoading(false);
       }
@@ -130,7 +143,7 @@ export default function PartnerDashboard() {
   }, [safeProjects]);
 
 
-  if (loading || !stats) {
+  if (loading) {
     return (
       <div className="w-full flex flex-col min-h-full">
         {/* Header Skeleton */}

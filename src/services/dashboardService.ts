@@ -87,26 +87,39 @@ export const dashboardService = {
    * Fetched from backend API
    */
   getDashboardStats: async (partnerId: string): Promise<DashboardStats> => {
-    // Get stats from backend
-    const backendStats = await organizationRepository.getPartnerDashboardStats();
+    try {
+      // Get stats from backend
+      const backendStats = await organizationRepository.getPartnerDashboardStats();
 
-    // Calculate changes (simulated - in production would compare with historical data)
-    const previousActiveProjects = Math.max(0, backendStats.activeProjects - 1);
-    const previousBudget = backendStats.totalBudget * 0.9; // Simulate 10% less previous period
+      // Calculate changes (simulated - in production would compare with historical data)
+      const previousActiveProjects = Math.max(0, (backendStats?.activeProjects || 0) - 1);
+      const previousBudget = (backendStats?.totalBudget || 0) * 0.9; // Simulate 10% less previous period
 
-    const stats: DashboardStats = {
-      totalProjects: backendStats.totalProjects,
-      activeProjects: backendStats.activeProjects,
-      totalBudget: backendStats.totalBudget,
-      completedProjects: backendStats.completedProjects,
-      totalBudgetChange: calculateChangeStats(backendStats.totalBudget, previousBudget),
-      activeProjectsChange: calculateChangeStats(
-        backendStats.activeProjects,
-        previousActiveProjects
-      ),
-    };
+      const stats: DashboardStats = {
+        totalProjects: backendStats?.totalProjects || 0,
+        activeProjects: backendStats?.activeProjects || 0,
+        totalBudget: backendStats?.totalBudget || 0,
+        completedProjects: backendStats?.completedProjects || 0,
+        totalBudgetChange: calculateChangeStats(backendStats?.totalBudget || 0, previousBudget),
+        activeProjectsChange: calculateChangeStats(
+          backendStats?.activeProjects || 0,
+          previousActiveProjects
+        ),
+      };
 
-    return stats;
+      return stats;
+    } catch (error) {
+      console.error("Failed to fetch partner dashboard stats:", error);
+      // Return default stats on error
+      return {
+        totalProjects: 0,
+        activeProjects: 0,
+        totalBudget: 0,
+        completedProjects: 0,
+        totalBudgetChange: 0,
+        activeProjectsChange: 0,
+      };
+    }
   },
 
   /**

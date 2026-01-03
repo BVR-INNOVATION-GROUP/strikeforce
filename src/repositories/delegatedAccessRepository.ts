@@ -31,3 +31,6 @@ export const delegatedAccessRepository = {
     return api.delete(`/api/v1/delegated-access/${id}`);
   },
 };
+
+
+

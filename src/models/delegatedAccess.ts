@@ -32,3 +32,6 @@ export interface CreateDelegatedAccessRequest {
   email: string;
   name: string;
 }
+
+
+

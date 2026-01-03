@@ -99,7 +99,16 @@ export default function PartnerSignUpPage() {
         user?: BackendUser;
       }
 
-      // Create user
+      // Create user account
+      interface UserRequest {
+        email: string;
+        name: string;
+        password: string;
+        role: "partner";
+        token?: string;
+        user?: BackendUser;
+      }
+
       const { data, status, msg } = await POST<UserRequest>("user/signup", {
         email: formData.email,
         password: formData.password,
@@ -107,7 +116,7 @@ export default function PartnerSignUpPage() {
         role: "partner"
       });
 
-      if (status == 200) {
+      if (status === 201 || status === 200) {
         // Create the organization
         interface OrgRequest {
           name: string;
@@ -120,12 +129,8 @@ export default function PartnerSignUpPage() {
         }, data?.token);
 
         if (res2.status === 201 || res2.status === 200) {
-          // Set token and user
-          const { setUser, setAccessToken } = (await import("@/src/store")).useAuthStore.getState();
-          setAccessToken(data?.token ?? "");
-
           // Upload logo if provided
-          if (logoFile) {
+          if (logoFile && data?.token) {
             try {
               const formDataLogo = new FormData();
               formDataLogo.append("logo", logoFile);
@@ -149,15 +154,15 @@ export default function PartnerSignUpPage() {
             }
           }
 
-          const { mapBackendUserToFrontend } = await import("@/src/lib/server");
-          if (data?.user) {
-            await setUser(mapBackendUserToFrontend(data.user));
-          }
-
-          showSuccess("Organization registered! Your application is pending Super Admin approval.");
+          // Show comprehensive success notification with account state and next actions
+          const notificationMessage = `Account created successfully! Your organization account "${formData.orgName}" has been registered and is pending Super Admin approval. You will receive an email notification once your account is approved. Please log in with your credentials to check your approval status.`;
+          
+          showSuccess(notificationMessage);
+          
+          // Redirect to login page after showing notification
           setTimeout(() => {
             router.push("/auth/login");
-          }, 2000);
+          }, 3000);
         } else {
           showError(msg || "Failed to create organization");
         }
