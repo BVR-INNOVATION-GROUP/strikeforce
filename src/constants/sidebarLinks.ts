@@ -122,12 +122,12 @@ export const sidebarLinks: SideLinkCategory[] = [
         path: "/university-admin/partners",
       },
       {
-        title: "Colleges",
+        title: "Innovation hubs",
         iconComponent: Building2,
         path: "/university-admin/colleges",
       },
       {
-        title: "Departments",
+        title: "Faculties",
         iconComponent: FolderTree,
         path: "/university-admin/departments",
       },

@@ -156,8 +156,8 @@ const ManualEntryForm = ({
         <Button key="cancel" onClick={handleClose} className="bg-pale text-primary">
           Cancel
         </Button>,
-        <Button key="submit" onClick={handleSubmit} className="bg-primary" disabled={isSubmitting}>
-          {isSubmitting ? (isEditing ? "Updating..." : "Creating...") : (isEditing ? "Update" : "Create")}
+        <Button key="submit" onClick={handleSubmit} className="bg-primary" loading={isSubmitting}>
+          {isEditing ? "Update" : "Create"}
         </Button>,
       ]}
     >

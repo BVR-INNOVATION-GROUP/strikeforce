@@ -51,6 +51,9 @@ export default function DepartmentProgrammesPage() {
   const [errors, setErrors] = useState<{ name?: string }>({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [programmeToDelete, setProgrammeToDelete] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isBulkUploading, setIsBulkUploading] = useState(false);
   const [activeTab, setActiveTab] = useState<"programmes" | "supervisors" | "projects">("programmes");
   const [supervisors, setSupervisors] = useState<Array<UserI & { supervisorRecordId?: number | string }>>([]);
   const [isSupervisorModalOpen, setIsSupervisorModalOpen] = useState(false);
@@ -59,6 +62,8 @@ export default function DepartmentProgrammesPage() {
   const [supervisorToDelete, setSupervisorToDelete] = useState<(UserI & { supervisorRecordId?: number | string }) | null>(null);
   const [showSupervisorSuspendConfirm, setShowSupervisorSuspendConfirm] = useState(false);
   const [supervisorToSuspend, setSupervisorToSuspend] = useState<(UserI & { supervisorRecordId?: number | string }) | null>(null);
+  const [isDeletingSupervisor, setIsDeletingSupervisor] = useState(false);
+  const [isSuspendingSupervisor, setIsSuspendingSupervisor] = useState(false);
   const [projects, setProjects] = useState<ProjectI[]>([]);
   const [projectsPage, setProjectsPage] = useState(1);
   const [projectsLimit] = useState(12);
@@ -144,7 +149,7 @@ export default function DepartmentProgrammesPage() {
 
       const numericDeptId = parseInt(deptId, 10);
       if (Number.isNaN(numericDeptId)) {
-        showError("Invalid department identifier provided in the URL.");
+        showError("Invalid faculty identifier provided in the URL.");
         setDepartment(null);
         setCourses([]);
         return;
@@ -152,7 +157,7 @@ export default function DepartmentProgrammesPage() {
 
       const matchingDepartment = normalizedDepartments.find((dept) => dept.id === numericDeptId) || null;
       if (!matchingDepartment) {
-        showError("Department not found or no longer accessible.");
+        showError("Faculty not found or no longer accessible.");
         setDepartment(null);
         setCourses([]);
         return;
@@ -208,11 +213,12 @@ export default function DepartmentProgrammesPage() {
     if (!validate()) return;
     const resolvedDeptId = resolveDepartmentId();
     if (!resolvedDeptId) {
-      showError("Department information is missing. Please refresh and try again.");
+      showError("Faculty information is missing. Please refresh and try again.");
       return;
     }
 
     try {
+      setIsSubmitting(true);
       if (editingCourse) {
         if (!editingCourse.id) {
           showError("Invalid programme: missing ID");
@@ -238,6 +244,8 @@ export default function DepartmentProgrammesPage() {
       console.error("Failed to save programme:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       showError(`Failed to save programme: ${errorMessage}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -262,6 +270,7 @@ export default function DepartmentProgrammesPage() {
       return;
     }
     try {
+      setIsDeleting(true);
       await courseService.deleteCourse(programmeToDelete);
       showSuccess("Programme deleted successfully");
       setShowDeleteConfirm(false);
@@ -275,6 +284,8 @@ export default function DepartmentProgrammesPage() {
       showError(`Failed to delete programme: ${errorMessage}`);
       setShowDeleteConfirm(false);
       setProgrammeToDelete(null);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -327,11 +338,12 @@ export default function DepartmentProgrammesPage() {
 
     const resolvedDeptId = resolveDepartmentId();
     if (!resolvedDeptId) {
-      showError("Department information is missing. Please refresh and try again.");
+      showError("Faculty information is missing. Please refresh and try again.");
       return;
     }
 
     try {
+      setIsBulkUploading(true);
       const file = selectedFiles[0];
       const parsedRows = await readCSVFile(file);
       const validation = validateCoursesCSV(parsedRows);
@@ -384,12 +396,14 @@ export default function DepartmentProgrammesPage() {
       console.error("Failed to upload:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       showError(`Failed to process upload: ${errorMessage}`);
+    } finally {
+      setIsBulkUploading(false);
     }
   };
 
   const handleSupervisorModalOpen = () => {
     if (!department) {
-      showError("Department information is missing. Please refresh and try again.");
+      showError("Faculty information is missing. Please refresh and try again.");
       return;
     }
     setIsSupervisorModalOpen(true);
@@ -575,6 +589,7 @@ export default function DepartmentProgrammesPage() {
     }
 
     try {
+      setIsSuspendingSupervisor(true);
       const supervisorId = typeof supervisorRecordId === "number" ? supervisorRecordId.toString() : supervisorRecordId;
       const { api } = await import("@/src/api/client");
       await api.post(`/api/v1/supervisors/${supervisorId}/suspend`);
@@ -593,6 +608,8 @@ export default function DepartmentProgrammesPage() {
       showError(error instanceof Error ? error.message : "Failed to suspend supervisor. Please try again.");
       setShowSupervisorSuspendConfirm(false);
       setSupervisorToSuspend(null);
+    } finally {
+      setIsSuspendingSupervisor(false);
     }
   };
 
@@ -610,6 +627,7 @@ export default function DepartmentProgrammesPage() {
     }
 
     try {
+      setIsDeletingSupervisor(true);
       const supervisorId = typeof supervisorRecordId === "number" ? supervisorRecordId.toString() : supervisorRecordId;
       const { api } = await import("@/src/api/client");
       await api.delete(`/api/v1/supervisors/${supervisorId}`);
@@ -628,6 +646,8 @@ export default function DepartmentProgrammesPage() {
       showError(error instanceof Error ? error.message : "Failed to delete supervisor. Please try again.");
       setShowSupervisorDeleteConfirm(false);
       setSupervisorToDelete(null);
+    } finally {
+      setIsDeletingSupervisor(false);
     }
   };
 
@@ -769,21 +789,21 @@ export default function DepartmentProgrammesPage() {
                   {!projectIsPublished && (
                     <Button
                       onClick={(e) => handleApproveProject(project, e)}
-                      disabled={isUpdating}
+                      loading={isUpdating}
                       className="w-max bg-green-600 hover:bg-green-700 text-white text-sm py-2 flex items-center justify-center gap-2"
                     >
                       <CheckCircle size={14} />
-                      {isUpdating ? "Approving..." : "Approve"}
+                      Approve
                     </Button>
                   )}
                   {projectIsPublished && (
                     <Button
                       onClick={(e) => handleDisapproveProject(project, e)}
-                      disabled={isUpdating}
+                      loading={isUpdating}
                       className="w-max bg-red-600 hover:bg-red-700 text-white text-sm py-2 flex items-center justify-center gap-2"
                     >
                       <XCircle size={14} />
-                      {isUpdating ? "Disapproving..." : "Disapprove"}
+                      Disapprove
                     </Button>
                   )}
                   <Link href={`/university-admin/projects/${project.id}`}>
@@ -874,7 +894,7 @@ export default function DepartmentProgrammesPage() {
           className={`${buttonBaseClasses} bg-pale text-primary`}
         >
           <ArrowLeft size={16} />
-          Back to Departments
+          Back to Faculties
         </Button>
         <div className="flex gap-2">
           {activeTab === "programmes" && (
@@ -958,7 +978,7 @@ export default function DepartmentProgrammesPage() {
           <Button key="cancel" onClick={handleClose} className="bg-pale text-primary">
             Cancel
           </Button>,
-          <Button key="submit" onClick={handleSubmit} className="bg-primary">
+          <Button key="submit" onClick={handleSubmit} className="bg-primary" loading={isSubmitting}>
             {editingCourse ? "Update" : "Create"}
           </Button>,
         ]}
@@ -1016,7 +1036,7 @@ export default function DepartmentProgrammesPage() {
           >
             Cancel
           </Button>,
-          <Button key="upload" onClick={handleBulkUpload} className="bg-primary" disabled={selectedFiles.length === 0}>
+          <Button key="upload" onClick={handleBulkUpload} className="bg-primary" disabled={selectedFiles.length === 0} loading={isBulkUploading}>
             <Upload size={16} className="mr-2" />
             Upload CSV
           </Button>,
@@ -1062,6 +1082,7 @@ export default function DepartmentProgrammesPage() {
         type="danger"
         confirmText="Delete"
         cancelText="Cancel"
+        loading={isDeleting}
       />
 
       <ConfirmationDialog
@@ -1083,6 +1104,7 @@ export default function DepartmentProgrammesPage() {
         type="danger"
         confirmText="Delete"
         cancelText="Cancel"
+        loading={isDeletingSupervisor}
       />
 
       <ConfirmationDialog
@@ -1104,6 +1126,7 @@ export default function DepartmentProgrammesPage() {
         type="warning"
         confirmText="Suspend"
         cancelText="Cancel"
+        loading={isSuspendingSupervisor}
       />
     </div>
   );

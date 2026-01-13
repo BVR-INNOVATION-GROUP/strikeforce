@@ -1,5 +1,5 @@
 /**
- * Department Card Component - displays department information in card format
+ * Faculty Card Component - displays faculty information in card format
  * Benchmarked from GroupCard.tsx
  */
 "use client";
@@ -42,11 +42,11 @@ const DepartmentCard = ({
           <Building2 size={20} className="text-primary" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[0.875rem] text-muted uppercase tracking-wide">Department</p>
+          <p className="text-[0.875rem] text-muted uppercase tracking-wide">Faculty</p>
           <h3 className="text-[1rem] font-[600] truncate">{department.name}</h3>
           {department.collegeName && (
             <p className="text-[0.75rem] text-muted mt-0.5 truncate">
-              College: {department.collegeName}
+              Innovation hub: {department.collegeName}
             </p>
           )}
           {resolvedCount !== undefined && (

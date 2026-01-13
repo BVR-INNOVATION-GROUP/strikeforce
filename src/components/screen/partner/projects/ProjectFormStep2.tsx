@@ -19,6 +19,8 @@ export interface Props {
   scopeActivities: string;
   teamStructure: "individuals" | "groups" | "both" | "";
   duration: string;
+  durationValue: string;
+  durationUnit: "day" | "week" | "month" | "";
   expectations: string;
   budget: string;
   deadline: string;
@@ -32,6 +34,8 @@ export interface Props {
   onScopeActivitiesChange: (value: string) => void;
   onTeamStructureChange: (value: "individuals" | "groups" | "both" | "") => void;
   onDurationChange: (value: string) => void;
+  onDurationValueChange: (value: string) => void;
+  onDurationUnitChange: (value: "day" | "week" | "month" | "") => void;
   onExpectationsChange: (value: string) => void;
   onBudgetChange: (value: string) => void;
   onDeadlineChange: (value: string) => void;
@@ -51,6 +55,8 @@ const ProjectFormStep2 = ({
   scopeActivities,
   teamStructure,
   duration,
+  durationValue,
+  durationUnit,
   expectations,
   budget,
   deadline,
@@ -64,6 +70,8 @@ const ProjectFormStep2 = ({
   onScopeActivitiesChange,
   onTeamStructureChange,
   onDurationChange,
+  onDurationValueChange,
+  onDurationUnitChange,
   onExpectationsChange,
   onBudgetChange,
   onDeadlineChange,
@@ -125,16 +133,41 @@ const ProjectFormStep2 = ({
         placeHolder="Select team structure"
         error={errors.teamStructure}
       />
-      <Input
-        title="Project Duration *"
-        value={duration}
-        onChange={(e) => {
-          onDurationChange(e.target.value);
-          onClearError("duration");
-        }}
-        placeholder="e.g., 12 weeks, 3 months"
-        error={errors.duration}
-      />
+      <div>
+        <p className="text-sm font-medium mb-2">Project Duration *</p>
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <Input
+              type="number"
+              value={durationValue}
+              onChange={(e) => {
+                onDurationValueChange(e.target.value);
+                onClearError("duration");
+              }}
+              placeholder="e.g., 12"
+              min="1"
+              error={errors.duration}
+            />
+          </div>
+          <div className="flex-1">
+            <Select
+              options={[
+                { value: "day", label: "Day(s)" },
+                { value: "week", label: "Week(s)" },
+                { value: "month", label: "Month(s)" },
+              ]}
+              value={durationUnit || null}
+              onChange={(value) => {
+                const val = typeof value === "string" ? value : value?.value || "";
+                onDurationUnitChange(val as "day" | "week" | "month" | "");
+                onClearError("duration");
+              }}
+              placeHolder="Select unit"
+              error={errors.duration}
+            />
+          </div>
+        </div>
+      </div>
       <RichTextEditor
         title="Expectations *"
         value={expectations}

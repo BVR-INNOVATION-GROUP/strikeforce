@@ -117,9 +117,9 @@ const ConfirmationDialog = (props: Props) => {
             handleConfirm(e);
           }}
           className={getConfirmButtonClass()}
-          disabled={loading}
+          loading={loading}
         >
-          {loading ? 'Processing...' : confirmText}
+          {confirmText}
         </Button>
       ]}
     >

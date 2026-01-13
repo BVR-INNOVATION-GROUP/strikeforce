@@ -150,6 +150,8 @@ const ProjectForm = (props: Props) => {
               scopeActivities={formState.scopeActivities}
               teamStructure={formState.teamStructure}
               duration={formState.duration}
+              durationValue={formState.durationValue}
+              durationUnit={formState.durationUnit}
               expectations={formState.expectations}
               budget={formState.budget}
               deadline={formState.deadline}
@@ -163,6 +165,8 @@ const ProjectForm = (props: Props) => {
               onScopeActivitiesChange={formActions.setScopeActivities}
               onTeamStructureChange={formActions.setTeamStructure}
               onDurationChange={formActions.setDuration}
+              onDurationValueChange={formActions.setDurationValue}
+              onDurationUnitChange={formActions.setDurationUnit}
               onExpectationsChange={formActions.setExpectations}
               onBudgetChange={formActions.setBudget}
               onDeadlineChange={formActions.setDeadline}

@@ -17,6 +17,8 @@ export interface ProjectFormState {
   deliverablesMilestones: string;
   teamStructure: "individuals" | "groups" | "both" | "";
   duration: string;
+  durationValue: string;
+  durationUnit: "day" | "week" | "month" | "";
   expectations: string;
   budget: string;
   deadline: string;
@@ -39,6 +41,8 @@ export interface ProjectFormActions {
   setDeliverablesMilestones: (value: string) => void;
   setTeamStructure: (value: "individuals" | "groups" | "both" | "") => void;
   setDuration: (value: string) => void;
+  setDurationValue: (value: string) => void;
+  setDurationUnit: (value: "day" | "week" | "month" | "") => void;
   setExpectations: (value: string) => void;
   setBudget: (value: string) => void;
   setDeadline: (value: string) => void;
@@ -77,6 +81,8 @@ export function useProjectForm(
     deliverablesMilestones: string;
     teamStructure: "individuals" | "groups" | "both" | "";
     duration: string;
+    durationValue: string;
+    durationUnit: "day" | "week" | "month" | "";
     expectations: string;
     budget: string;
     deadline: string;
@@ -103,6 +109,8 @@ export function useProjectForm(
     "individuals" | "groups" | "both" | ""
   >("");
   const [duration, setDuration] = useState("");
+  const [durationValue, setDurationValue] = useState("");
+  const [durationUnit, setDurationUnit] = useState<"day" | "week" | "month" | "">("");
   const [expectations, setExpectations] = useState("");
   const [budget, setBudget] = useState("");
   const [deadline, setDeadline] = useState("");
@@ -124,6 +132,8 @@ export function useProjectForm(
     setDeliverablesMilestones("");
     setTeamStructure("");
     setDuration("");
+    setDurationValue("");
+    setDurationUnit("");
     setExpectations("");
     setBudget("");
     setDeadline("");
@@ -159,7 +169,31 @@ export function useProjectForm(
       setScopeActivities(initialData.scopeActivities ?? "");
       setDeliverablesMilestones(initialData.deliverablesMilestones ?? "");
       setTeamStructure(initialData.teamStructure ?? "");
-      setDuration(initialData.duration ?? "");
+      const initialDuration = initialData.duration ?? "";
+      setDuration(initialDuration);
+      // Parse existing duration if it exists (e.g., "12 weeks" -> value: "12", unit: "week")
+      if (initialDuration) {
+        const durationMatch = initialDuration.match(/^(\d+)\s*(day|days|week|weeks|month|months)$/i);
+        if (durationMatch) {
+          setDurationValue(durationMatch[1]);
+          const unit = durationMatch[2].toLowerCase();
+          if (unit.startsWith("day")) {
+            setDurationUnit("day");
+          } else if (unit.startsWith("week")) {
+            setDurationUnit("week");
+          } else if (unit.startsWith("month")) {
+            setDurationUnit("month");
+          } else {
+            setDurationUnit("");
+          }
+        } else {
+          setDurationValue("");
+          setDurationUnit("");
+        }
+      } else {
+        setDurationValue("");
+        setDurationUnit("");
+      }
       setExpectations(initialData.expectations ?? "");
       setBudget(initialData.budget ?? "");
       setDeadline(initialData.deadline ?? "");
@@ -187,6 +221,17 @@ export function useProjectForm(
   // Reset course when department changes (only if not initializing)
 
   useEffect(() => {}, [department]);
+
+  // Combine durationValue and durationUnit into duration string
+  useEffect(() => {
+    if (durationValue && durationUnit) {
+      const unitLabel = durationUnit === "day" ? "day" : durationUnit === "week" ? "week" : "month";
+      const pluralUnit = durationValue === "1" ? unitLabel : unitLabel + "s";
+      setDuration(`${durationValue} ${pluralUnit}`);
+    } else {
+      setDuration("");
+    }
+  }, [durationValue, durationUnit]);
 
   const setUniversity = (o: OptionI | string) => {
     setUniversityState(
@@ -231,6 +276,8 @@ export function useProjectForm(
     deliverablesMilestones,
     teamStructure,
     duration,
+    durationValue,
+    durationUnit,
     expectations,
     budget,
     deadline,
@@ -253,6 +300,8 @@ export function useProjectForm(
     setDeliverablesMilestones,
     setTeamStructure,
     setDuration,
+    setDurationValue,
+    setDurationUnit,
     setExpectations,
     setBudget,
     setDeadline,

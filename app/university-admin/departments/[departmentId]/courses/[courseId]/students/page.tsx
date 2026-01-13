@@ -24,6 +24,7 @@ interface StudentApiResponse {
   ID?: number;
   id?: number;
   userId?: number;
+  studentId?: string;
   user?: {
     ID?: number;
     id?: number;
@@ -32,6 +33,8 @@ interface StudentApiResponse {
     profile?: {
       avatar?: string;
     };
+    CreatedAt?: string;
+    createdAt?: string;
   };
   branchId?: number;
   branch?: {
@@ -44,11 +47,14 @@ interface StudentApiResponse {
   district?: string;
   birthYear?: number;
   enrollmentYear?: number;
+  CreatedAt?: string;
+  createdAt?: string;
 }
 
 interface ProgrammeStudent {
   id: number;
   userId?: number;
+  studentId?: string;
   name: string;
   email: string;
   avatar?: string;
@@ -62,6 +68,7 @@ interface ProgrammeStudent {
   district?: string;
   birthYear?: number;
   enrollmentYear?: number;
+  createdAt?: string;
 }
 
 interface ParsedStudent {
@@ -95,6 +102,9 @@ export default function ProgrammeStudentsPage() {
   const [students, setStudents] = useState<ProgrammeStudent[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isBulkUploading, setIsBulkUploading] = useState(false);
+  const [isApiImporting, setIsApiImporting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -221,12 +231,15 @@ export default function ProgrammeStudentsPage() {
 
   const transformStudentResponse = (student: StudentApiResponse, fallbackIndex: number): ProgrammeStudent => {
     const name = student.user?.name?.trim() || "Unnamed student";
-    const studentId = student.ID ?? student.id ?? fallbackIndex;
+    const studentRecordId = student.ID ?? student.id ?? fallbackIndex;
     const userId = student.user?.ID ?? student.user?.id ?? student.userId;
+    const studentId = student.studentId; // The Strikeforce ID
+    const createdAt = student.user?.CreatedAt || student.user?.createdAt || student.CreatedAt || student.createdAt;
     
     return {
-      id: studentId,
+      id: studentRecordId,
       userId: userId,
+      studentId: studentId, // Strikeforce ID
       name,
       email: student.user?.email || "No email",
       avatar: student.user?.profile?.avatar,
@@ -240,6 +253,7 @@ export default function ProgrammeStudentsPage() {
       district: student.district,
       birthYear: student.birthYear,
       enrollmentYear: student.enrollmentYear,
+      createdAt: createdAt,
     };
   };
 
@@ -408,6 +422,7 @@ export default function ProgrammeStudentsPage() {
     };
 
     try {
+      setIsBulkUploading(true);
       await POST(`api/v1/students/${numericCourseId}/bulk`, payload);
       showSuccess(`Successfully started import for ${payload.students.length} students.`);
       setBulkModalOpen(false);
@@ -420,6 +435,8 @@ export default function ProgrammeStudentsPage() {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       setBulkError(errorMessage);
       showError(`Failed to import students: ${errorMessage}`);
+    } finally {
+      setIsBulkUploading(false);
     }
   };
 
@@ -647,6 +664,7 @@ export default function ProgrammeStudentsPage() {
     };
 
     try {
+      setIsApiImporting(true);
       await POST(`api/v1/students/${numericCourseId}/bulk`, payload);
       showSuccess(`Imported ${mapped.length} students from API.`);
       setApiModalOpen(false);
@@ -723,6 +741,7 @@ export default function ProgrammeStudentsPage() {
     if (!validate()) return;
 
     try {
+      setIsSubmitting(true);
       if (editingStudent) {
         // Update existing student
         const studentId = typeof editingStudent.id === 'number' ? editingStudent.id : parseInt(editingStudent.id.toString(), 10);
@@ -772,6 +791,8 @@ export default function ProgrammeStudentsPage() {
       console.error(`Failed to ${editingStudent ? 'update' : 'add'} student:`, error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       showError(`Failed to ${editingStudent ? 'update' : 'add'} student: ${errorMessage}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -982,10 +1003,12 @@ export default function ProgrammeStudentsPage() {
               },
               courseId: course?.id,
               departmentId: department?.id,
-              createdAt: "",
+              createdAt: student.createdAt || "",
               updatedAt: "",
               // Include all student-specific fields
               userId: student.userId,
+              studentId: student.studentId, // Strikeforce ID
+              studentRecordId: student.id, // Student record ID (for DNA snapshot endpoint)
               branchId: student.branchId,
               branch: student.branch,
               gender: student.gender,
@@ -1015,9 +1038,28 @@ export default function ProgrammeStudentsPage() {
                       {student.initials}
                     </div>
                   )}
-                  <div>
+                  <div className="flex-1">
                     <p className="text-[0.95rem] font-semibold">{student.name}</p>
                     <p className="text-xs text-muted">{student.email}</p>
+                    {student.studentId && (
+                      <p className="text-[0.7rem] opacity-50 font-mono mt-1">
+                        Strikeforce ID: {student.studentId}
+                      </p>
+                    )}
+                    {/* DNA Snapshot Status */}
+                    {(student as any).hasCompletedDnaSnapshot !== undefined && (
+                      <div className="mt-2">
+                        <span
+                          className={`text-[0.7rem] px-2 py-0.5 rounded-full ${
+                            (student as any).hasCompletedDnaSnapshot
+                              ? "bg-green-100 text-green-700"
+                              : "bg-gray-100 text-gray-600"
+                          }`}
+                        >
+                          {(student as any).hasCompletedDnaSnapshot ? "✓ DNA Complete" : "DNA Pending"}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1044,6 +1086,7 @@ export default function ProgrammeStudentsPage() {
             onClick={handleBulkSubmit}
             className="bg-primary"
             disabled={bulkStudents.length === 0}
+            loading={isBulkUploading}
           >
             Import Students
           </Button>,
@@ -1104,6 +1147,7 @@ export default function ProgrammeStudentsPage() {
             onClick={handleApiImport}
             className="bg-primary"
             disabled={!apiFetchedData.length}
+            loading={isApiImporting}
           >
             Import Students
           </Button>,
@@ -1200,7 +1244,7 @@ export default function ProgrammeStudentsPage() {
           <Button key="cancel" onClick={handleClose} className="bg-pale text-primary">
             Cancel
           </Button>,
-          <Button key="submit" onClick={handleSubmit} className="bg-primary">
+          <Button key="submit" onClick={handleSubmit} className="bg-primary" loading={isSubmitting}>
             {editingStudent ? "Update Student" : "Add Student"}
           </Button>,
         ]}

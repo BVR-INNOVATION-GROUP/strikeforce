@@ -29,6 +29,7 @@ export default function UniversityAdminBranches() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [branchToDelete, setBranchToDelete] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -105,6 +106,7 @@ export default function UniversityAdminBranches() {
     if (!branchToDelete) return;
 
     try {
+      setIsDeleting(true);
       await branchService.deleteBranch(branchToDelete);
       showSuccess("Branch deleted successfully");
       setShowDeleteConfirm(false);
@@ -113,6 +115,8 @@ export default function UniversityAdminBranches() {
     } catch (error: any) {
       console.error("Failed to delete branch:", error);
       showError(error?.message || "Failed to delete branch");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -288,9 +292,9 @@ export default function UniversityAdminBranches() {
             key="submit"
             onClick={handleSubmit}
             className="bg-primary"
-            disabled={isSubmitting}
+            loading={isSubmitting}
           >
-            {isSubmitting ? "Saving..." : editingBranch ? "Update" : "Create"}
+            {editingBranch ? "Update" : "Create"}
           </Button>,
         ]}
       >
@@ -323,6 +327,7 @@ export default function UniversityAdminBranches() {
         confirmText="Delete"
         cancelText="Cancel"
         type="danger"
+        loading={isDeleting}
       />
     </div>
   );

@@ -109,6 +109,7 @@ export default function UniversityAdminSupervisors() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [supervisorToDelete, setSupervisorToDelete] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     // For university-admin, use organization.id or user.orgId
@@ -271,6 +272,7 @@ export default function UniversityAdminSupervisors() {
     if (!supervisorToDelete) return;
 
     try {
+      setIsDeleting(true);
       // Delete supervisor via repository (syncs with backend)
       await userRepository.delete(supervisorToDelete);
 
@@ -288,6 +290,8 @@ export default function UniversityAdminSupervisors() {
       showError("Failed to delete supervisor. Please try again.");
       setShowDeleteConfirm(false);
       setSupervisorToDelete(null);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -491,6 +495,7 @@ export default function UniversityAdminSupervisors() {
         type="danger"
         confirmText="Delete"
         cancelText="Cancel"
+        loading={isDeleting}
       />
     </div>
   );

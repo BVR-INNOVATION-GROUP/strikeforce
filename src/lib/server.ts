@@ -47,6 +47,7 @@ export interface BackendLoginResponse {
   token: string;
   user: BackendUser;
   organization?: BackendOrganization;
+  isFirstLogin?: boolean; // For students - indicates if they need to complete DNA snapshot
 }
 
 /**

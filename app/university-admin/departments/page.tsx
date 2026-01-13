@@ -29,8 +29,8 @@ import {
 import { collegeService } from "@/src/services/collegeService";
 
 /**
- * University Admin Departments - manage university departments
- * PRD Reference: Section 4 - University Admin can add departments via manual/bulk uploads
+ * University Admin Faculties - manage university faculties
+ * PRD Reference: Section 4 - University Admin can add faculties via manual/bulk uploads
  */
 export default function UniversityAdminDepartments() {
   const router = useRouter();
@@ -47,6 +47,8 @@ export default function UniversityAdminDepartments() {
   const [errors, setErrors] = useState<{ name?: string; collegeId?: string }>({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [departmentToDelete, setDepartmentToDelete] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadDepartments();
@@ -98,22 +100,22 @@ export default function UniversityAdminDepartments() {
 
     } catch (error) {
       console.error("Failed to load departments:", error);
-      showError("Failed to load departments");
+      showError("Failed to load faculties");
     } finally {
       setLoading(false);
     }
   };
 
   /**
-   * Validate department form
+   * Validate faculty form
    */
   const validate = (): boolean => {
     const newErrors: { name?: string; collegeId?: string } = {};
     if (!formData.name || formData.name.trim().length === 0) {
-      newErrors.name = "Department name is required";
+      newErrors.name = "Faculty name is required";
     }
     if (!formData.collegeId) {
-      newErrors.collegeId = "College is required";
+      newErrors.collegeId = "Innovation hub is required";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -128,6 +130,7 @@ export default function UniversityAdminDepartments() {
     const collegeId = formData.collegeId ? Number(formData.collegeId) : null;
 
     try {
+      setIsSubmitting(true);
       if (editingDepartment) {
         if (!editingDepartment.id) {
           showError("Invalid department: missing ID");
@@ -140,7 +143,7 @@ export default function UniversityAdminDepartments() {
           `api/v1/departments/${deptId}`,
           { name: formData.name, collegeId }
         );
-        showSuccess("Department updated successfully");
+        showSuccess("Faculty updated successfully");
       } else {
         const { data, status, msg } = await POST<SourceDepartment>("api/v1/departments", {
           name: formData.name,
@@ -152,23 +155,25 @@ export default function UniversityAdminDepartments() {
           return;
         }
 
-        showSuccess("Department created successfully");
+        showSuccess("Faculty created successfully");
       }
       handleClose();
       // Reload departments to ensure college data is properly loaded
       await loadDepartments();
     } catch (error) {
       console.error("Failed to save department:", error);
-      showError("Failed to save department. Please try again.");
+      showError("Failed to save faculty. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   /**
-   * Handle delete department click - show confirmation
+   * Handle delete faculty click - show confirmation
    */
   const handleDeleteClick = (departmentId: string) => {
     if (!departmentId || departmentId.trim() === "") {
-      showError("Invalid department ID");
+      showError("Invalid faculty ID");
       return;
     }
     setDepartmentToDelete(departmentId);
@@ -176,19 +181,20 @@ export default function UniversityAdminDepartments() {
   };
 
   /**
-   * Handle delete department confirmation
+   * Handle delete faculty confirmation
    */
   const handleConfirmDelete = async () => {
     if (!departmentToDelete) return;
 
     try {
+      setIsDeleting(true);
       await DELETE_REQ(`api/v1/departments/${departmentToDelete}`);
 
       setDepartments((prevDepartments) =>
         prevDepartments.filter((d) => d.id?.toString() !== departmentToDelete)
       );
 
-      showSuccess("Department deleted successfully");
+      showSuccess("Faculty deleted successfully");
       setShowDeleteConfirm(false);
       setDepartmentToDelete(null);
 
@@ -196,18 +202,20 @@ export default function UniversityAdminDepartments() {
       loadDepartments();
     } catch (error) {
       console.error("Failed to delete department:", error);
-      showError("Failed to delete department. Please try again.");
+      showError("Failed to delete faculty. Please try again.");
       setShowDeleteConfirm(false);
       setDepartmentToDelete(null);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   /**
-   * Handle department selection - navigate to details page
+   * Handle faculty selection - navigate to details page
    */
   const handleSelect = (department: DepartmentI) => {
     if (!department.id) {
-      showError("Invalid department: missing ID");
+      showError("Invalid faculty: missing ID");
       return;
     }
     const deptId = typeof department.id === "number" ? department.id.toString() : department.id;
@@ -287,9 +295,9 @@ export default function UniversityAdminDepartments() {
       <div className="flex-shrink-0 mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-[1rem] font-[600] mb-2">Departments</h1>
+            <h1 className="text-[1rem] font-[600] mb-2">Faculties</h1>
             <p className="text-[0.875rem] opacity-60">
-              Manage university departments. Departments are required before creating programmes and assigning students.
+              Manage university faculties. Faculties are required before creating programmes and assigning students.
             </p>
           </div>
           <div className="flex gap-2">
@@ -299,17 +307,17 @@ export default function UniversityAdminDepartments() {
             </Button>
             <Button onClick={handleCreate} className="bg-primary">
               <Plus size={16} className="mr-2" />
-              Add Department
+              Add Faculty
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Departments Grid */}
+      {/* Faculties Grid */}
       {departments.length === 0 ? (
         <div className="text-center py-12 bg-paper rounded-lg">
           <p className="text-[0.875rem] opacity-60">
-            No departments yet. Use the "Add Department" button above to create your first department.
+            No faculties yet. Use the "Add Faculty" button above to create your first faculty.
           </p>
         </div>
       ) : (
@@ -329,21 +337,21 @@ export default function UniversityAdminDepartments() {
 
       {/* Create/Edit Modal */}
       <Modal
-        title={editingDepartment ? "Edit Department" : "Create Department"}
+        title={editingDepartment ? "Edit Faculty" : "Create Faculty"}
         open={isModalOpen}
         handleClose={handleClose}
         actions={[
           <Button key="cancel" onClick={handleClose} className="bg-pale text-primary">
             Cancel
           </Button>,
-          <Button key="submit" onClick={handleSubmit} className="bg-primary">
+          <Button key="submit" onClick={handleSubmit} className="bg-primary" loading={isSubmitting}>
             {editingDepartment ? "Update" : "Create"}
           </Button>,
         ]}
       >
         <div className="flex flex-col gap-4">
           <Input
-            title="Department Name *"
+            title="Faculty Name *"
             value={formData.name}
             onChange={(e) => {
               setFormData({ ...formData, name: e.target.value });
@@ -355,8 +363,8 @@ export default function UniversityAdminDepartments() {
             error={errors.name}
           />
           <Select
-            title="College *"
-            placeHolder="Select a college"
+            title="Innovation hub *"
+            placeHolder="Select an innovation hub"
             options={colleges.map((c) => ({ label: c.name, value: c.id }))}
             value={
               colleges
@@ -375,14 +383,14 @@ export default function UniversityAdminDepartments() {
             searchable
           />
           <p className="text-[0.8125rem] opacity-60">
-            Once created, programmes can be added to this department. Students will be assigned to departments and programmes.
+            Once created, programmes can be added to this faculty. Students will be assigned to faculties and programmes.
           </p>
         </div>
       </Modal>
 
       {/* Bulk Upload Modal */}
       <Modal
-        title="Bulk Upload Departments"
+        title="Bulk Upload Faculties"
         open={isBulkUploadModalOpen}
         handleClose={() => {
           setIsBulkUploadModalOpen(false);
@@ -444,16 +452,17 @@ export default function UniversityAdminDepartments() {
           setDepartmentToDelete(null);
         }}
         onConfirm={handleConfirmDelete}
-        title="Delete Department"
+        title="Delete Faculty"
         message={
           <div className="space-y-2">
-            <p>Are you sure you want to delete this department? This action cannot be undone.</p>
+            <p>Are you sure you want to delete this faculty? This action cannot be undone.</p>
             <p className="text-[0.8125rem] opacity-75">All associated programmes and data will be affected.</p>
           </div>
         }
         type="danger"
         confirmText="Delete"
         cancelText="Cancel"
+        loading={isDeleting}
       />
     </div>
   );

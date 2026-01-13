@@ -16,6 +16,7 @@ import { useAuthStore } from "@/src/store";
 import { useToast } from "@/src/hooks/useToast";
 import { OrganizationI } from "@/src/models/organization";
 import { BackendLoginResponse, mapBackendUserToFrontend, mapBackendOrganizationToFrontend } from "@/src/lib/server";
+import DNASnapshotModal, { DNAArchetype } from "@/src/components/screen/student/DNASnapshotModal";
 
 interface User {
   name: string
@@ -35,6 +36,24 @@ const LoginPage = () => {
   const [showPendingModal, setShowPendingModal] = useState(false);
   const [pendingOrganization, setPendingOrganization] = useState<OrganizationI | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showDNAModal, setShowDNAModal] = useState(false);
+
+  /**
+   * Check if input is an email or student ID
+   */
+  const isEmail = (input: string): boolean => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
+  };
+
+  /**
+   * Check if input is a student ID format (e.g., 2024CS-UG-KMP-0001-5)
+   */
+  const isStudentID = (input: string): boolean => {
+    // Student ID format: YEARCODE-BRANCH-DISTRICT-SEQUENCE-CHECKSUM
+    // Example: 2024CS-UG-KMP-0001-5
+    const studentIDPattern = /^\d{4}[A-Z]{2,4}-[A-Z0-9]{2,3}-[A-Z]{3}-\d{4}-\d$/;
+    return studentIDPattern.test(input);
+  };
 
   /**
    * Validate form data
@@ -43,9 +62,9 @@ const LoginPage = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email";
+      newErrors.email = "Email or Student ID is required";
+    } else if (!isEmail(formData.email) && !isStudentID(formData.email)) {
+      newErrors.email = "Please enter a valid email or student ID";
     }
 
     if (!formData.password) {
@@ -102,10 +121,12 @@ const LoginPage = () => {
 
     setLoading(true);
     try {
-      const response = await POST<BackendLoginResponse>("user/login", {
-        email: formData.email,
-        password: formData.password
-      });
+      // Determine if input is email or student ID
+      const loginPayload = isEmail(formData.email)
+        ? { email: formData.email, password: formData.password }
+        : { studentId: formData.email, password: formData.password };
+
+      const response = await POST<BackendLoginResponse>("user/login", loginPayload);
 
       const { data, msg } = response;
       if (!data) {
@@ -132,9 +153,14 @@ const LoginPage = () => {
 
       console.log("Auth state after login:", useAuthStore.getState()); // Debug log
 
-      // Navigate to home
-      showSuccess("Welcome back!");
-      router.push("/");
+      // Check if this is a first-time student login
+      if (data.user.role === "student" && data.isFirstLogin) {
+        setShowDNAModal(true);
+      } else {
+        // Navigate to home
+        showSuccess("Welcome back!");
+        router.push("/");
+      }
 
     } catch (error) {
       console.error("Login failed:", error);
@@ -195,9 +221,9 @@ const LoginPage = () => {
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            type="email"
-            title="Email *"
-            placeholder="Enter your email"
+            type="text"
+            title="Email or Student ID *"
+            placeholder="Enter your email or student ID"
             value={formData.email}
             onChange={(e) => {
               setFormData({ ...formData, email: e.target.value });
@@ -331,6 +357,22 @@ const LoginPage = () => {
           </p>
         </div>
       </Modal>
+
+      {/* DNA Snapshot Modal for first-time student logins */}
+      <DNASnapshotModal
+        open={showDNAModal}
+        onClose={() => {
+          setShowDNAModal(false);
+          // Navigate to home after closing
+          showSuccess("Welcome to StrikeForce!");
+          router.push("/");
+        }}
+        onComplete={(archetype: DNAArchetype) => {
+          setShowDNAModal(false);
+          showSuccess(`Welcome! Your StrikeForce DNA: ${archetype.name}`);
+          router.push("/");
+        }}
+      />
     </AuthLayout>
   );
 };

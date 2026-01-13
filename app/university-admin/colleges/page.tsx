@@ -23,6 +23,7 @@ export default function UniversityAdminColleges() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [collegeToDelete, setCollegeToDelete] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadColleges();
@@ -35,7 +36,7 @@ export default function UniversityAdminColleges() {
       setColleges(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to load colleges:", error);
-      showError("Failed to load colleges");
+      showError("Failed to load innovation hubs");
       setColleges([]);
     } finally {
       setLoading(false);
@@ -45,7 +46,7 @@ export default function UniversityAdminColleges() {
   const validate = (): boolean => {
     const newErrors: { name?: string } = {};
     if (!formData.name || formData.name.trim().length === 0) {
-      newErrors.name = "College name is required";
+      newErrors.name = "Innovation hub name is required";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -58,16 +59,16 @@ export default function UniversityAdminColleges() {
       setIsSubmitting(true);
       if (editingCollege) {
         await collegeService.updateCollege(editingCollege.id, formData.name.trim());
-        showSuccess("College updated successfully");
+        showSuccess("Innovation hub updated successfully");
       } else {
         await collegeService.createCollege(formData.name.trim());
-        showSuccess("College created successfully");
+        showSuccess("Innovation hub created successfully");
       }
       handleClose();
       await loadColleges();
     } catch (error: any) {
       console.error("Failed to save college:", error);
-      showError(error?.message || "Failed to save college");
+      showError(error?.message || "Failed to save innovation hub");
     } finally {
       setIsSubmitting(false);
     }
@@ -76,14 +77,17 @@ export default function UniversityAdminColleges() {
   const handleDelete = async () => {
     if (!collegeToDelete) return;
     try {
+      setIsDeleting(true);
       await collegeService.deleteCollege(collegeToDelete);
-      showSuccess("College deleted successfully");
+      showSuccess("Innovation hub deleted successfully");
       setShowDeleteConfirm(false);
       setCollegeToDelete(null);
       await loadColleges();
     } catch (error: any) {
       console.error("Failed to delete college:", error);
       showError(error?.message || "Failed to delete college");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -114,7 +118,7 @@ export default function UniversityAdminColleges() {
   };
 
   const tableColumns = [
-    { key: "name", header: "College Name" },
+    { key: "name", header: "Innovation Hub Name" },
     { key: "createdAt", header: "Created At" },
     { key: "updatedAt", header: "Updated At" },
   ];
@@ -153,19 +157,19 @@ export default function UniversityAdminColleges() {
     <div className="w-full flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-default">Colleges</h1>
+          <h1 className="text-2xl font-semibold text-default">Innovation hubs</h1>
           <p className="text-sm text-secondary mt-1">
-            Manage university colleges/faculties to organize departments.
+            Manage innovation hubs to organize faculties.
           </p>
         </div>
         <Button onClick={handleCreate} className="bg-primary">
           <Plus size={16} className="mr-2" />
-          Add College
+          Add Innovation hub
         </Button>
       </div>
 
       <div className="bg-paper rounded-lg border border-custom p-4">
-        <h2 className="text-lg font-semibold text-default mb-4">All Colleges</h2>
+        <h2 className="text-lg font-semibold text-default mb-4">All Innovation hubs</h2>
         <DataTable
           data={colleges
             .filter((c) => c && c.id != null)
@@ -185,12 +189,12 @@ export default function UniversityAdminColleges() {
             }
           }}
           onDelete={(row) => handleDeleteClick(Number(row.id))}
-          emptyMessage="No colleges found. Create your first college to organize departments."
+          emptyMessage="No innovation hubs found. Create your first innovation hub to organize faculties."
         />
       </div>
 
       <Modal
-        title={editingCollege ? "Edit College" : "Create College"}
+        title={editingCollege ? "Edit Innovation hub" : "Create Innovation hub"}
         open={isModalOpen}
         handleClose={handleClose}
         actions={[
@@ -201,15 +205,15 @@ export default function UniversityAdminColleges() {
             key="submit"
             onClick={handleSubmit}
             className="bg-primary"
-            disabled={isSubmitting}
+            loading={isSubmitting}
           >
-            {isSubmitting ? "Saving..." : editingCollege ? "Update" : "Create"}
+            {editingCollege ? "Update" : "Create"}
           </Button>,
         ]}
       >
         <div className="flex flex-col gap-4">
           <Input
-            title="College Name *"
+            title="Innovation hub Name *"
             value={formData.name}
             onChange={(e) => {
               setFormData({ ...formData, name: e.target.value });
@@ -217,20 +221,20 @@ export default function UniversityAdminColleges() {
                 setErrors({ ...errors, name: undefined });
               }
             }}
-            placeholder="e.g., College of Engineering"
+            placeholder="e.g., Innovation Hub of Engineering"
             error={errors.name}
           />
           <div className="flex items-center gap-2 text-secondary text-sm">
             <Building2 size={16} />
-            <span>Colleges group departments; add departments after creating colleges.</span>
+            <span>Innovation hubs group faculties; add faculties after creating innovation hubs.</span>
           </div>
         </div>
       </Modal>
 
       <ConfirmationDialog
         open={showDeleteConfirm}
-        title="Delete College"
-        message="Are you sure you want to delete this college? Departments linked to this college will block deletion."
+        title="Delete Innovation hub"
+        message="Are you sure you want to delete this innovation hub? Faculties linked to this innovation hub will block deletion."
         onConfirm={handleDelete}
         onClose={() => {
           setShowDeleteConfirm(false);
@@ -239,6 +243,7 @@ export default function UniversityAdminColleges() {
         confirmText="Delete"
         cancelText="Cancel"
         type="danger"
+        loading={isDeleting}
       />
     </div>
   );

@@ -64,6 +64,25 @@ const StudentCard = ({ student, department, course, onEdit, onDelete, onViewDeta
           <div className="flex-1">
             <h3 className="text-[1rem] font-[600] mb-1">{student.name}</h3>
             <p className="text-[0.8125rem] opacity-60">{student.email}</p>
+            {(student as any).studentId && (
+              <p className="text-[0.75rem] opacity-50 font-mono mt-1">
+                Strikeforce ID: {(student as any).studentId}
+              </p>
+            )}
+            {/* DNA Snapshot Status */}
+            {(student as any).hasCompletedDnaSnapshot !== undefined && (
+              <div className="mt-2">
+                <span
+                  className={`text-[0.7rem] px-2 py-0.5 rounded-full ${
+                    (student as any).hasCompletedDnaSnapshot
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  {(student as any).hasCompletedDnaSnapshot ? "✓ DNA Complete" : "DNA Pending"}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -304,6 +323,8 @@ export default function UniversityAdminStudents() {
    * Open details modal
    */
   const handleViewDetails = (student: UserI) => {
+    console.log("[handleViewDetails] Student object:", student);
+    console.log("[handleViewDetails] Student ID field:", (student as any).studentId);
     setSelectedStudent(student);
     setIsDetailsModalOpen(true);
   };

@@ -11,7 +11,7 @@ import { UserI } from "@/src/models/user";
 import { DepartmentI, CourseI, ProjectI } from "@/src/models/project";
 import { GroupI } from "@/src/models/group";
 import { ApplicationI } from "@/src/models/application";
-import { User, Mail, Calendar, Edit, Trash2, Building2, BookOpen, Users, Briefcase, MapPin, CalendarDays } from "lucide-react";
+import { User, Mail, Calendar, Edit, Trash2, Building2, BookOpen, Users, Briefcase, MapPin, CalendarDays, Dna } from "lucide-react";
 import { formatDateShort } from "@/src/utils/dateFormatters";
 import { groupRepository } from "@/src/repositories/groupRepository";
 import { applicationService } from "@/src/services/applicationService";
@@ -48,12 +48,23 @@ const StudentDetailsModal = ({
   const [applications, setApplications] = useState<ApplicationI[]>([]);
   const [loadingGroups, setLoadingGroups] = useState(false);
   const [loadingProjects, setLoadingProjects] = useState(false);
+  const [dnaSnapshot, setDnaSnapshot] = useState<any>(null);
+  const [loadingDna, setLoadingDna] = useState(false);
 
   useEffect(() => {
     if (open && student?.id) {
       loadStudentData();
     }
   }, [open, student?.id]);
+
+  // Debug logging to check studentId - must be before early return
+  useEffect(() => {
+    if (student) {
+      console.log("[StudentDetailsModal] Student object:", student);
+      console.log("[StudentDetailsModal] studentId field:", (student as any).studentId);
+      console.log("[StudentDetailsModal] student_id field:", (student as any).student_id);
+    }
+  }, [student]);
 
   const loadStudentData = async () => {
     if (!student?.id) return;
@@ -63,6 +74,11 @@ const StudentDetailsModal = ({
     const userId = (student as any).userId 
       ? (typeof (student as any).userId === "number" ? (student as any).userId : parseInt((student as any).userId.toString(), 10))
       : (typeof student.id === "number" ? student.id : parseInt(student.id.toString(), 10));
+
+    // Get student record ID (not user ID) for DNA snapshot
+    // The student object from the list should have studentRecordId if it came from the course students page
+    // Otherwise, we may need to use a different approach
+    const studentRecordId = (student as any).studentRecordId;
 
     // Load groups - use userId query parameter for university-admins
     setLoadingGroups(true);
@@ -117,6 +133,29 @@ const StudentDetailsModal = ({
     } finally {
       setLoadingProjects(false);
     }
+
+    // Load DNA Snapshot (only if we have a student record ID)
+    if (studentRecordId) {
+      setLoadingDna(true);
+      try {
+        const { GET } = await import("@/base");
+        const response = await GET<{ data: { hasCompleted: boolean; archetype?: any; completedAt?: string } }>(
+          `api/v1/students/${studentRecordId}/dna/snapshot`
+        );
+        if (response.data) {
+          setDnaSnapshot(response.data);
+        }
+      } catch (error) {
+        console.error("Failed to load DNA snapshot:", error);
+        // If 404, student hasn't completed DNA snapshot - that's fine
+        setDnaSnapshot({ hasCompleted: false });
+      } finally {
+        setLoadingDna(false);
+      }
+    } else {
+      // No student record ID available, can't fetch DNA snapshot
+      setDnaSnapshot({ hasCompleted: false });
+    }
   };
 
   if (!student) return null;
@@ -167,6 +206,24 @@ const StudentDetailsModal = ({
 
         {/* Details */}
         <div className="space-y-4">
+          {(() => {
+            const studentId = (student as any).studentId || (student as any).student_id;
+            if (studentId) {
+              return (
+                <div className="p-4 bg-pale rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User size={16} className="opacity-60" />
+                    <p className="text-[0.875rem] font-medium">Strikeforce ID</p>
+                  </div>
+                  <p className="text-[0.875rem] opacity-60 font-mono">
+                    {String(studentId)}
+                  </p>
+                </div>
+              );
+            }
+            return null;
+          })()}
+
           <div className="p-4 bg-pale rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <Mail size={16} className="opacity-60" />
@@ -237,15 +294,17 @@ const StudentDetailsModal = ({
             </div>
           )}
 
-          <div className="p-4 bg-pale rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar size={16} className="opacity-60" />
-              <p className="text-[0.875rem] font-medium">Created Date</p>
+          {student.createdAt && (
+            <div className="p-4 bg-pale rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Calendar size={16} className="opacity-60" />
+                <p className="text-[0.875rem] font-medium">Created Date</p>
+              </div>
+              <p className="text-[0.875rem] opacity-60">
+                {formatDateShort(student.createdAt)}
+              </p>
             </div>
-            <p className="text-[0.875rem] opacity-60">
-              {formatDateShort(student.createdAt)}
-            </p>
-          </div>
+          )}
 
         </div>
 
@@ -280,6 +339,49 @@ const StudentDetailsModal = ({
                 );
               })}
             </div>
+          )}
+        </div>
+
+        {/* DNA Snapshot Section */}
+        <div className="pt-4 border-t border-custom">
+          <div className="flex items-center gap-2 mb-4">
+            <Dna size={18} className="text-primary" />
+            <h4 className="text-[0.875rem] font-semibold">StrikeForce DNA</h4>
+          </div>
+          {loadingDna ? (
+            <p className="text-[0.8125rem] opacity-60">Loading DNA snapshot...</p>
+          ) : !dnaSnapshot || !dnaSnapshot.hasCompleted ? (
+            <p className="text-[0.8125rem] opacity-60">This student has not completed their DNA snapshot yet.</p>
+          ) : dnaSnapshot.archetype ? (
+            <div className="space-y-3">
+              <div className="p-4 bg-pale rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[0.875rem] font-semibold text-primary">
+                    {dnaSnapshot.archetype.name}
+                  </span>
+                </div>
+                <p className="text-[0.8125rem] opacity-70 mb-3">
+                  {dnaSnapshot.archetype.description}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {dnaSnapshot.archetype.traits?.map((trait: string, index: number) => (
+                    <span
+                      key={index}
+                      className="text-[0.75rem] px-2 py-1 bg-paper rounded text-primary"
+                    >
+                      {trait}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              {dnaSnapshot.completedAt && (
+                <p className="text-[0.75rem] opacity-60">
+                  Completed: {new Date(dnaSnapshot.completedAt).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-[0.8125rem] opacity-60">DNA snapshot data unavailable.</p>
           )}
         </div>
 
