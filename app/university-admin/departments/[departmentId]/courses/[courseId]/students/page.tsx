@@ -782,8 +782,8 @@ export default function ProgrammeStudentsPage() {
           enrollmentYear: formData.enrollmentYear ? parseInt(formData.enrollmentYear, 10) : 0,
         };
 
-        await POST(`api/v1/students/${numericCourseId}`, payload);
-        showSuccess(`Student created successfully! Login credentials have been sent to ${formData.email}`);
+        const response = await POST<{ msg?: string }>(`api/v1/students/${numericCourseId}`, payload);
+        showSuccess(response?.msg || `Student created successfully! Login credentials have been sent to ${formData.email}`);
         handleClose();
         await loadData();
       }
