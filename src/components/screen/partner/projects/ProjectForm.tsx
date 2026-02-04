@@ -36,6 +36,7 @@ export interface Props {
     deadline: string;
     capacity: string;
     selectedSkills: string[];
+    partnerSignature?: string | null;
   }>;
   onSubmit?: (
     project: Omit<

@@ -87,10 +87,10 @@ export default function SupervisorDetailPage() {
         ? userId 
         : parseInt(userId.toString(), 10);
       
-      const allProjects = await projectService.getAllProjects({
+      const { projects: projectList } = await projectService.getAllProjects({
         supervisorId: numericUserId.toString(),
       });
-      setProjects(allProjects);
+      setProjects(projectList);
     } catch (error) {
       console.error("Failed to load supervisor data:", error);
       showError("Failed to load supervisor information");

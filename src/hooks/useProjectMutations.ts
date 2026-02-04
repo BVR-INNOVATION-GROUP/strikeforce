@@ -181,7 +181,8 @@ export const useProjectMutations = (projectId: string) => {
             return updated
         } catch (error) {
             console.error("Failed to update project:", error)
-            throw new Error("Failed to update project. Please try again.")
+            const message = error instanceof Error ? error.message : "Failed to update project. Please try again."
+            throw new Error(message)
         }
     }
 

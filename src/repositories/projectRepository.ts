@@ -259,9 +259,10 @@ export const projectRepository = {
     id: string | number,
     project: Partial<ProjectI>
   ): Promise<ProjectI> => {
+    const numericId = typeof id === "string" ? parseInt(id, 10) : id;
     const updated = await api.put<any>("/api/v1/projects/update", {
       ...project,
-      id,
+      id: numericId,
     });
     return normalizeProject(updated);
   },

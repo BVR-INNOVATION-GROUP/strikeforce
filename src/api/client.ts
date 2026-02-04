@@ -350,7 +350,11 @@ export const api = {
         let errorMessage = `PUT ${url} failed: ${response.statusText}`;
         try {
           const errorData = JSON.parse(errorText);
-          errorMessage = errorData.error || errorData.message || errorMessage;
+          errorMessage =
+            errorData.msg ||
+            errorData.error ||
+            errorData.message ||
+            errorMessage;
         } catch {
           if (errorText) errorMessage = errorText.substring(0, 200);
         }

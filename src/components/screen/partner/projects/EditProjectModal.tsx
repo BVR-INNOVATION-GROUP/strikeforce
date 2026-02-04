@@ -148,6 +148,7 @@ const transformProjectToFormData = (project: ProjectI | null) => {
         currency: currencyOption,
         title: project.title || '',
         desc: project.description || '',
+        partnerSignature: (rawProject.partnerSignature ?? rawProject.partner_signature ?? project.partnerSignature) || null,
         summary: project.summary || '',
         challengeStatement: project.challengeStatement || '',
         scopeActivities: project.scopeActivities || '',

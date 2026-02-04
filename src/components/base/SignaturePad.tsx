@@ -38,13 +38,20 @@ const SignaturePad: React.FC<SignaturePadProps> = ({
 }) => {
   const sigPadRef = useRef<SignatureCanvas>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const lastEmittedRef = useRef<string | null>(null);
   const [isEmpty, setIsEmpty] = useState(true);
   const [mode, setMode] = useState<SignatureMode>("draw");
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
-  // Load initial signature if provided
+  // Load initial signature if provided (only when it differs from what we just emitted)
+  // This prevents the "signature moves up" bug: when we emit a signature, parent re-renders
+  // and passes it back - we must NOT call fromDataURL in that case as it causes position shift
   useEffect(() => {
     if (initialSignature) {
+      // Skip if this is the same signature we just emitted (prevents feedback loop / position shift)
+      if (initialSignature === lastEmittedRef.current) {
+        return;
+      }
       // Check if it's a data URL (starts with data:)
       if (initialSignature.startsWith("data:")) {
         // Try to load it based on current mode
@@ -69,6 +76,7 @@ const SignaturePad: React.FC<SignaturePadProps> = ({
         setIsEmpty(false);
       }
     } else {
+      lastEmittedRef.current = null;
       // Clear signature if initialSignature is null/empty
       if (mode === "draw" && sigPadRef.current) {
         sigPadRef.current.clear();
@@ -84,13 +92,17 @@ const SignaturePad: React.FC<SignaturePadProps> = ({
       const empty = sigPadRef.current.isEmpty();
       setIsEmpty(empty);
       if (onSignatureChange) {
-        onSignatureChange(empty ? null : sigPadRef.current.toDataURL());
+        const dataUrl = empty ? null : sigPadRef.current.toDataURL();
+        lastEmittedRef.current = dataUrl;
+        onSignatureChange(dataUrl);
       }
     } else if (mode === "upload") {
       const empty = !uploadedImage;
       setIsEmpty(empty);
       if (onSignatureChange) {
-        onSignatureChange(empty ? null : uploadedImage);
+        const val = empty ? null : uploadedImage;
+        lastEmittedRef.current = val;
+        onSignatureChange(val);
       }
     }
   };
@@ -104,12 +116,14 @@ const SignaturePad: React.FC<SignaturePadProps> = ({
   const handleClear = () => {
     if (mode === "draw" && sigPadRef.current) {
       sigPadRef.current.clear();
+      lastEmittedRef.current = null;
       setIsEmpty(true);
       if (onSignatureChange) {
         onSignatureChange(null);
       }
     } else if (mode === "upload") {
       setUploadedImage(null);
+      lastEmittedRef.current = null;
       setIsEmpty(true);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -141,6 +155,7 @@ const SignaturePad: React.FC<SignaturePadProps> = ({
     reader.onload = (e) => {
       const dataURL = e.target?.result as string;
       setUploadedImage(dataURL);
+      lastEmittedRef.current = dataURL;
       setIsEmpty(false);
       if (onSignatureChange) {
         onSignatureChange(dataURL);
@@ -156,6 +171,7 @@ const SignaturePad: React.FC<SignaturePadProps> = ({
   const handleModeSwitch = (newMode: SignatureMode) => {
     if (disabled) return;
     
+    lastEmittedRef.current = null;
     // Clear current signature when switching modes
     if (mode === "draw" && sigPadRef.current) {
       sigPadRef.current.clear();
@@ -209,15 +225,17 @@ const SignaturePad: React.FC<SignaturePadProps> = ({
       {mode === "draw" && (
         <div
           className="relative border-2 border-custom rounded-lg overflow-hidden bg-white"
-          style={{ width: `${width}px`, maxWidth: "100%" }}
+          style={{ width: `${width}px`, maxWidth: "100%", minHeight: `${height}px` }}
         >
           <SignatureCanvas
             ref={sigPadRef}
+            clearOnResize={false}
             canvasProps={{
               width,
               height,
               className: "signature-canvas",
               style: {
+                display: "block",
                 backgroundColor,
                 cursor: disabled ? "not-allowed" : "crosshair",
               },

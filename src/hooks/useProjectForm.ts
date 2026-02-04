@@ -88,6 +88,7 @@ export function useProjectForm(
     deadline: string;
     capacity: string;
     selectedSkills: string[];
+    partnerSignature?: string | null;
   }>
 ): [ProjectFormState, ProjectFormActions] {
   // Initialize with empty values - will be populated by useEffect when modal opens
@@ -199,6 +200,7 @@ export function useProjectForm(
       setDeadline(initialData.deadline ?? "");
       setCapacity(initialData.capacity ?? "");
       setSelectedSkills(initialData.selectedSkills ?? []);
+      setPartnerSignature(initialData.partnerSignature ?? null);
 
       // Reset flag after effects have run (use setTimeout to ensure it happens after state updates)
       setTimeout(() => {

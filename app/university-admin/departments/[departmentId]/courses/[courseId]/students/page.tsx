@@ -178,12 +178,12 @@ export default function ProgrammeStudentsPage() {
       const coursesResponse = await GET<SourceCourse[]>(`api/v1/courses?dept=${numericDeptId}`);
       const rawCourses = Array.isArray(coursesResponse.data) ? coursesResponse.data : [];
       const courseList = transformCourses(rawCourses);
-      
+
       if (!courseId || courseId.trim() === "") {
         showError("Invalid programme identifier provided in the URL.");
         return;
       }
-      
+
       const numericCourseId = parseInt(courseId.trim(), 10);
 
       if (Number.isNaN(numericCourseId) || numericCourseId < 0) {
@@ -235,7 +235,7 @@ export default function ProgrammeStudentsPage() {
     const userId = student.user?.ID ?? student.user?.id ?? student.userId;
     const studentId = student.studentId; // The Strikeforce ID
     const createdAt = student.user?.CreatedAt || student.user?.createdAt || student.CreatedAt || student.createdAt;
-    
+
     return {
       id: studentRecordId,
       userId: userId,
@@ -499,7 +499,7 @@ export default function ProgrammeStudentsPage() {
       const path = apiConfig.dataPath.trim();
 
       let records = extractData(json, path);
-      
+
       // If path extraction returned undefined or null, try fallbacks
       if (records === undefined || records === null) {
         // Try common paths
@@ -518,7 +518,7 @@ export default function ProgrammeStudentsPage() {
           );
         }
       }
-      
+
       if (!Array.isArray(records)) {
         throw new Error(
           `The value at path "${path}" is not an array. ` +
@@ -548,12 +548,12 @@ export default function ProgrammeStudentsPage() {
     if (!pathValue || pathValue === "") {
       return source;
     }
-    
+
     const keys = pathValue.split(".").filter(Boolean);
     if (keys.length === 0) {
       return source;
     }
-    
+
     let current = source;
     for (const key of keys) {
       if (current === null || current === undefined) {
@@ -577,10 +577,10 @@ export default function ProgrammeStudentsPage() {
       setApiPreview([]);
 
       const json = JSON.parse(apiJsonInput);
-      
+
       // Automatically detect the array - try common patterns
       let records: any[] | null = null;
-      
+
       if (Array.isArray(json)) {
         // Root is an array
         records = json;
@@ -603,7 +603,7 @@ export default function ProgrammeStudentsPage() {
           }
         }
       }
-      
+
       if (!records || !Array.isArray(records)) {
         throw new Error(
           "Could not find an array in the JSON. " +
@@ -723,11 +723,10 @@ export default function ProgrammeStudentsPage() {
               type="button"
               key={option}
               onClick={() => toggleValue(option)}
-              className={`px-3 py-1 rounded-full border text-xs ${
-                selected.includes(option)
+              className={`px-3 py-1 rounded-full border text-xs ${selected.includes(option)
                   ? "bg-primary text-white border-primary"
                   : "border-custom text-secondary"
-              }`}
+                }`}
             >
               {option}
             </button>
@@ -1050,11 +1049,10 @@ export default function ProgrammeStudentsPage() {
                     {(student as any).hasCompletedDnaSnapshot !== undefined && (
                       <div className="mt-2">
                         <span
-                          className={`text-[0.7rem] px-2 py-0.5 rounded-full ${
-                            (student as any).hasCompletedDnaSnapshot
+                          className={`text-[0.7rem] px-2 py-0.5 rounded-full ${(student as any).hasCompletedDnaSnapshot
                               ? "bg-green-100 text-green-700"
                               : "bg-gray-100 text-gray-600"
-                          }`}
+                            }`}
                         >
                           {(student as any).hasCompletedDnaSnapshot ? "✓ DNA Complete" : "DNA Pending"}
                         </span>
