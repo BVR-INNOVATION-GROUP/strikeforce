@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/src/store";
 import { useRouter } from "next/navigation";
 import UnifiedSettings from "@/src/components/screen/settings/UnifiedSettings";
-import { UserI } from "@/src/models/user";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 
 /**
  * University Admin Settings Page - uses unified settings component
@@ -29,9 +29,7 @@ export default function UniversityAdminSettings() {
 
   if (loading || !user || !user.id) {
     return (
-      <div className="w-full flex flex-col h-full overflow-hidden p-4">
-        Loading...
-      </div>
+      <DashboardLoading />
     );
   }
 

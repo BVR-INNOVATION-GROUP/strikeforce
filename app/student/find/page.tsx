@@ -19,6 +19,7 @@ import { currenciesArray } from "@/src/constants/currencies";
 import { GroupI } from "@/src/models/group";
 import { stripHtmlTags } from "@/src/utils/htmlUtils";
 import { BASE_URL } from "@/src/api/client";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 
 /**
  * Student Find Projects - Upwork-style layout with Google-like search
@@ -403,7 +404,7 @@ export default function StudentProjects() {
   };
 
   if (loading) {
-    return <div className="p-4">Loading...</div>;
+    return <DashboardLoading />;
   }
 
   return (

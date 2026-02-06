@@ -170,8 +170,9 @@ const EditOrganizationModal = ({ open, organization, onClose, onSuccess }: Props
           onClick={handleSubmit}
           className="bg-primary text-white"
           disabled={submitting}
+          loading={submitting}
         >
-          {submitting ? "Updating..." : "Update Organization"}
+          Update Organization
         </Button>,
       ]}
     >

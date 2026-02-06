@@ -9,6 +9,7 @@ import DisputeCard from "@/src/components/screen/university-admin/disputes/Dispu
 import DisputeDetailsModal from "@/src/components/screen/university-admin/disputes/DisputeDetailsModal";
 import { disputeRepository } from "@/src/repositories/disputeRepository";
 import { userRepository } from "@/src/repositories/userRepository";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 
 /**
  * University Admin Dispute Center - review and resolve disputes
@@ -63,11 +64,7 @@ export default function UniversityAdminDisputes() {
   const resolvedDisputes = disputes.filter((d) => d.status === "RESOLVED");
 
   if (loading) {
-    return (
-      <div className="w-full flex flex-col h-full overflow-hidden p-4">
-        Loading...
-      </div>
-    );
+    return <DashboardLoading />;
   }
 
   return (

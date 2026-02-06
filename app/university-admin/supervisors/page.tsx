@@ -17,7 +17,7 @@ import { getInitials, hasAvatar } from "@/src/utils/avatarUtils";
 import { userRepository } from "@/src/repositories/userRepository";
 import { departmentService } from "@/src/services/departmentService";
 import { useAuthStore } from "@/src/store";
-import Skeleton from "@/src/components/core/Skeleton";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 
 /**
  * Supervisor Card Component - displays supervisor information in card format
@@ -110,6 +110,7 @@ export default function UniversityAdminSupervisors() {
   const [supervisorToDelete, setSupervisorToDelete] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isBulkUploading, setIsBulkUploading] = useState(false);
 
   useEffect(() => {
     // For university-admin, use organization.id or user.orgId
@@ -233,6 +234,7 @@ export default function UniversityAdminSupervisors() {
     }
 
     try {
+      setIsBulkUploading(true);
       // In production, process CSV files
       // Parse CSV, create accounts, generate invitations, send emails
       console.log("Bulk upload supervisors:", selectedFiles);
@@ -241,10 +243,12 @@ export default function UniversityAdminSupervisors() {
       );
       setSelectedFiles([]);
       setIsBulkUploadModalOpen(false);
-      loadData(); // Reload to show new supervisors
+      await loadData(); // Reload to show new supervisors
     } catch (error) {
       console.error("Failed to upload:", error);
       showError("Failed to process upload. Please try again.");
+    } finally {
+      setIsBulkUploading(false);
     }
   };
 
@@ -295,16 +299,6 @@ export default function UniversityAdminSupervisors() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="w-full flex flex-col min-h-full">
-        <div className="flex items-center justify-center h-full">
-          <p className="text-[0.875rem] opacity-60">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   /**
    * Get department by ID (handles both number and string IDs)
    */
@@ -315,40 +309,7 @@ export default function UniversityAdminSupervisors() {
   };
 
   if (loading) {
-    return (
-      <div className="w-full flex flex-col min-h-full">
-        {/* Header Skeleton */}
-        <div className="flex-shrink-0 mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <Skeleton width={200} height={24} rounded="md" className="mb-2" />
-              <Skeleton width={400} height={16} rounded="md" />
-            </div>
-            <div className="flex gap-2">
-              <Skeleton width={140} height={40} rounded="md" />
-              <Skeleton width={160} height={40} rounded="md" />
-            </div>
-          </div>
-        </div>
-
-        {/* Supervisors Grid Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="bg-paper rounded-lg p-6 shadow-custom">
-              <div className="flex items-center gap-3 mb-4">
-                <Skeleton width={48} height={48} rounded="full" />
-                <div className="flex-1">
-                  <Skeleton width={150} height={18} rounded="md" className="mb-2" />
-                  <Skeleton width={200} height={14} rounded="md" />
-                </div>
-              </div>
-              <Skeleton width="100%" height={14} rounded="md" className="mb-2" />
-              <Skeleton width="80%" height={14} rounded="md" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return <DashboardLoading />;
   }
 
   return (
@@ -425,7 +386,7 @@ export default function UniversityAdminSupervisors() {
           >
             Cancel
           </Button>,
-          <Button key="upload" onClick={handleBulkUpload} className="bg-primary" disabled={selectedFiles.length === 0}>
+          <Button key="upload" onClick={handleBulkUpload} className="bg-primary" disabled={selectedFiles.length === 0} loading={isBulkUploading}>
             <Upload size={16} className="mr-2" />
             Upload CSV
           </Button>,

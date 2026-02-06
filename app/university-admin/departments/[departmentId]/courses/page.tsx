@@ -25,6 +25,7 @@ import StatusIndicator from "@/src/components/core/StatusIndicator";
 import { currenciesArray } from "@/src/constants/currencies";
 import { stripHtmlTags } from "@/src/utils/htmlUtils";
 import Link from "next/link";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 
 export default function DepartmentProgrammesPage() {
   const router = useRouter();
@@ -454,11 +455,7 @@ export default function DepartmentProgrammesPage() {
   };
 
   if (loading) {
-    return (
-      <div className="w-full flex flex-col h-full overflow-hidden p-4">
-        Loading...
-      </div>
-    );
+    return <DashboardLoading />;
   }
 
   if (!departmentId) {

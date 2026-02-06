@@ -29,12 +29,12 @@ function TableHeader<T>(props: Props<T>) {
         <thead>
             <tr className="bg-paper border-b border-custom">
                 {showCheckboxes && (
-                    <th className="text-left p-3 w-12">
+                    <th className="text-left py-4 px-4 w-12">
                         <Checkbox checked={allSelected} onChange={onSelectAll} />
                     </th>
                 )}
                 {columns.map((column) => (
-                    <th key={column.key} className="text-left p-3 text-sm font-semibold text-secondary">
+                    <th key={column.key} className="text-left py-4 px-4 text-sm font-semibold text-secondary">
                         <div className="flex items-center gap-2">
                             <span>{column.header}</span>
                             {column.sortable !== false && (
@@ -62,7 +62,7 @@ function TableHeader<T>(props: Props<T>) {
                     </th>
                 ))}
                 {showActions && (
-                    <th className="text-left p-3 text-sm font-semibold text-secondary w-24">Action</th>
+                    <th className="text-left py-4 px-4 text-sm font-semibold text-secondary w-24">Action</th>
                 )}
             </tr>
         </thead>

@@ -10,6 +10,7 @@ import KYCStatsCard from "@/src/components/screen/super-admin/kyc/KYCStatsCard";
 import { organizationRepository } from "@/src/repositories/organizationRepository";
 import { kycRepository } from "@/src/repositories/kycRepository";
 import { useToast } from "@/src/hooks/useToast";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 
 /**
  * Super Admin KYC Approvals - approve or reject organization KYC
@@ -99,7 +100,7 @@ export default function SuperAdminKYC() {
   const pending = organizations.filter((o) => o.kycStatus === "PENDING");
 
   if (loading) {
-    return <div className="p-4">Loading...</div>;
+    return <DashboardLoading />;
   }
 
   return (

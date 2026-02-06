@@ -55,7 +55,7 @@ const Modal = (props: Props) => {
                         onClick={(e) => {
                             e.stopPropagation();
                         }}
-                        className="bg-paper shadow-custom rounded-lg min-w-[40%] max-w-[60%] max-h-[90%] flex flex-col"
+                        className="bg-paper shadow-custom rounded-lg w-[95vw] max-w-[95vw] sm:min-w-[40%] sm:max-w-[60%] max-h-[90vh] flex flex-col"
                         style={{ zIndex: 100001 }}
                     >
                         {/* Header - fixed height */}

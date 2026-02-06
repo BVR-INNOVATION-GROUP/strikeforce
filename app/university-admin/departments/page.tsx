@@ -27,6 +27,7 @@ import {
   transformCourses,
 } from "@/base";
 import { collegeService } from "@/src/services/collegeService";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 
 /**
  * University Admin Faculties - manage university faculties
@@ -49,6 +50,7 @@ export default function UniversityAdminDepartments() {
   const [departmentToDelete, setDepartmentToDelete] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isBulkUploading, setIsBulkUploading] = useState(false);
 
   useEffect(() => {
     loadDepartments();
@@ -268,25 +270,24 @@ export default function UniversityAdminDepartments() {
     }
 
     try {
+      setIsBulkUploading(true);
       // In production, process CSV file
       // Parse CSV, create departments
       console.log("Bulk upload departments:", selectedFiles);
       showSuccess(`Processing ${selectedFiles.length} file(s)... Departments will be created once processing is complete.`);
       setSelectedFiles([]);
       setIsBulkUploadModalOpen(false);
-      loadDepartments(); // Reload to show new departments
+      await loadDepartments(); // Reload to show new departments
     } catch (error) {
       console.error("Failed to upload:", error);
       showError("Failed to process upload. Please try again.");
+    } finally {
+      setIsBulkUploading(false);
     }
   };
 
   if (loading) {
-    return (
-      <div className="w-full flex flex-col h-full overflow-hidden p-4">
-        Loading...
-      </div>
-    );
+    return <DashboardLoading />;
   }
 
   return (
@@ -407,7 +408,7 @@ export default function UniversityAdminDepartments() {
           >
             Cancel
           </Button>,
-          <Button key="upload" onClick={handleBulkUpload} className="bg-primary" disabled={selectedFiles.length === 0}>
+          <Button key="upload" onClick={handleBulkUpload} className="bg-primary" disabled={selectedFiles.length === 0} loading={isBulkUploading}>
             <Upload size={16} className="mr-2" />
             Upload CSV
           </Button>,

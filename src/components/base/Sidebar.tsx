@@ -22,7 +22,7 @@ const Sidebar = () => {
     const links = useSidebarLinks(userRole);
 
     return (
-        <div className="fixed top-[8vh] left-0 bottom-0 bg-paper z-[1] w-[6vw] flex flex-col items-center gap-3 p-[2vw]">
+        <div className="hidden md:flex fixed top-[8vh] left-0 bottom-0 bg-paper z-[1] w-[6vw] flex-col items-center gap-3 p-[2vw]">
             {
                 links?.map((l, i) => {
                     // Check for exact match first

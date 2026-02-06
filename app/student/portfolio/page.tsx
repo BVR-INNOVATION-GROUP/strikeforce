@@ -9,6 +9,7 @@ import { portfolioService } from "@/src/services/portfolioService";
 import { reputationService } from "@/src/services/reputationService";
 import { Award, ExternalLink, Star } from "lucide-react";
 import ReputationCard from "@/src/components/screen/student/ReputationCard";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 
 /**
  * Student Portfolio - view verified portfolio items and reputation
@@ -41,7 +42,7 @@ export default function StudentPortfolio() {
   }, [user?.id]);
 
   if (loading) {
-    return <div className="p-4">Loading...</div>;
+    return <DashboardLoading />;
   }
 
   return (

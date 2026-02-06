@@ -13,6 +13,7 @@ import IssueOfferModal from "@/src/components/screen/university-admin/IssueOffer
 import ConfirmationDialog from "@/src/components/base/ConfirmationDialog";
 import { useAuthStore } from "@/src/store";
 import { useToast } from "@/src/hooks/useToast";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 
 /**
  * University Admin Screening - screen and score project applications
@@ -365,11 +366,7 @@ export default function UniversityAdminScreening() {
   };
 
   if (loading) {
-    return (
-      <div className="w-full flex flex-col h-full overflow-hidden p-4">
-        Loading...
-      </div>
-    );
+    return <DashboardLoading />;
   }
 
   return (

@@ -20,10 +20,11 @@ export interface Props<T extends { id: string }> {
     onSelectRow: (id: string, checked: boolean) => void
     onEdit?: (item: T) => void
     onDelete?: (item: T) => void
+    startIndex?: number
 }
 
 function TableBody<T extends { id: string }>(props: Props<T>) {
-    const { data, columns, selectedRows, showActions, showCheckboxes = true, onRowClick, onSelectRow, onEdit, onDelete } = props
+    const { data, columns, selectedRows, showActions, showCheckboxes = true, onRowClick, onSelectRow, onEdit, onDelete, startIndex = 0 } = props
 
     if (data.length === 0) {
         return (
@@ -42,33 +43,35 @@ function TableBody<T extends { id: string }>(props: Props<T>) {
 
     return (
         <tbody>
-            {data.map((item) => {
-                const isSelected = selectedRows.has(item.id)
+            {data.map((item, index) => {
+                const rawId = item.id != null ? String(item.id) : ""
+                const rowKey = rawId !== "" && rawId !== "undefined" ? rawId : `row-${startIndex + index}`
+                const isSelected = selectedRows.has(rowKey)
                 return (
                     <tr
-                        key={item.id}
-                        className={` border-custom ${isSelected ? 'bg-pale-primary' : ' py-4 hover:bg-pale'
+                        key={rowKey}
+                        className={`border-custom border-b ${isSelected ? 'bg-pale-primary' : 'hover:bg-pale'
                             } ${onRowClick ? 'cursor-pointer' : ''}`}
                         onClick={() => !showActions && onRowClick?.(item)}
                     >
                         {showCheckboxes && (
-                            <td className="p-3">
+                            <td className="py-4 px-4">
                                 <Checkbox
                                     checked={isSelected}
-                                    onChange={(checked) => onSelectRow(item.id, checked)}
+                                    onChange={(checked) => onSelectRow(rowKey, checked)}
                                     onClick={(e) => e.stopPropagation()}
                                 />
                             </td>
                         )}
                         {columns.map((column) => (
-                            <td key={column.key} className="p-3 text-sm text-secondary">
+                            <td key={column.key} className="py-4 px-4 text-sm text-secondary">
                                 {column.render
                                     ? column.render(item)
                                     : (item[column.key as keyof T] as ReactNode)}
                             </td>
                         ))}
                         {showActions && (
-                            <td className="p-3">
+                            <td className="py-4 px-4">
                                 <div className="flex items-center gap-2">
                                     {onEdit && (
                                         <button

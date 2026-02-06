@@ -5,10 +5,11 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import SideModal from "@/src/components/base/SideModal";
 import { OrganizationI } from "@/src/models/organization";
 import StatusIndicator from "@/src/components/core/StatusIndicator";
-import { Building2, GraduationCap, Mail, Globe, Phone, MapPin, Calendar, FileText } from "lucide-react";
+import { Building2, GraduationCap, Mail, Globe, Phone, MapPin, Calendar, FileText, ExternalLink } from "lucide-react";
 import { formatDateShort } from "@/src/utils/dateFormatters";
 
 export interface Props {
@@ -130,6 +131,18 @@ const OrganizationDetailsModal = ({ open, onClose, organization }: Props) => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* View full details link */}
+        <div className="pt-4 border-t border-custom">
+          <Link
+            href={isPartner ? `/super-admin/partners/${organization.id}` : `/super-admin/universities/${organization.id}`}
+            onClick={onClose}
+            className="flex items-center gap-2 text-primary hover:underline text-sm font-medium"
+          >
+            <ExternalLink size={16} />
+            View full details
+          </Link>
         </div>
 
         {/* Payment Methods */}

@@ -7,6 +7,7 @@ import { getAuditColumns, AuditEventI } from "@/src/utils/auditColumns";
 import AuditStatsCards from "@/src/components/screen/super-admin/audit/AuditStatsCards";
 import { auditRepository } from "@/src/repositories/auditRepository";
 import { useToast } from "@/src/hooks/useToast";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 
 /**
  * Super Admin Global Audit - view platform-wide audit logs and metrics
@@ -47,7 +48,7 @@ export default function SuperAdminAudit() {
     };
 
     if (loading) {
-        return <div className="p-4">Loading...</div>;
+        return <DashboardLoading />;
     }
 
     return (

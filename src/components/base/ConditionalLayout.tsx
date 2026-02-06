@@ -6,8 +6,10 @@
 import { usePathname } from "next/navigation";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
+import SidebarDrawer from "./SidebarDrawer";
 import AuthInitializer from "./AuthInitializer";
 import OrganizationTheme from "./OrganizationTheme";
+import ImpersonationBanner from "./ImpersonationBanner";
 import { ReactNode } from "react";
 
 export interface ConditionalLayoutProps {
@@ -33,9 +35,11 @@ const ConditionalLayout = ({ children }: ConditionalLayoutProps) => {
         <div className="min-h-screen">{children}</div>
       ) : (
         <>
+          <ImpersonationBanner />
           <Navbar />
           <Sidebar />
-          <main className="fixed top-[8vh] left-[6vw] right-0 bottom-0 overflow-y-auto p-4">
+          <SidebarDrawer />
+          <main className="fixed top-[8vh] left-0 md:left-[6vw] right-0 bottom-0 overflow-y-auto overflow-x-hidden p-4 min-w-0 touch-manipulation">
             {children}
           </main>
         </>

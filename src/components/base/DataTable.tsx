@@ -91,6 +91,7 @@ function DataTable<T extends { id: string }>({
                         onSelectRow={handleSelectRow}
                         onEdit={onEdit}
                         onDelete={onDelete}
+                        startIndex={startIndex}
                     />
                 </table>
             </div>

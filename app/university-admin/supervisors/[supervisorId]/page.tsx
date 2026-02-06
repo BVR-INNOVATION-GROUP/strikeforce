@@ -10,6 +10,7 @@ import { ArrowLeft, Building2, Calendar } from "lucide-react";
 import { api } from "@/src/api/client";
 import { projectService } from "@/src/services/projectService";
 import { getInitials } from "@/src/utils/avatarUtils";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 
 export default function SupervisorDetailPage() {
   const router = useRouter();
@@ -100,11 +101,7 @@ export default function SupervisorDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="w-full flex flex-col h-full overflow-hidden p-4">
-        Loading...
-      </div>
-    );
+    return <DashboardLoading />;
   }
 
   if (!supervisor) {

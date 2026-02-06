@@ -86,6 +86,17 @@ export const userRepository = {
   },
 
   /**
+   * Change password for current authenticated user
+   * Backend endpoint: PUT /user/password
+   */
+  updatePassword: async (data: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<void> => {
+    return api.put<void>("/user/password", data);
+  },
+
+  /**
    * Update user by ID (admin only)
    * Backend endpoint: PUT /user/:id
    */

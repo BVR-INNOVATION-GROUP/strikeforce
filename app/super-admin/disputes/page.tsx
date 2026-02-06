@@ -5,6 +5,7 @@ import Card from "@/src/components/core/Card";
 import StatCard from "@/src/components/core/StatCard";
 import DataTable from "@/src/components/base/DataTable";
 import DisputeResolutionModal from "@/src/components/screen/super-admin/disputes/DisputeResolutionModal";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 import { getDisputeColumns } from "@/src/components/screen/super-admin/disputes/DisputeTableColumns";
 import { useDisputes } from "@/src/hooks/useDisputes";
 import { DisputeI } from "@/src/models/dispute";
@@ -36,7 +37,7 @@ export default function SuperAdminDisputes() {
     const columns = getDisputeColumns(handleResolve);
 
     if (loading) {
-        return <div className="p-4">Loading...</div>;
+        return <DashboardLoading />;
     }
 
     return (

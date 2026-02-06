@@ -14,6 +14,7 @@ import Card from "@/src/components/core/Card";
 import { currenciesArray } from "@/src/constants/currencies";
 import { formatDateShort } from "@/src/utils/dateFormatters";
 import { transformApplications } from "@/src/utils/projectTransformers";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 
 /**
  * Student My Projects Page - Tabbed view of assigned/applied projects
@@ -167,9 +168,7 @@ export default function StudentMyProjects() {
 
   if (loading) {
     return (
-      <div className="w-full flex flex-col h-full overflow-hidden p-4">
-        Loading...
-      </div>
+      <DashboardLoading />
     );
   }
 

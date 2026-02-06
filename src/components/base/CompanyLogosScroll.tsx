@@ -1,41 +1,53 @@
 /**
  * Company Logos Horizontal Scroll Component
- * Displays company logos from Uganda in a horizontal scrolling container
+ * Displays company logos - fetches from API when available, falls back to defaults
  */
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { BASE_URL } from "@/src/api/client";
 
-// Uganda company logos - using placeholder URLs that can be replaced with actual logos
-const ugandaCompanies = [
-  {
-    name: "MTN Uganda",
-    logo: "https://cdn.worldvectorlogo.com/logos/mtn-new-logo.svg",
-    alt: "MTN Uganda"
-  },
-  {
-    name: "Flutterwave",
-    logo: "https://cdn.worldvectorlogo.com/logos/flutterwave-1.svg",
-    alt: "Flutterwave"
-  },
-  {
-    name: "University of Schody",
-    logo: "https://cdn.worldvectorlogo.com/logos/univ-schody.svg",
-    alt: "University of Schody"
-  },
-  {
-    name: "Bharti Airtel",
-    logo: "https://cdn.worldvectorlogo.com/logos/bharti-airtel-limited.svg",
-    alt: "Bharti Airtel"
-  }
+const defaultLogos = [
+  { name: "MTN Uganda", logo: "https://cdn.worldvectorlogo.com/logos/mtn-new-logo.svg", alt: "MTN Uganda" },
+  { name: "Flutterwave", logo: "https://cdn.worldvectorlogo.com/logos/flutterwave-1.svg", alt: "Flutterwave" },
+  { name: "University of Schody", logo: "https://cdn.worldvectorlogo.com/logos/univ-schody.svg", alt: "University of Schody" },
+  { name: "Bharti Airtel", logo: "https://cdn.worldvectorlogo.com/logos/bharti-airtel-limited.svg", alt: "Bharti Airtel" },
 ];
 
 const CompanyLogosScroll: React.FC = () => {
+  const [logos, setLogos] = useState<{ name: string; logo: string; alt: string }[]>(defaultLogos);
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+
+  useEffect(() => {
+    const fetchLogos = async () => {
+      try {
+        const url = `${BASE_URL}/api/v1/login-logos`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const json = await res.json();
+          const data = json?.data ?? json;
+          if (Array.isArray(data) && data.length > 0) {
+            setLogos(
+              data.map((l: { name: string; logoUrl: string; altText?: string }) => ({
+                name: l.name,
+                logo: l.logoUrl,
+                alt: l.altText || l.name,
+              }))
+            );
+          }
+        }
+      } catch {
+        // Keep default logos on error
+      }
+    };
+    fetchLogos();
+  }, []);
 
   const handleImageError = (index: number) => {
     setImageErrors((prev) => ({ ...prev, [index]: true }));
   };
+
+  const displayLogos = [...logos, ...logos];
 
   return (
     <div className="w-full">
@@ -54,7 +66,7 @@ const CompanyLogosScroll: React.FC = () => {
         {/* Horizontal scrolling container */}
         <div className="overflow-hidden relative">
           <div className="flex gap-8 items-center min-w-max px-4 animate-scroll">
-            {[...ugandaCompanies, ...ugandaCompanies].map((company, index) => (
+            {displayLogos.map((company, index) => (
               <div
                 key={`${company.name}-${index}`}
                 className="flex-shrink-0 w-32 h-20 bg-paper rounded-2xl border border-custom p-4 flex items-center justify-center"

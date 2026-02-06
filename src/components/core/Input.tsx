@@ -17,7 +17,7 @@ const Input = ({ title, defaultValue, value, onChange, className = "", placehold
             <div className="relative">
                 <input
                     type="text"
-                    className={`border p-3 text-base border-custom rounded-lg outline-none w-full ${rightElement ? 'pr-10' : ''} ${error ? 'border-red-500 focus:border-red-500' : 'focus:border-primary'
+                    className={`border p-3 text-base min-h-[44px] sm:min-h-0 border-custom rounded-lg outline-none w-full ${rightElement ? 'pr-10' : ''} ${error ? 'border-red-500 focus:border-red-500' : 'focus:border-primary'
                         }`}
                     placeholder={placeholder}
                     defaultValue={defaultValue}

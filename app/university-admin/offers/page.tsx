@@ -12,6 +12,7 @@ import { GroupI } from "@/src/models/group";
 import { userRepository } from "@/src/repositories/userRepository";
 import { groupRepository } from "@/src/repositories/groupRepository";
 import { useAuthStore } from "@/src/store";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 
 /**
  * University Admin Offers - issue offers to shortlisted applications
@@ -107,11 +108,7 @@ export default function UniversityAdminOffers() {
   };
 
   if (loading) {
-    return (
-      <div className="w-full flex flex-col h-full overflow-hidden p-4">
-        Loading...
-      </div>
-    );
+    return <DashboardLoading />;
   }
 
   return (

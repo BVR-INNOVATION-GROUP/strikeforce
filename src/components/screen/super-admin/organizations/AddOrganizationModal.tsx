@@ -180,8 +180,9 @@ const AddOrganizationModal = ({ open, onClose, onSuccess, defaultType }: Props) 
           onClick={handleSubmit}
           className="bg-primary text-white"
           disabled={submitting}
+          loading={submitting}
         >
-          {submitting ? "Creating..." : "Create Organization"}
+          Create Organization
         </Button>,
       ]}
     >

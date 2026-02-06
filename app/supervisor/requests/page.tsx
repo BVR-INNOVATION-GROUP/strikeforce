@@ -6,6 +6,7 @@ import LineChart from "@/src/components/base/LineChart";
 import BarChart from "@/src/components/base/BarChart";
 import { SupervisorRequestI } from "@/src/models/supervisor";
 import { useAuthStore } from "@/src/store";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 import { useToast } from "@/src/hooks/useToast";
 
 import RequestStatsCards from "@/src/components/screen/supervisor/requests/RequestStatsCards";
@@ -134,7 +135,7 @@ export default function SupervisorRequests() {
   };
 
   if (loading) {
-    return <div className="p-4">Loading...</div>;
+    return <DashboardLoading />;
   }
 
   const pendingRequests = localRequests.filter((r) => r.status === "PENDING");

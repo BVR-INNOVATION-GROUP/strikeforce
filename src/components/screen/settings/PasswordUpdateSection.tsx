@@ -10,6 +10,7 @@ import Card from "@/src/components/core/Card";
 import Input from "@/src/components/core/Input";
 import Button from "@/src/components/core/Button";
 import { Lock } from "lucide-react";
+import { userRepository } from "@/src/repositories/userRepository";
 
 export interface Props {
   userId: string;
@@ -18,7 +19,7 @@ export interface Props {
 /**
  * Password update form section
  */
-const PasswordUpdateSection = ({ userId: _userId }: Props) => {
+const PasswordUpdateSection = ({ userId }: Props) => {
   const { showSuccess, showError } = useToast();
 
   // Password form state
@@ -52,17 +53,21 @@ const PasswordUpdateSection = ({ userId: _userId }: Props) => {
 
     setUpdatingPassword(true);
     try {
-      // TODO: Implement password update API call
-      // await userService.updatePassword(userId, passwordData);
+      await userRepository.updatePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      });
       showSuccess("Password updated successfully!");
       setPasswordData({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Failed to update password:", error);
-      showError("Failed to update password. Please try again.");
+      const message =
+        error instanceof Error ? error.message : "Failed to update password. Please try again.";
+      showError(message);
     } finally {
       setUpdatingPassword(false);
     }

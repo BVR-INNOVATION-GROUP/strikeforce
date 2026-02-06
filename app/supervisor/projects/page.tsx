@@ -11,6 +11,7 @@ import { projectService } from "@/src/services/projectService";
 import { milestoneService } from "@/src/services/milestoneService";
 import { dashboardService, DashboardStats } from "@/src/services/dashboardService";
 import { useAuthStore } from "@/src/store";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 import { Briefcase, Clock, DollarSign, Users } from "lucide-react";
 import ProjectCard from "@/src/components/screen/supervisor/projects/ProjectCard";
 
@@ -139,7 +140,7 @@ export default function SupervisorProjects() {
   }, [projects]);
 
   if (loading || !stats) {
-    return <div className="p-4">Loading...</div>;
+    return <DashboardLoading />;
   }
 
   return (

@@ -61,10 +61,17 @@ export function useDataTable<T extends { id: string }>(
         return sorted.slice(startIndex, endIndex)
     }, [data, startIndex, endIndex, sortColumn, sortDirection])
 
-    // Handle row selection
+    // Handle row selection (use fallback key when id is undefined to avoid duplicate keys)
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
-            setSelectedRows(new Set(paginatedData.map((item) => item.id)))
+            setSelectedRows(
+                new Set(
+                    paginatedData.map((item, i) => {
+                        const rawId = item.id != null ? String(item.id) : ""
+                        return rawId !== "" && rawId !== "undefined" ? rawId : `row-${startIndex + i}`
+                    })
+                )
+            )
         } else {
             setSelectedRows(new Set())
         }

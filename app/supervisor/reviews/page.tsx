@@ -2,6 +2,7 @@
 
 import React, { Suspense } from "react";
 import { useAuthStore } from "@/src/store";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 import { useSearchParams } from "next/navigation";
 import { useToast } from "@/src/hooks/useToast";
 
@@ -39,7 +40,7 @@ function SupervisorReviewsContent() {
   } = useSupervisorReviews(user?.id, projectId);
 
   if (loading) {
-    return <div className="p-4">Loading...</div>;
+    return <DashboardLoading />;
   }
 
   const selectedProject = projects.find((p) => p.id === projectId) || projects[0];
@@ -100,7 +101,7 @@ function SupervisorReviewsContent() {
 
 export default function SupervisorReviews() {
   return (
-    <Suspense fallback={<div className="p-4">Loading...</div>}>
+    <Suspense fallback={<DashboardLoading />}>
       <SupervisorReviewsContent />
     </Suspense>
   );

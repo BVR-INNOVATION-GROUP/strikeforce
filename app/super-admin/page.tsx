@@ -2,13 +2,21 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import StatCard from "@/src/components/core/StatCard";
+import Card from "@/src/components/core/Card";
+import DataTable from "@/src/components/base/DataTable";
+import { Column } from "@/src/components/base/DataTable";
+import Select from "@/src/components/core/Select";
+import { OptionI } from "@/src/components/core/Select";
 import { organizationRepository } from "@/src/repositories/organizationRepository";
+import { adminRepository } from "@/src/repositories/adminRepository";
 import { OrganizationI } from "@/src/models/organization";
 import { useToast } from "@/src/hooks/useToast";
 import BarChart from "@/src/components/base/BarChart";
 import LineChart from "@/src/components/base/LineChart";
-import { Building2, GraduationCap, ShieldCheck, Clock } from "lucide-react";
+import StatusIndicator from "@/src/components/core/StatusIndicator";
+import { Building2, GraduationCap, ShieldCheck, Clock, Filter, HardDrive } from "lucide-react";
 import Skeleton from "@/src/components/core/Skeleton";
+import { useRouter } from "next/navigation";
 
 /**
  * Super Admin Dashboard - Approve partner and university admin requests
@@ -16,8 +24,12 @@ import Skeleton from "@/src/components/core/Skeleton";
  */
 export default function SuperAdminDashboard() {
   const { showError } = useToast();
+  const router = useRouter();
   const [organizations, setOrganizations] = useState<OrganizationI[]>([]);
   const [loading, setLoading] = useState(true);
+  const [typeFilter, setTypeFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [storageUsage, setStorageUsage] = useState<{ configured: boolean; storage: number; bandwidth: number; resources: number } | null>(null);
 
   /**
    * Fetch organizations data
@@ -34,8 +46,18 @@ export default function SuperAdminDashboard() {
     }
   };
 
+  const fetchStorageUsage = async () => {
+    try {
+      const data = await adminRepository.getStorageUsage();
+      setStorageUsage(data);
+    } catch {
+      setStorageUsage({ configured: false, storage: 0, bandwidth: 0, resources: 0 });
+    }
+  };
+
   useEffect(() => {
     fetchOrganizations();
+    fetchStorageUsage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -74,6 +96,61 @@ export default function SuperAdminDashboard() {
       { name: "Universities", "Count": stats.totalUniversities },
     ];
   }, [stats]);
+
+  const typeOptions: OptionI[] = [
+    { label: "All types", value: "" },
+    { label: "Partner", value: "PARTNER" },
+    { label: "University", value: "UNIVERSITY" },
+  ];
+
+  const statusOptions: OptionI[] = [
+    { label: "All statuses", value: "" },
+    { label: "Pending", value: "PENDING" },
+    { label: "Approved", value: "APPROVED" },
+    { label: "Rejected", value: "REJECTED" },
+  ];
+
+  const filteredOrgs = useMemo(() => {
+    let list = [...organizations];
+    if (typeFilter) list = list.filter((o) => o.type === typeFilter);
+    if (statusFilter) list = list.filter((o) => o.kycStatus === statusFilter);
+    return list;
+  }, [organizations, typeFilter, statusFilter]);
+
+  const tableData = useMemo(
+    () =>
+      filteredOrgs.map((o) => ({
+        id: String(o.id),
+        orgId: o.id,
+        name: o.name,
+        type: o.type,
+        status: o.kycStatus,
+        createdAt: o.createdAt,
+      })),
+    [filteredOrgs]
+  );
+
+  const columns: Column<typeof tableData[0]>[] = [
+    { key: "name", header: "Name", sortable: true },
+    {
+      key: "type",
+      header: "Type",
+      sortable: true,
+      render: (item) => <StatusIndicator status={item.type.toLowerCase()} label={item.type} />,
+    },
+    {
+      key: "status",
+      header: "Status",
+      sortable: true,
+      render: (item) => <StatusIndicator status={item.status} />,
+    },
+    {
+      key: "createdAt",
+      header: "Created",
+      sortable: true,
+      render: (item) => new Date(item.createdAt).toLocaleDateString(),
+    },
+  ];
 
   // Chart data - Registrations over time (last 6 months)
   const registrationTrendData = useMemo(() => {
@@ -172,6 +249,34 @@ export default function SuperAdminDashboard() {
         />
       </div>
 
+      {/* Storage Widget */}
+      {storageUsage && (
+        <Card className="p-4 mb-8">
+          <div className="flex items-center gap-2 mb-3">
+            <HardDrive size={20} />
+            <span className="text-sm font-semibold">Cloudinary Storage</span>
+          </div>
+          {storageUsage.configured ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <p className="text-xs text-secondary">Storage</p>
+                <p className="text-lg font-semibold">{(storageUsage.storage / 1024 / 1024).toFixed(2)} MB</p>
+              </div>
+              <div>
+                <p className="text-xs text-secondary">Bandwidth</p>
+                <p className="text-lg font-semibold">{(storageUsage.bandwidth / 1024 / 1024).toFixed(2)} MB</p>
+              </div>
+              <div>
+                <p className="text-xs text-secondary">Resources</p>
+                <p className="text-lg font-semibold">{storageUsage.resources.toLocaleString()}</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-secondary">Cloudinary not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET.</p>
+          )}
+        </Card>
+      )}
+
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <BarChart
@@ -191,7 +296,7 @@ export default function SuperAdminDashboard() {
       </div>
 
       {/* Registration Trend Chart */}
-      <div>
+      <div className="mb-8">
         <LineChart
           title="Organization Registrations Over Time"
           data={registrationTrendData}
@@ -200,6 +305,51 @@ export default function SuperAdminDashboard() {
           ]}
         />
       </div>
+
+      {/* Filters */}
+      <Card className="p-4 mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Filter size={18} />
+          <span className="text-sm font-medium">Filters</span>
+        </div>
+        <div className="flex flex-wrap gap-4">
+          <div className="min-w-[160px]">
+            <Select
+              title="Type"
+              options={typeOptions}
+              value={typeFilter}
+              onChange={(opt) => setTypeFilter(String(typeof opt === "object" ? (opt as OptionI).value : opt))}
+              placeHolder="All types"
+            />
+          </div>
+          <div className="min-w-[160px]">
+            <Select
+              title="Status"
+              options={statusOptions}
+              value={statusFilter}
+              onChange={(opt) => setStatusFilter(String(typeof opt === "object" ? (opt as OptionI).value : opt))}
+              placeHolder="All statuses"
+            />
+          </div>
+        </div>
+      </Card>
+
+      {/* Table */}
+      <Card className="p-4">
+        <h2 className="text-lg font-semibold mb-4">Organizations</h2>
+        <DataTable
+          data={tableData}
+          columns={columns}
+          showCheckboxes={false}
+          showActions={false}
+          pageSize={10}
+          emptyMessage="No organizations found"
+          onRowClick={(row) => {
+            if (row.type === "PARTNER") router.push(`/super-admin/partners/${row.orgId}`);
+            else router.push(`/super-admin/universities/${row.orgId}`);
+          }}
+        />
+      </Card>
     </div>
   );
 }

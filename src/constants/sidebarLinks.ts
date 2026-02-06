@@ -22,6 +22,11 @@ import {
   FolderTree,
   MapPin,
   UserCog,
+  DollarSign,
+  Network,
+  FileStack,
+  Palette,
+  HardDrive,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { SidebarLinkI } from "@/src/components/base/SidebarLink";
@@ -175,6 +180,51 @@ export const sidebarLinks: SideLinkCategory[] = [
         title: "Universities",
         iconComponent: GraduationCap,
         path: "/super-admin/universities",
+      },
+      {
+        title: "Projects",
+        iconComponent: Briefcase,
+        path: "/super-admin/projects",
+      },
+      {
+        title: "Finance",
+        iconComponent: DollarSign,
+        path: "/super-admin/finance",
+      },
+      {
+        title: "Students",
+        iconComponent: Users,
+        path: "/super-admin/students",
+      },
+      {
+        title: "Collaborations",
+        iconComponent: Network,
+        path: "/super-admin/collaborations",
+      },
+      {
+        title: "Files",
+        iconComponent: FileStack,
+        path: "/super-admin/files",
+      },
+      {
+        title: "Storage",
+        iconComponent: HardDrive,
+        path: "/super-admin/storage",
+      },
+      {
+        title: "Surveys",
+        iconComponent: ClipboardList,
+        path: "/super-admin/surveys",
+      },
+      {
+        title: "Users",
+        iconComponent: Users,
+        path: "/super-admin/users",
+      },
+      {
+        title: "Branding",
+        iconComponent: Palette,
+        path: "/super-admin/branding",
       },
     ],
   },

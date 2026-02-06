@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react'
 import Logo from './Logo'
 import IconButton from '../core/IconButton'
 import Popover from './Popover'
-import { Bell, Settings, User, LogOut, CheckCircle, AlertCircle, Info } from 'lucide-react'
+import { Bell, Settings, User, LogOut, CheckCircle, AlertCircle, Info, Menu } from 'lucide-react'
 import { useAuthStore } from '@/src/store'
+import { useUIStore } from '@/src/store/useUIStore'
 import { useRouter } from 'next/navigation'
 import { UserI } from '@/src/models/user'
 import { notificationService } from '@/src/services/notificationService'
@@ -82,6 +83,7 @@ const getUserAvatar = (user: UserI | null): string => {
 
 const Navbar = () => {
     const { user, setUser, logout, organization } = useAuthStore()
+    const { openDrawer } = useUIStore()
     const router = useRouter()
     const [notificationsOpen, setNotificationsOpen] = useState(false)
     const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -203,7 +205,16 @@ const Navbar = () => {
         <div className="fixed top-0 left-0 right-0 h-[8vh] bg-paper flex items-center z-[1] border-b border-slate-200">
             <div className="w-full px-4 flex items-center justify-between">
                 {/* Show organization logo if available, otherwise show default logo */}
-                {organization?.logo ? (
+                <div className="flex items-center gap-2">
+                    {/* Hamburger - visible only on small screens when sidebar is replaced by drawer */}
+                    <button
+                        onClick={openDrawer}
+                        className="md:hidden p-2 rounded-lg hover:bg-pale transition-colors -ml-1"
+                        aria-label="Open menu"
+                    >
+                        <Menu size={24} />
+                    </button>
+                    {organization?.logo ? (
                     <div className="flex ml-[1vw] items-center justify-center">
                         <img
                             src={organization.logo.startsWith("http")
@@ -221,6 +232,7 @@ const Navbar = () => {
                 ) : (
                     <Logo />
                 )}
+                </div>
                 <div className="flex items-center gap-4 justify-end">
                     {/* Notifications Popover */}
                     <Popover

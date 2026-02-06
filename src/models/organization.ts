@@ -7,6 +7,7 @@ export type KycStatus = "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED";
 
 export interface OrganizationI {
   id: number;
+  userId?: number;
   type: OrganizationType;
   name: string;
   email: string;

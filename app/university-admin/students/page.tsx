@@ -21,6 +21,7 @@ import { departmentService } from "@/src/services/departmentService";
 import { courseService } from "@/src/services/courseService";
 import { branchService } from "@/src/services/branchService";
 import { useAuthStore } from "@/src/store";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 
 /**
  * Student Card Component - displays student information in card format
@@ -139,6 +140,8 @@ export default function UniversityAdminStudents() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isBulkUploading, setIsBulkUploading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
@@ -304,6 +307,7 @@ export default function UniversityAdminStudents() {
     }
 
     try {
+      setIsBulkUploading(true);
       // In production, process CSV files
       // Parse CSV, create accounts, generate invitations, send emails
       console.log("Bulk upload students:", selectedFiles);
@@ -312,10 +316,12 @@ export default function UniversityAdminStudents() {
       );
       setSelectedFiles([]);
       setIsBulkUploadModalOpen(false);
-      loadData(); // Reload to show new students
+      await loadData(); // Reload to show new students
     } catch (error) {
       console.error("Failed to upload:", error);
       showError("Failed to process upload. Please try again.");
+    } finally {
+      setIsBulkUploading(false);
     }
   };
 
@@ -365,6 +371,7 @@ export default function UniversityAdminStudents() {
     if (!studentToDelete) return;
 
     try {
+      setIsDeleting(true);
       // Delete student via repository (syncs with backend)
       await userRepository.delete(studentToDelete);
 
@@ -382,17 +389,13 @@ export default function UniversityAdminStudents() {
       showError("Failed to delete student. Please try again.");
       setShowDeleteConfirm(false);
       setStudentToDelete(null);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   if (loading) {
-    return (
-      <div className="w-full flex flex-col min-h-full">
-        <div className="flex items-center justify-center h-full">
-          <p className="text-[0.875rem] opacity-60">Loading...</p>
-        </div>
-      </div>
-    );
+    return <DashboardLoading />;
   }
 
   /**
@@ -502,7 +505,7 @@ export default function UniversityAdminStudents() {
           >
             Cancel
           </Button>,
-          <Button key="upload" onClick={handleBulkUpload} className="bg-primary" disabled={selectedFiles.length === 0}>
+          <Button key="upload" onClick={handleBulkUpload} className="bg-primary" disabled={selectedFiles.length === 0} loading={isBulkUploading}>
             <Upload size={16} className="mr-2" />
             Upload CSV
           </Button>,
@@ -575,6 +578,7 @@ export default function UniversityAdminStudents() {
         type="danger"
         confirmText="Delete"
         cancelText="Cancel"
+        loading={isDeleting}
       />
     </div>
   );

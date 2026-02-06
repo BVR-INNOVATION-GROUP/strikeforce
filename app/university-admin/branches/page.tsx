@@ -11,6 +11,7 @@ import StatCard from "@/src/components/core/StatCard";
 import BarChart from "@/src/components/base/BarChart";
 import { branchService, BranchI, BranchStats, BranchGraphData } from "@/src/services/branchService";
 import DataTable from "@/src/components/base/DataTable";
+import DashboardLoading from "@/src/components/core/DashboardLoading";
 
 /**
  * University Admin Branches - manage university branches/campuses
@@ -186,11 +187,7 @@ export default function UniversityAdminBranches() {
   ];
 
   if (loading) {
-    return (
-      <div className="w-full flex flex-col items-center justify-center min-h-[400px]">
-        <p className="text-secondary">Loading branches...</p>
-      </div>
-    );
+    return <DashboardLoading />;
   }
 
   return (

@@ -14,9 +14,12 @@ interface NotificationI {
 
 interface UIState {
   isSidebarOpen: boolean;
+  isDrawerOpen: boolean;
   notifications: NotificationI[];
   activeModal: string | null;
   toggleSidebar: () => void;
+  openDrawer: () => void;
+  closeDrawer: () => void;
   addNotification: (notification: Omit<NotificationI, "id" | "timestamp">) => void;
   removeNotification: (id: string) => void;
   setActiveModal: (modalId: string | null) => void;
@@ -25,10 +28,13 @@ interface UIState {
 
 export const useUIStore = create<UIState>((set) => ({
   isSidebarOpen: true,
+  isDrawerOpen: false,
   notifications: [],
   activeModal: null,
   toggleSidebar: () =>
     set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
+  openDrawer: () => set({ isDrawerOpen: true }),
+  closeDrawer: () => set({ isDrawerOpen: false }),
   addNotification: (notification) =>
     set((state) => ({
       notifications: [
@@ -49,6 +55,7 @@ export const useUIStore = create<UIState>((set) => ({
   reset: () =>
     set({
       isSidebarOpen: true,
+      isDrawerOpen: false,
       notifications: [],
       activeModal: null,
     }),
