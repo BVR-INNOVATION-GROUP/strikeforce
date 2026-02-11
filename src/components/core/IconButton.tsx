@@ -11,9 +11,18 @@ export interface Props extends HTMLAttributes<HTMLDivElement> {
 const IconButton = ({ icon, indicator, disableShrink, className, ...attr }: Props) => {
   return (
     <div 
+      role="button"
+      tabIndex={0}
       {...attr} 
-      className={`rounded-full h-13  w-13 flex items-center justify-center ${className}`}
+      className={`rounded-full h-13 w-13 flex items-center justify-center cursor-pointer select-none ${className}`}
       suppressHydrationWarning
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          attr.onClick?.(e as unknown as React.MouseEvent<HTMLDivElement>);
+        }
+        attr.onKeyDown?.(e);
+      }}
     >
       <span 
         className={`${!disableShrink && "transform scale-[.8]"}`}

@@ -172,23 +172,25 @@ const GroupDetailsModal = ({
         <AnimatePresence>
             {open && (
                 <>
-                    {/* Backdrop */}
+                    {/* Backdrop - click to close */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/20 backdrop-blur-sm"
+                        className="fixed inset-0 bg-black/20 backdrop-blur-sm cursor-pointer"
                         style={{ zIndex: 99998 }}
+                        aria-hidden
                     />
 
-                    {/* Right-side modal */}
+                    {/* Right-side modal - stop propagation so content clicks don't close */}
                     <motion.div
                         initial={{ x: "100%" }}
                         animate={{ x: 0 }}
                         exit={{ x: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                        className="fixed right-0 top-0 h-full w-[65%] min-w-[500px] max-w-[800px] bg-paper shadow-custom flex flex-col"
+                        onClick={(e) => e.stopPropagation()}
+                        className="fixed right-0 top-0 h-full w-full max-w-[800px] sm:w-[65%] sm:min-w-[500px] bg-paper shadow-custom flex flex-col"
                         style={{ zIndex: 99999 }}
                     >
                         {/* Header */}
@@ -321,12 +323,12 @@ const GroupDetailsModal = ({
                                                 </div>
                                                 {canRemove && (
                                                     <Button
-                                                        onClick={() => handleRemoveMember(member.id)}
+                                                        onClick={() => handleRemoveMember(String(member.id))}
                                                         className="bg-pale text-primary text-[0.8125rem] py-1.5 px-3"
-                                                        disabled={removingMemberId === member.id}
+                                                        disabled={removingMemberId === String(member.id)}
                                                     >
                                                         <UserMinus size={14} className="mr-1" />
-                                                        {removingMemberId === member.id
+                                                        {removingMemberId === String(member.id)
                                                             ? "Removing..."
                                                             : "Remove"}
                                                     </Button>

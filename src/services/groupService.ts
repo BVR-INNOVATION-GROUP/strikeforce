@@ -245,8 +245,11 @@ export const groupService = {
       });
     }
 
-    // Check for duplicates
-    const existingMemberIds = group.memberIds;
+    // Normalize existing member IDs to numbers (API may return number[] or string[])
+    const existingMemberIds = (group.memberIds ?? []).map((id) =>
+      typeof id === "string" ? parseInt(id, 10) : Number(id)
+    ).filter((n) => !Number.isNaN(n));
+
     const newMemberIds = numericMemberIds.filter(
       (id) => !existingMemberIds.includes(id)
     );
@@ -255,7 +258,7 @@ export const groupService = {
       throw new Error("All members are already in the group");
     }
 
-    // Prepare update payload - backend will validate members and capacity
+    // Prepare update payload - backend expects memberIds (leader + members), validates capacity
     const updatedMemberIds = [...existingMemberIds, ...newMemberIds];
     console.log("Updating group with members (backend will validate):", {
       groupId: numericId,

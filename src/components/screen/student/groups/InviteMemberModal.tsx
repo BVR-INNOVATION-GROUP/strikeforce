@@ -10,6 +10,7 @@ import Button from "@/src/components/core/Button";
 import MultiSelect, { OptionI } from "@/src/components/base/MultiSelect";
 import { UserI } from "@/src/models/user";
 import { GroupI } from "@/src/models/group";
+import { useToast } from "@/src/hooks/useToast";
 
 export interface Props {
   open: boolean;
@@ -38,6 +39,7 @@ const InviteMemberModal = ({
   onInvite,
   onSearchMembers,
 }: Props) => {
+  const { showError } = useToast();
   const [selectedMembers, setSelectedMembers] = useState<OptionI[]>([]);
   const [inviting, setInviting] = useState(false);
 
@@ -46,8 +48,10 @@ const InviteMemberModal = ({
    */
   const filteredMembers = useMemo(() => {
     if (!group) return availableMembers;
+    const memberIds = group.memberIds ?? [];
+    const memberIdSet = new Set(memberIds.map((id) => String(id)));
     return availableMembers.filter(
-      (member) => !group.memberIds.includes(String(member.value))
+      (member) => !memberIdSet.has(String(member.value))
     );
   }, [availableMembers, group]);
 
@@ -57,7 +61,8 @@ const InviteMemberModal = ({
   const handleMemberSelection = (options: OptionI[]) => {
     // Validate capacity
     if (!group) return;
-    const totalMembers = group.memberIds.length + options.length;
+    const memberCount = (group.memberIds ?? []).length;
+    const totalMembers = memberCount + options.length;
     if (totalMembers > group.capacity) {
       return; // Don't allow selection if it exceeds capacity
     }
@@ -90,6 +95,7 @@ const InviteMemberModal = ({
 
     if (memberIds.length === 0) {
       console.error("No valid member IDs to invite");
+      showError("Invalid selection. Please search again and pick members from the list.");
       return;
     }
 
@@ -123,7 +129,8 @@ const InviteMemberModal = ({
 
   if (!group) return null;
 
-  const remainingCapacity = group.capacity - group.memberIds.length;
+  const memberCount = (group.memberIds ?? []).length;
+  const remainingCapacity = group.capacity - memberCount;
   const canInviteMore = selectedMembers.length <= remainingCapacity;
 
   return (

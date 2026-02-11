@@ -26,7 +26,7 @@ export interface Props {
  * Features overlapping avatars, member information, and capacity indicators
  */
 const GroupCard = ({ group, users, currentUserId, onInvite, onViewDetails }: Props) => {
-  const isLeader = group.leaderId === currentUserId;
+  const isLeader = String(group.leaderId) === String(currentUserId);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
 
   /**
@@ -39,13 +39,14 @@ const GroupCard = ({ group, users, currentUserId, onInvite, onViewDetails }: Pro
     }
 
     const members = group.memberIds
-      .map((id) => users[id])
+      .map((id) => users[String(id)])
       .filter((user): user is UserI => user !== undefined);
 
     // Sort: leader first, then others
+    const leaderIdStr = String(group.leaderId);
     return members.sort((a, b) => {
-      if (a.id === group.leaderId) return -1;
-      if (b.id === group.leaderId) return 1;
+      if (String(a.id) === leaderIdStr) return -1;
+      if (String(b.id) === leaderIdStr) return 1;
       return 0;
     });
   }, [group.memberIds, group.leaderId, users]);
@@ -78,7 +79,7 @@ const GroupCard = ({ group, users, currentUserId, onInvite, onViewDetails }: Pro
     const avatarUrl = member.profile?.avatar;
     const hasImage = hasAvatar(avatarUrl) && !failedImages.has(member.id);
     const initials = getInitials(member.name);
-    const isMemberLeader = member.id === group.leaderId;
+    const isMemberLeader = String(member.id) === String(group.leaderId);
 
     return (
       <motion.div
@@ -183,13 +184,13 @@ const GroupCard = ({ group, users, currentUserId, onInvite, onViewDetails }: Pro
             {groupMembers.map((member) => (
               <span
                 key={member.id}
-                className={`text-[0.75rem] px-2 py-1 rounded-full ${member.id === group.leaderId
+                className={`text-[0.75rem] px-2 py-1 rounded-full ${String(member.id) === String(group.leaderId)
                   ? "bg-pale-primary text-primary font-medium"
                   : "bg-pale opacity-70"
                   }`}
               >
                 {member.name}
-                {member.id === group.leaderId && (
+                {String(member.id) === String(group.leaderId) && (
                   <Crown size={10} className="inline ml-1" />
                 )}
               </span>

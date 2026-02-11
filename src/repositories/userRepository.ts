@@ -66,7 +66,15 @@ export const userRepository = {
     if (params.universityId) {
       queryParams.append("universityId", params.universityId.toString());
     }
-    return api.get<UserI[]>(`/user/search?${queryParams.toString()}`);
+    const raw = await api.get<UserI[]>(`/user/search?${queryParams.toString()}`);
+    // Normalize: backend (Go/gorm) returns "ID"; ensure UserI has lowercase "id"
+    return (Array.isArray(raw) ? raw : [])
+      .map((u: UserI & { ID?: number }) => {
+        const uid = u.id ?? u.ID;
+        const id = typeof uid === "number" && !Number.isNaN(uid) ? uid : Number(uid);
+        return { ...u, id } as UserI;
+      })
+      .filter((u) => typeof u.id === "number" && !Number.isNaN(u.id));
   },
 
   /**

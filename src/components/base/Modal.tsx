@@ -42,8 +42,9 @@ const Modal = (props: Props) => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={props.handleClose}
-                    className='bg-black/20 backdrop-blur-sm h-[100vh] w-[100vw] fixed top-0 left-0 flex items-center justify-center'
+                    className='bg-black/20 backdrop-blur-sm h-[100vh] w-[100vw] fixed top-0 left-0 flex items-center justify-center cursor-pointer'
                     style={{ zIndex: 100000 }}
+                    aria-hidden
                 >
                     {/* Modal Content */}
                     <motion.div

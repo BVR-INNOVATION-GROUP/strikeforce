@@ -64,9 +64,14 @@ export function useGroupCreation(
    */
   const loadStudents = useCallback(
     async (query: string) => {
-      // Don't search if query is empty - wait for user input
+      // Don't search if query is empty - clear results but keep current user for leader avatar
       if (!query || query.trim().length === 0) {
-        setUsersMap({});
+        setUsersMap((prev) => {
+          const currentUserIdStr = currentUserId ? String(currentUserId) : null;
+          if (!currentUserIdStr) return {};
+          const currentUserInMap = prev[currentUserIdStr];
+          return currentUserInMap ? { [currentUserIdStr]: currentUserInMap } : {};
+        });
         setLoadingMembers(false);
         return;
       }
@@ -113,7 +118,6 @@ export function useGroupCreation(
           query,
           universityId,
           count: students.length,
-          filteredCount: Object.keys(map).length,
         });
       } catch (error) {
         console.error("Failed to load available students:", error);
@@ -150,7 +154,11 @@ export function useGroupCreation(
    */
   useEffect(() => {
     if (!isModalOpen) {
-      // Reset when modal closes
+      // Clear any pending search so we don't fire after close
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+        searchTimeoutRef.current = null;
+      }
       setSearchQuery("");
       setUsersMap({});
       setLoadingMembers(false);
@@ -159,10 +167,17 @@ export function useGroupCreation(
 
   /**
    * Handle search with debouncing
+   * Show loading immediately when user types so "Searching..." appears before "No options found"
    */
   const handleSearchMembers = useCallback(
     (query: string) => {
       setSearchQuery(query);
+
+      if (query.trim().length > 0) {
+        setLoadingMembers(true);
+      } else {
+        setLoadingMembers(false);
+      }
 
       // Clear existing timeout
       if (searchTimeoutRef.current) {
@@ -195,21 +210,19 @@ export function useGroupCreation(
     const options: OptionI[] = [];
     const currentUserIdStr = currentUserId ? String(currentUserId) : null;
 
-    // Process all users in the map
+    // Process all users in the map (only include users with valid id - backend may return ID)
     Object.values(usersMap).forEach((user) => {
-      // Include all students regardless of campus/course
-      // Exclude only the current user (selected members remain visible for deselection)
-      const userIdStr = String(user.id);
+      const uid = user.id ?? (user as { ID?: number }).ID;
+      if (uid === undefined || uid === null || Number.isNaN(Number(uid))) return;
 
-      // Check if user is a student and not the current user
-      if (user.role === "student") {
-        if (!currentUserIdStr || userIdStr !== currentUserIdStr) {
-          options.push({
-            label: user.name || `Student ${user.id}`,
-            value: user.id,
-          });
-        }
-      }
+      const userIdStr = String(uid);
+      if (user.role !== "student") return;
+      if (currentUserIdStr && userIdStr === currentUserIdStr) return;
+
+      options.push({
+        label: user.name || `Student ${uid}`,
+        value: typeof uid === "number" ? uid : Number(uid),
+      });
     });
 
     console.log("Available members for group creation:", {
