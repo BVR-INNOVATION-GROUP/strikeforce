@@ -151,6 +151,14 @@ export const studentRepository = {
     console.log("[studentRepository.getByCourse] Transformed students:", transformed.map(s => ({ id: s.id, name: s.name, studentId: s.studentId })));
     return transformed;
   },
+
+  /**
+   * Delete a student by user ID (university-admin / delegated-admin only).
+   * Backend: DELETE /api/v1/students/user/:userId — student must belong to admin's organization.
+   */
+  deleteStudentByUserId: async (userId: string | number): Promise<void> => {
+    return api.delete(`/api/v1/students/user/${userId}`);
+  },
 };
 
 

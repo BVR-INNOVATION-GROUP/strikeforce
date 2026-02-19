@@ -17,6 +17,7 @@ import StudentDetailsModal from "@/src/components/screen/university-admin/studen
 import { GET, POST, PUT, SourceDepartment, SourceCourse, transformDepartment, transformCourses } from "@/base";
 import { getInitials } from "@/src/utils/avatarUtils";
 import { userRepository } from "@/src/repositories/userRepository";
+import { studentRepository } from "@/src/repositories/studentRepository";
 import { branchService } from "@/src/services/branchService";
 import Skeleton from "@/src/components/core/Skeleton";
 
@@ -839,7 +840,7 @@ export default function ProgrammeStudentsPage() {
     if (!studentToDelete) return;
 
     try {
-      await userRepository.delete(studentToDelete);
+      await studentRepository.deleteStudentByUserId(studentToDelete);
       showSuccess("Student deleted successfully");
       setShowDeleteConfirm(false);
       setStudentToDelete(null);

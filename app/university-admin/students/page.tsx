@@ -373,7 +373,7 @@ export default function UniversityAdminStudents() {
     try {
       setIsDeleting(true);
       // Delete student via repository (syncs with backend)
-      await userRepository.delete(studentToDelete);
+      await studentRepository.deleteStudentByUserId(studentToDelete);
 
       // Update UI immediately by filtering out the deleted student
       setStudents((prev) => prev.filter((s) => {
