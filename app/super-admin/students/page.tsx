@@ -189,10 +189,15 @@ export default function SuperAdminStudentsPage() {
 
   const handleDeleteConfirm = async () => {
     if (!studentToDelete) return;
+    const id = (studentToDelete as { ID?: number }).ID ?? studentToDelete.id;
+    if (id == null || id === undefined) {
+      showError("Invalid student: missing id");
+      return;
+    }
     setDeleting(true);
     try {
-      await adminRepository.deleteStudent(studentToDelete.id);
-      setStudents((prev) => prev.filter((s) => s.id !== studentToDelete.id));
+      await adminRepository.deleteStudent(Number(id));
+      setStudents((prev) => prev.filter((s) => ((s as { ID?: number }).ID ?? s.id) !== id));
       showSuccess("Student deleted successfully");
       setDeleteConfirmOpen(false);
       setStudentToDelete(null);

@@ -50,7 +50,10 @@ export const adminRepository = {
     }
     const qs = params.toString();
     const url = qs ? `/api/v1/admin/students?${qs}` : "/api/v1/admin/students";
-    return api.get<AdminStudent[]>(url);
+    const data = await api.get<(AdminStudent & { ID?: number })[]>(url);
+    const list = Array.isArray(data) ? data : [];
+    // Backend (Go) returns "ID"; normalize to "id" for frontend
+    return list.map((s) => ({ ...s, id: (s as { ID?: number }).ID ?? s.id })) as AdminStudent[];
   },
 
   deleteStudent: async (studentId: number): Promise<void> => {
