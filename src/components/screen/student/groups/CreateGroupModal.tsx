@@ -19,6 +19,7 @@ export interface Props {
   formData: GroupFormData;
   errors: ValidationErrors;
   availableMembers: OptionI[];
+  loading: boolean
   usersMap: Record<string, UserI>;
   loadingMembers?: boolean;
   currentUserId?: string | null;
@@ -37,6 +38,7 @@ export interface Props {
 const CreateGroupModal = ({
   open,
   formData,
+  loading,
   errors,
   availableMembers,
   usersMap,
@@ -117,9 +119,8 @@ const CreateGroupModal = ({
     return (
       <motion.div
         key={user.id}
-        className={`relative ${
-          index > 0 || (isLeader && index === 0) ? "-ml-3" : ""
-        }`}
+        className={`relative ${index > 0 || (isLeader && index === 0) ? "-ml-3" : ""
+          }`}
         style={{
           zIndex: isLeader ? 100 : 10 - index,
         }}
@@ -131,16 +132,14 @@ const CreateGroupModal = ({
           <img
             src={avatarUrl}
             alt={user.name}
-            className={`h-12 w-12 border-2 rounded-full object-cover ${
-              isLeader ? "border-primary" : "border-pale"
-            }`}
+            className={`h-12 w-12 border-2 rounded-full object-cover ${isLeader ? "border-primary" : "border-pale"
+              }`}
             onError={() => handleImageError(user.id)}
           />
         ) : (
           <div
-            className={`h-12 w-12 border-2 rounded-full flex items-center justify-center bg-pale-primary ${
-              isLeader ? "border-primary" : "border-pale"
-            }`}
+            className={`h-12 w-12 border-2 rounded-full flex items-center justify-center bg-pale-primary ${isLeader ? "border-primary" : "border-pale"
+              }`}
           >
             <span className={`text-primary font-semibold text-sm`}>
               {initials}
@@ -166,7 +165,7 @@ const CreateGroupModal = ({
         <Button key="cancel" onClick={onClose} className="bg-pale text-primary">
           Cancel
         </Button>,
-        <Button key="create" onClick={onSubmit} className="bg-primary">
+        <Button key="create" onClick={onSubmit} loading={loading} className="bg-primary">
           Create Group
         </Button>,
       ]}
@@ -201,7 +200,7 @@ const CreateGroupModal = ({
         <div className="space-y-3">
           <div>
             <p className="mb-3 text-[12px]">Group Members</p>
-            
+
             {/* Display selected members with avatars (benchmarked from Project.tsx) */}
             {/* Uses initials fallback when images fail to load */}
             {(selectedMembers.length > 0 || currentUser) && (

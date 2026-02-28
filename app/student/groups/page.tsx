@@ -44,9 +44,12 @@ export default function StudentGroups() {
     setLocalGroups(groups);
   }, [groups]);
 
+  const [creatingGroup, setCreatingGroup] = useState(false)
+
   const handleCreate = async () => {
     if (!user) return;
     try {
+      setCreatingGroup(true)
       await handleCreateGroup(String(user.id), user.courseId ? String(user.courseId) : undefined, (newGroup) => {
         setLocalGroups([...localGroups, newGroup]);
         setIsCreateModalOpen(false);
@@ -54,6 +57,8 @@ export default function StudentGroups() {
     } catch (error) {
       // Error already handled in hook
       console.error("Failed to create group:", error);
+    } finally {
+      setCreatingGroup(false)
     }
   };
 
@@ -264,6 +269,7 @@ export default function StudentGroups() {
         open={isCreateModalOpen}
         formData={formData}
         errors={errors}
+        loading={creatingGroup}
         availableMembers={availableMembers}
         usersMap={usersMap}
         loadingMembers={loadingMembers}
