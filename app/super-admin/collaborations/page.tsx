@@ -6,6 +6,7 @@ import StatCard from "@/src/components/core/StatCard";
 import DataTable from "@/src/components/base/DataTable";
 import { Column } from "@/src/components/base/DataTable";
 import BarChart from "@/src/components/base/BarChart";
+import PieChart from "@/src/components/base/PieChart";
 import { projectRepository } from "@/src/repositories/projectRepository";
 import { organizationRepository } from "@/src/repositories/organizationRepository";
 import { ProjectI } from "@/src/models/project";
@@ -159,10 +160,9 @@ export default function SuperAdminCollaborationsPage() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <BarChart
-          title="Projects by Partner (Top 10)"
-          data={projectsByPartnerData}
-          bars={[{ key: "Projects", label: "Projects" }]}
+        <PieChart
+          title="Projects by Partner"
+          data={projectsByPartnerData.map((d) => ({ name: d.name, value: d.Projects }))}
         />
         <BarChart
           title="Projects by University (Top 10)"

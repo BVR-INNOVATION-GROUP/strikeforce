@@ -209,8 +209,8 @@ const LoginPage = () => {
           "A collaboration system enabling universities, students, and partners to run real-world projects efficiently — with traceable outcomes and verified participants.",
       }}
     >
-      <div>
-        <h1 className="text-3xl font-bold mb-2 text-center text-[var(--text)]">Log in</h1>
+      <div className="w-full min-w-0">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-center text-[var(--text)]">Log in</h1>
         <p className="text-sm text-muted mb-6 text-center">
           Enter your credentials to access your account
         </p>

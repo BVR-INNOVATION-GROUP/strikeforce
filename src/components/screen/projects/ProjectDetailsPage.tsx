@@ -1183,7 +1183,7 @@ export default function ProjectDetailsPage({ projectId }: Props) {
             currentUserId={user?.id}
             // University admin screening props (partners can view but not act)
             projectData={projectData}
-            onScore={user?.role === "university-admin" ? handleScoreClick : undefined}
+            onScore={handleScoreClick}
             onViewScreeningDetails={(user?.role === "university-admin" || user?.role === "partner") ? handleViewScreeningDetails : undefined}
             onShortlist={user?.role === "university-admin" ? handleShortlist : undefined}
             onRejectScreening={user?.role === "university-admin" ? handleReject : undefined}
@@ -1563,8 +1563,8 @@ export default function ProjectDetailsPage({ projectId }: Props) {
         />
       )}
 
-      {/* University Admin Screening Modals */}
-      {user?.role === "university-admin" && (
+      {/* Score modal: render whenever details modal can be shown so "Score" button can open it */}
+      {(user?.role === "university-admin" || user?.role === "partner") && (
         <ScoreApplicationModal
           open={scoringModalOpen}
           application={selectedApplicationForScoring}
@@ -1575,7 +1575,6 @@ export default function ProjectDetailsPage({ projectId }: Props) {
           }}
           onSubmit={async (applicationId: string, score: number) => {
             await handleScoreSubmit(applicationId, score);
-            // Close modal after successful submission
             setScoringModalOpen(false);
             setSelectedApplicationForScoring(null);
           }}
@@ -1594,7 +1593,7 @@ export default function ProjectDetailsPage({ projectId }: Props) {
           project={projectData}
           students={selectedApplicationForDetails ? getStudentsForApplication(selectedApplicationForDetails) : []}
           group={selectedApplicationForDetails ? getGroupForApplication(selectedApplicationForDetails) : undefined}
-          onScore={user?.role === "university-admin" ? handleScoreClick : undefined}
+          onScore={handleScoreClick}
         />
       )}
     </div>

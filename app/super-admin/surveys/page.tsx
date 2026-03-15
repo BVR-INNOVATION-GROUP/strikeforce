@@ -7,7 +7,7 @@ import Select from "@/src/components/core/Select";
 import { OptionI } from "@/src/components/core/Select";
 import DataTable from "@/src/components/base/DataTable";
 import { Column } from "@/src/components/base/DataTable";
-import BarChart from "@/src/components/base/BarChart";
+import PieChart from "@/src/components/base/PieChart";
 import { adminRepository, DNASurveyItem } from "@/src/repositories/adminRepository";
 import { organizationRepository } from "@/src/repositories/organizationRepository";
 import { useToast } from "@/src/hooks/useToast";
@@ -158,10 +158,9 @@ export default function SuperAdminSurveysPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <BarChart
+        <PieChart
           title="By Archetype"
-          data={stats.byArchetype.slice(0, 10)}
-          bars={[{ key: "Count", label: "Count" }]}
+          data={stats.byArchetype.slice(0, 10).map((d) => ({ name: d.name, value: d.Count }))}
         />
       </div>
 

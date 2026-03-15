@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import Card from "@/src/components/core/Card";
 import StatCard from "@/src/components/core/StatCard";
 import BarChart from "@/src/components/base/BarChart";
-import LineChart from "@/src/components/base/LineChart";
+import PieChart from "@/src/components/base/PieChart";
 import DataTable from "@/src/components/base/DataTable";
 import { Column } from "@/src/components/base/DataTable";
 import { useToast } from "@/src/hooks/useToast";
@@ -153,28 +153,26 @@ export default function SuperAdminFinancePage() {
         />
       </div>
 
-      {/* Charts */}
+      {/* Charts - mix Bar and Pie */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <BarChart
           title="Budget vs Milestone Amount"
           data={budgetVsMilestoneData}
           bars={[{ key: "Amount", label: "Amount" }]}
         />
-        <BarChart
+        <PieChart
           title="Projects vs Milestones Count"
-          data={countsData}
-          bars={[{ key: "Count", label: "Count" }]}
+          data={countsData.map((d) => ({ name: d.name, value: d.Count as number }))}
         />
       </div>
       {currencyBreakdownData.length > 0 && (
         <div className="mb-8">
-          <BarChart
+          <PieChart
             title="Breakdown by Currency"
             data={currencyBreakdownData.map((r) => ({
               name: `${r.type} ${r.currency || "USD"}`,
-              Amount: r.amount,
+              value: r.amount,
             }))}
-            bars={[{ key: "Amount", label: "Amount" }]}
           />
         </div>
       )}

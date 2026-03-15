@@ -15,7 +15,7 @@ export interface Props {
   application: ApplicationI | null;
   project: ProjectI | undefined;
   onClose: () => void;
-  onSubmit: (applicationId: string, score: number) => void;
+  onSubmit: (applicationId: string, score: number) => void | Promise<void>;
 }
 
 /**
@@ -30,16 +30,17 @@ const ScoreApplicationModal = ({
 }: Props) => {
   const [score, setScore] = useState<string>("");
   const [errors, setErrors] = useState<{ score?: string }>({});
+  const [submitting, setSubmitting] = useState(false);
 
   // Initialize score when application changes
   useEffect(() => {
     if (application && open) {
-      // setScore(
-      //   application.score?.manualSupervisorScore?.toString() ||
-      //     application.score?.finalScore?.toString() ||
-      //     ""
-      // );
-      // setErrors({});
+      setScore(
+        application.score?.manualSupervisorScore?.toString() ??
+          application.score?.finalScore?.toString() ??
+          ""
+      );
+      setErrors({});
     }
   }, [application, open]);
 
@@ -65,19 +66,24 @@ const ScoreApplicationModal = ({
   /**
    * Handle form submission
    */
-  const handleSubmit = () => {
-    if (!validate() || !application) {
+  const handleSubmit = async () => {
+    if (!validate() || !application || submitting) {
       return;
     }
 
     const scoreNum = parseInt(score, 10);
-    // Extract ID - handle both 'id' and 'ID' (backend might return either)
     const applicationId = (application as any).ID || application.id;
     if (!applicationId) {
       return;
     }
-    onSubmit(applicationId.toString(), scoreNum);
-    // Don't close immediately - let the parent handle closing after async operation
+
+    setSubmitting(true);
+    try {
+      await onSubmit(applicationId.toString(), scoreNum);
+      onClose();
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!application) {
@@ -93,11 +99,21 @@ const ScoreApplicationModal = ({
       open={open}
       handleClose={onClose}
       actions={[
-        <Button key="cancel" onClick={onClose} className="bg-pale text-primary">
+        <Button
+          key="cancel"
+          onClick={onClose}
+          className="bg-pale text-primary"
+          disabled={submitting}
+        >
           Cancel
         </Button>,
-        <Button key="submit" onClick={handleSubmit} className="bg-primary">
-          {currentScore ? "Update Score" : "Save Score"}
+        <Button
+          key="submit"
+          onClick={handleSubmit}
+          className="bg-primary"
+          disabled={submitting}
+        >
+          {submitting ? "Saving…" : currentScore ? "Update Score" : "Save Score"}
         </Button>,
       ]}
     >

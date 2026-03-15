@@ -38,9 +38,9 @@ const defaultRightContent = {
 const AuthLayout = ({ children, rightContent = defaultRightContent }: AuthLayoutProps) => {
   return (
     <div className="min-h-screen flex bg-pale">
-      {/* Left Column - Form */}
-      <div className="flex-1 flex flex-col justify-center px-8 sm:px-12 md:px-16 lg:px-20 bg-paper">
-        <div className="max-w-md w-full mx-auto">
+      {/* Left Column - Form: full width on phone, capped on larger screens */}
+      <div className="flex-1 min-w-0 flex flex-col justify-center px-4 py-6 sm:px-8 sm:py-8 md:px-12 lg:px-16 xl:px-20 bg-paper">
+        <div className="w-full max-w-full sm:max-w-md mx-auto">
           {/* Logo */}
           <div className="mb-8">
             <Logo />

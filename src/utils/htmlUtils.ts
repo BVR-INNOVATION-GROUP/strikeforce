@@ -3,6 +3,25 @@
  */
 
 /**
+ * Decode HTML entities so rich text stored as &lt;p&gt; etc. renders as HTML
+ */
+export function decodeHtmlEntities(html: string): string {
+  if (!html || typeof html !== "string") return html;
+  if (typeof document === "undefined") {
+    return html
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&nbsp;/g, "\u00A0");
+  }
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  return tmp.innerHTML;
+}
+
+/**
  * Strip HTML tags to get plain text
  * Useful for displaying rich text content as plain text
  */

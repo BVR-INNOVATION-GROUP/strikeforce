@@ -8,7 +8,7 @@ import { OptionI } from "@/src/components/core/Select";
 import DataTable from "@/src/components/base/DataTable";
 import { Column } from "@/src/components/base/DataTable";
 import BarChart from "@/src/components/base/BarChart";
-import LineChart from "@/src/components/base/LineChart";
+import AreaChart from "@/src/components/base/AreaChart";
 import { adminRepository, AdminStudent } from "@/src/repositories/adminRepository";
 import { organizationRepository } from "@/src/repositories/organizationRepository";
 import { useToast } from "@/src/hooks/useToast";
@@ -246,10 +246,10 @@ export default function SuperAdminStudentsPage() {
           data={stats.byUniversity.slice(0, 10)}
           bars={[{ key: "Students", label: "Students" }]}
         />
-        <LineChart
+        <AreaChart
           title="Students Over Time"
           data={studentsByMonthData}
-          lines={[{ key: "Students", label: "Students" }]}
+          areas={[{ key: "Students", label: "Students" }]}
         />
       </div>
 

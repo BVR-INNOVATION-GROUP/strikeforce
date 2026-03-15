@@ -6,6 +6,7 @@ import StatusIndicator from "@/src/components/core/StatusIndicator";
 import StatCard from "@/src/components/core/StatCard";
 import LineChart from "@/src/components/base/LineChart";
 import BarChart from "@/src/components/base/BarChart";
+import AreaChart from "@/src/components/base/AreaChart";
 import { projectService } from "@/src/services/projectService";
 import { dashboardService, DashboardStats } from "@/src/services/dashboardService";
 import { ProjectI } from "@/src/models/project";
@@ -236,10 +237,10 @@ export default function PartnerDashboard() {
 
       {/* Analytics - Secondary Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <LineChart
+        <AreaChart
           title="Projects Over Time"
           data={projectTrendData}
-          lines={[
+          areas={[
             { key: "Total Projects", label: "Total Projects" },
             { key: "Active Projects", label: "Active Projects" },
           ]}

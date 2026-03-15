@@ -6,6 +6,7 @@ import StatCard from "@/src/components/core/StatCard";
 import DataTable from "@/src/components/base/DataTable";
 import { Column } from "@/src/components/base/DataTable";
 import BarChart from "@/src/components/base/BarChart";
+import PieChart from "@/src/components/base/PieChart";
 import Select from "@/src/components/core/Select";
 import { OptionI } from "@/src/components/core/Select";
 import { organizationRepository } from "@/src/repositories/organizationRepository";
@@ -414,10 +415,9 @@ export default function UniversitiesPage() {
 
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <BarChart
+                <PieChart
                     title="Universities by Status"
-                    data={statusChartData}
-                    bars={[{ key: "Count", label: "Count" }]}
+                    data={statusChartData.map((d) => ({ name: d.name, value: d.Count as number }))}
                 />
                 <BarChart
                     title="Projects per University (Top 10)"

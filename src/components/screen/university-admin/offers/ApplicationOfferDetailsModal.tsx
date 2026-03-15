@@ -14,6 +14,7 @@ import { GroupI } from "@/src/models/group";
 import { Calendar, User, Users, Send, Briefcase, Star, FileText } from "lucide-react";
 import { formatDateShort } from "@/src/utils/dateFormatters";
 import { getInitials, hasAvatar } from "@/src/utils/avatarUtils";
+import { decodeHtmlEntities } from "@/src/utils/htmlUtils";
 
 export interface Props {
   open: boolean;
@@ -120,7 +121,12 @@ const ApplicationOfferDetailsModal = ({
                 <Briefcase size={16} className="opacity-60" />
                 <p className="text-[0.875rem] font-medium">Project</p>
               </div>
-              <p className="text-[0.875rem] opacity-60">{project.description}</p>
+              <div
+                className="prose prose-sm max-w-none text-[0.875rem] leading-relaxed opacity-80"
+                dangerouslySetInnerHTML={{
+                  __html: decodeHtmlEntities(project.description || ""),
+                }}
+              />
             </div>
           )}
 
@@ -169,15 +175,18 @@ const ApplicationOfferDetailsModal = ({
           </div>
 
           {/* Application Statement */}
-          {application.statement && (
-            <div className="p-4 bg-pale rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <FileText size={16} className="opacity-60" />
-                <p className="text-[0.875rem] font-medium">Application Statement</p>
-              </div>
-              <p className="text-[0.875rem] opacity-60">{application.statement}</p>
+          <div className="p-4 bg-pale rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText size={16} className="opacity-60" />
+              <p className="text-[0.875rem] font-medium">Application Statement</p>
             </div>
-          )}
+            <div
+              className="prose prose-sm max-w-none text-[0.875rem] leading-relaxed opacity-80"
+              dangerouslySetInnerHTML={{
+                __html: decodeHtmlEntities(application.statement || '<p class="opacity-60">No statement provided.</p>'),
+              }}
+            />
+          </div>
 
           {/* Offer Expiry Info */}
           {isOffered && application.offerExpiresAt && (

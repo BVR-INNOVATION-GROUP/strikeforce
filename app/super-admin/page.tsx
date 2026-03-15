@@ -11,8 +11,8 @@ import { organizationRepository } from "@/src/repositories/organizationRepositor
 import { adminRepository } from "@/src/repositories/adminRepository";
 import { OrganizationI } from "@/src/models/organization";
 import { useToast } from "@/src/hooks/useToast";
-import BarChart from "@/src/components/base/BarChart";
-import LineChart from "@/src/components/base/LineChart";
+import AreaChart from "@/src/components/base/AreaChart";
+import PieChart from "@/src/components/base/PieChart";
 import StatusIndicator from "@/src/components/core/StatusIndicator";
 import { Building2, GraduationCap, ShieldCheck, Clock, Filter, HardDrive } from "lucide-react";
 import Skeleton from "@/src/components/core/Skeleton";
@@ -96,6 +96,23 @@ export default function SuperAdminDashboard() {
       { name: "Universities", "Count": stats.totalUniversities },
     ];
   }, [stats]);
+
+  // Pie chart data (name + value) for distribution charts
+  const kycStatusPieData = useMemo(
+    () => [
+      { name: "Pending", value: stats.pendingRequests },
+      { name: "Approved", value: stats.approvedOrganizations },
+      { name: "Rejected", value: stats.rejectedOrganizations },
+    ],
+    [stats]
+  );
+  const orgTypePieData = useMemo(
+    () => [
+      { name: "Partners", value: stats.totalPartners },
+      { name: "Universities", value: stats.totalUniversities },
+    ],
+    [stats]
+  );
 
   const typeOptions: OptionI[] = [
     { label: "All types", value: "" },
@@ -277,32 +294,18 @@ export default function SuperAdminDashboard() {
         </Card>
       )}
 
-      {/* Charts Row */}
+      {/* Charts Row - mix Bar, Pie, Area for variation */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <BarChart
-          title="KYC Status Distribution"
-          data={kycStatusData}
-          bars={[
-            { key: "Organizations", label: "Organizations" },
-          ]}
-        />
-        <BarChart
-          title="Organization Types"
-          data={orgTypeData}
-          bars={[
-            { key: "Count", label: "Count" },
-          ]}
-        />
+        <PieChart title="KYC Status Distribution" data={kycStatusPieData} />
+        <PieChart title="Organization Types" data={orgTypePieData} />
       </div>
 
-      {/* Registration Trend Chart */}
+      {/* Registration Trend - Area chart variation */}
       <div className="mb-8">
-        <LineChart
+        <AreaChart
           title="Organization Registrations Over Time"
           data={registrationTrendData}
-          lines={[
-            { key: "Registrations", label: "Registrations" },
-          ]}
+          areas={[{ key: "Registrations", label: "Registrations" }]}
         />
       </div>
 

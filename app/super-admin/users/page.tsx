@@ -7,8 +7,8 @@ import Select from "@/src/components/core/Select";
 import { OptionI } from "@/src/components/core/Select";
 import DataTable from "@/src/components/base/DataTable";
 import { Column } from "@/src/components/base/DataTable";
-import BarChart from "@/src/components/base/BarChart";
-import LineChart from "@/src/components/base/LineChart";
+import PieChart from "@/src/components/base/PieChart";
+import AreaChart from "@/src/components/base/AreaChart";
 import Modal from "@/src/components/base/Modal";
 import Button from "@/src/components/core/Button";
 import ConfirmationDialog from "@/src/components/base/ConfirmationDialog";
@@ -315,15 +315,14 @@ export default function SuperAdminUsersPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <BarChart
+        <PieChart
           title="Users by Role"
-          data={stats.byRole}
-          bars={[{ key: "Count", label: "Count" }]}
+          data={stats.byRole.map((d) => ({ name: d.name, value: d.Count }))}
         />
-        <LineChart
+        <AreaChart
           title="User Registrations"
           data={registrationTrendData}
-          lines={[{ key: "Users", label: "Users" }]}
+          areas={[{ key: "Users", label: "Users" }]}
         />
       </div>
 

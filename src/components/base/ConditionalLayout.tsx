@@ -10,6 +10,7 @@ import SidebarDrawer from "./SidebarDrawer";
 import AuthInitializer from "./AuthInitializer";
 import OrganizationTheme from "./OrganizationTheme";
 import ImpersonationBanner from "./ImpersonationBanner";
+import NavigationProgress from "./NavigationProgress";
 import { ReactNode } from "react";
 
 export interface ConditionalLayoutProps {
@@ -35,6 +36,7 @@ const ConditionalLayout = ({ children }: ConditionalLayoutProps) => {
         <div className="min-h-screen">{children}</div>
       ) : (
         <>
+          <NavigationProgress />
           <ImpersonationBanner />
           <Navbar />
           <Sidebar />

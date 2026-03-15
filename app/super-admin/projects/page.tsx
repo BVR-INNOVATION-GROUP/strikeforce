@@ -8,7 +8,8 @@ import { OptionI } from "@/src/components/core/Select";
 import DataTable from "@/src/components/base/DataTable";
 import { Column } from "@/src/components/base/DataTable";
 import BarChart from "@/src/components/base/BarChart";
-import LineChart from "@/src/components/base/LineChart";
+import PieChart from "@/src/components/base/PieChart";
+import AreaChart from "@/src/components/base/AreaChart";
 import { projectRepository } from "@/src/repositories/projectRepository";
 import { organizationRepository } from "@/src/repositories/organizationRepository";
 import { ProjectI } from "@/src/models/project";
@@ -240,10 +241,9 @@ export default function SuperAdminProjectsPage() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <BarChart
+        <PieChart
           title="Projects by Status"
           data={statusChartData}
-          bars={[{ key: "value", label: "Projects" }]}
         />
         <BarChart
           title="Projects by Partner (Top 10)"
@@ -252,10 +252,10 @@ export default function SuperAdminProjectsPage() {
         />
       </div>
       <div className="mb-8">
-        <LineChart
+        <AreaChart
           title="Projects Created Over Time"
           data={projectsOverTimeData}
-          lines={[{ key: "Projects", label: "Projects" }]}
+          areas={[{ key: "Projects", label: "Projects" }]}
         />
       </div>
 

@@ -6,6 +6,7 @@ import StatCard from "@/src/components/core/StatCard";
 import DataTable from "@/src/components/base/DataTable";
 import { Column } from "@/src/components/base/DataTable";
 import BarChart from "@/src/components/base/BarChart";
+import PieChart from "@/src/components/base/PieChart";
 import Select from "@/src/components/core/Select";
 import { OptionI } from "@/src/components/core/Select";
 import { projectRepository } from "@/src/repositories/projectRepository";
@@ -179,10 +180,9 @@ export default function SuperAdminFilesPage() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <BarChart
+        <PieChart
           title="Files by Type"
-          data={typeChartData}
-          bars={[{ key: "Count", label: "Count" }]}
+          data={typeChartData.map((d) => ({ name: d.name, value: d.Count as number }))}
         />
         <BarChart
           title="Files per Project (Top 10)"

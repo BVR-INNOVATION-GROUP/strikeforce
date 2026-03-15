@@ -3,6 +3,7 @@
 import React from "react";
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import Card from "@/src/components/core/Card";
+import { getChartColor } from "@/src/constants/chartColors";
 
 export interface LineChartData {
   name: string;
@@ -22,7 +23,7 @@ export interface Props {
 
 /**
  * Line Chart Component - displays time-series or sequential data
- * Uses theme colors from globals.css
+ * Uses a theme-agnostic palette so each series has a distinct color.
  */
 const LineChart = ({ title, data, lines, height = 300 }: Props) => {
   return (
@@ -43,7 +44,7 @@ const LineChart = ({ title, data, lines, height = 300 }: Props) => {
             contentStyle={{ 
               backgroundColor: "var(--paper)", 
               border: `1px solid var(--border)`,
-              borderRadius: "8px",
+              borderRadius: "4px",
               fontSize: "12px"
             }}
           />
@@ -56,7 +57,7 @@ const LineChart = ({ title, data, lines, height = 300 }: Props) => {
               type="monotone"
               dataKey={line.key}
               name={line.label}
-              stroke={line.color || (index === 0 ? "var(--primary)" : index === 1 ? "var(--text-success)" : "var(--text-info)")}
+              stroke={getChartColor(index, line.color, title)}
               strokeWidth={2}
               dot={{ r: 4 }}
               activeDot={{ r: 6 }}

@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts";
 import Card from "@/src/components/core/Card";
+import { getChartColor } from "@/src/constants/chartColors";
 
 export interface BarChartData {
   name: string;
@@ -22,7 +23,7 @@ export interface Props {
 
 /**
  * Bar Chart Component - displays categorical data comparisons
- * Uses theme colors from globals.css
+ * Uses a theme-agnostic palette so each series has a distinct color.
  */
 const BarChart = ({ title, data, bars, height = 300 }: Props) => {
   return (
@@ -43,21 +44,27 @@ const BarChart = ({ title, data, bars, height = 300 }: Props) => {
             contentStyle={{ 
               backgroundColor: "var(--paper)", 
               border: `1px solid var(--border)`,
-              borderRadius: "8px",
+              borderRadius: "4px",
               fontSize: "12px"
             }}
           />
           <Legend 
             wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }}
           />
-          {bars.map((bar, index) => (
+          {bars.map((bar, barIndex) => (
             <Bar
               key={bar.key}
               dataKey={bar.key}
               name={bar.label}
-              fill={bar.color || (index === 0 ? "var(--primary)" : index === 1 ? "var(--text-success)" : "var(--text-info)")}
+              fill={bar.color ?? getChartColor(barIndex, undefined, title)}
               radius={[4, 4, 0, 0]}
-            />
+            >
+              {bars.length === 1
+                ? data.map((_, dataIndex) => (
+                    <Cell key={dataIndex} fill={bar.color ?? getChartColor(dataIndex, undefined, title)} />
+                  ))
+                : null}
+            </Bar>
           ))}
         </RechartsBarChart>
       </ResponsiveContainer>

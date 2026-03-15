@@ -17,6 +17,7 @@ import { userRepository } from '@/src/repositories/userRepository'
 import { portfolioService } from '@/src/services/portfolioService'
 import { Calendar, Award, TrendingUp, CheckCircle, XCircle, FileText, Download, ExternalLink } from 'lucide-react'
 import { formatDateLong } from '@/src/utils/dateFormatters'
+import { decodeHtmlEntities } from '@/src/utils/htmlUtils'
 
 export interface Props {
     open: boolean
@@ -134,7 +135,7 @@ const ApplicationDetailModal = (props: Props) => {
                     <div
                         className="prose max-w-none text-[0.875rem] leading-relaxed opacity-80"
                         dangerouslySetInnerHTML={{
-                            __html: application.statement || '<p class="opacity-60">No statement provided.</p>'
+                            __html: decodeHtmlEntities(application.statement || '<p class="opacity-60">No statement provided.</p>'),
                         }}
                     />
                 </Card>
