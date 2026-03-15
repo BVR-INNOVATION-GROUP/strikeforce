@@ -19,7 +19,7 @@ function extractData<T>(response: ApiResponse<T> | T): T {
 }
 
 const DEV_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-const PRODUCTION_URL = "https://strikeforce-apiv1.bvrdesign.africa";
+const PRODUCTION_URL = "https://strikeforce-api.bvrdesign.africa";
 const DEV_MODE = false ? DEV_URL : PRODUCTION_URL;
 export const BASE_URL = DEV_MODE;
 
