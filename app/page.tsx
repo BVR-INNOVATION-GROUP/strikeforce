@@ -161,7 +161,7 @@ export default function HomePage() {
               <Button
                 onClick={() => router.push("/auth/signup")}
                 className={`px-4 py-2 text-sm shadow-md transition-all rounded-full ${isOnHero
-                  ? "bg-white hover:bg-very-pale text-[var(--text)]"
+                  ? "bg-white hover:bg-very-pale text-black"
                   : "bg-primary btn-keep-primary hover:opacity-90 text-white"
                   }`}
               >
@@ -186,8 +186,8 @@ export default function HomePage() {
             alt="Students collaborating"
             className="w-full h-full object-cover"
           />
-          {/* Stronger Overlay for better contrast */}
-          <div className="absolute inset-0 bg-[var(--text)]/60"></div>
+          {/* Strong, theme-independent dark overlay for better contrast */}
+          <div className="absolute inset-0 bg-black/60"></div>
         </motion.div>
 
         {/* Content */}
@@ -248,7 +248,7 @@ export default function HomePage() {
             >
               <Button
                 onClick={() => router.push("/auth/signup/partner")}
-                className="bg-white hover:bg-very-pale text-[var(--text)] border-2 border-white px-8 py-3 text-base font-semibold shadow-lg rounded-full"
+                className="bg-white hover:bg-very-pale text-black border-2 border-white px-8 py-3 text-base font-semibold shadow-lg rounded-full"
               >
                 Get Started as Partner
               </Button>
@@ -541,8 +541,8 @@ export default function HomePage() {
             alt="Team collaboration"
             className="w-full h-full object-cover"
           />
-          {/* Overlay for better contrast */}
-          <div className="absolute inset-0 bg-[var(--text)]/70"></div>
+          {/* Strong, theme-independent dark overlay for better contrast */}
+          <div className="absolute inset-0 bg-black/70"></div>
         </motion.div>
 
         {/* Content */}
@@ -575,7 +575,7 @@ export default function HomePage() {
             >
               <Button
                 onClick={() => router.push("/auth/signup/university")}
-                className="bg-white hover:bg-very-pale text-[var(--text)] px-8 py-3 text-base font-semibold shadow-lg rounded-full"
+                className="bg-white hover:bg-very-pale text-black px-8 py-3 text-base font-semibold shadow-lg rounded-full"
               >
                 Get Started as University
               </Button>

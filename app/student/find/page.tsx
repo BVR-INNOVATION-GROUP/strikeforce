@@ -581,9 +581,6 @@ export default function StudentProjects() {
                                 />
                                 {/* Headline copy */}
                                 <div className="relative h-full w-full flex flex-col justify-center px-6 sm:px-8 py-6 text-white">
-                                  <p className="text-[0.65rem] uppercase tracking-[0.16em] font-semibold mb-1 opacity-80">
-                                    Today&apos;s hottest pick
-                                  </p>
                                   <h2 className="text-lg sm:text-xl font-semibold mb-2 line-clamp-1">
                                     {project.title}
                                   </h2>

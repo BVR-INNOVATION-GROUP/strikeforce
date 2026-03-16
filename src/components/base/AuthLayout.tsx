@@ -60,8 +60,8 @@ const AuthLayout = ({ children, rightContent = defaultRightContent }: AuthLayout
             alt="Collaboration"
             className="w-full h-full object-cover"
           />
-          {/* Overlay */}
-          <div className="absolute inset-0 bg-[var(--text)]/60"></div>
+          {/* Theme-independent dark overlay for consistent contrast */}
+          <div className="absolute inset-0 bg-black/60"></div>
         </div>
 
         {/* Content */}

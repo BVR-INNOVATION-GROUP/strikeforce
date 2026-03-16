@@ -314,7 +314,7 @@ const OnboardingPage = () => {
             <Button
               type="button"
               onClick={() => setStep(step - 1)}
-              className="flex-1 bg-pale"
+              className="flex-1 bg-pale text-black"
               disabled={loading}
             >
               Back

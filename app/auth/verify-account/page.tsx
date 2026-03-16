@@ -114,7 +114,7 @@ const VerifyAccountPage = () => {
           </div>
 
           <Link href="/auth/login">
-            <Button className="w-full bg-pale mt-4">
+            <Button className="w-full bg-pale text-black mt-4">
               <ArrowLeft size={16} />
               Back to login
             </Button>
