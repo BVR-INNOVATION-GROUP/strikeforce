@@ -17,6 +17,8 @@ export interface SidebarLinkData {
   iconComponent: LucideIcon;
   path: string;
   isFocused?: boolean;
+  mobileTab?: boolean;
+  mobileSidebarOnly?: boolean;
 }
 
 /**

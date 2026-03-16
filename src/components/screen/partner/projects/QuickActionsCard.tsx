@@ -4,7 +4,7 @@
 import React from 'react'
 import Card from '@/src/components/core/Card'
 import Button from '@/src/components/core/Button'
-import { Download, Share2, RefreshCw, Trash2, UserPlus, X, Send } from 'lucide-react'
+import { Download, Share2, RefreshCw, Trash2, UserPlus, X, Send, Pencil } from 'lucide-react'
 
 export interface Props {
     onEditProject?: () => void
@@ -24,8 +24,9 @@ const QuickActionsCard = (props: Props) => {
         <Card title="Quick Actions">
             <div className="flex flex-col gap-3">
                 {onEditProject && (
-                    <Button onClick={onEditProject} className="bg-primary w-full text-[0.875rem] py-2.5">
-                        Edit Project
+                    <Button onClick={onEditProject} className="bg-primary w-full text-[0.875rem] py-2.5 flex items-center justify-center gap-2">
+                        <Pencil size={18} />
+                        <span className="hidden sm:inline">Edit Project</span>
                     </Button>
                 )}
                 <Button
@@ -33,14 +34,14 @@ const QuickActionsCard = (props: Props) => {
                     className="bg-pale w-full flex items-center justify-center gap-2 text-[0.875rem] py-2.5"
                 >
                     <Download size={18} />
-                    Export Details
+                    <span className="hidden sm:inline">Export Details</span>
                 </Button>
                 <Button
                     onClick={onShareProject}
                     className="bg-pale w-full flex items-center justify-center gap-2 text-[0.875rem] py-2.5"
                 >
                     <Share2 size={18} />
-                    Share Project
+                    <span className="hidden sm:inline">Share Project</span>
                 </Button>
                 {onReassignProject && (
                     <Button
@@ -48,7 +49,7 @@ const QuickActionsCard = (props: Props) => {
                         className="bg-pale w-full flex items-center justify-center gap-2 text-[0.875rem] py-2.5"
                     >
                         <RefreshCw size={18} />
-                        Reassign Project
+                        <span className="hidden sm:inline">Reassign Project</span>
                     </Button>
                 )}
                 {onRequestSupervisor && (
@@ -57,7 +58,7 @@ const QuickActionsCard = (props: Props) => {
                         className="bg-pale w-full flex items-center justify-center gap-2 text-[0.875rem] py-2.5"
                     >
                         <UserPlus size={18} />
-                        Request Supervisor
+                        <span className="hidden sm:inline">Request Supervisor</span>
                     </Button>
                 )}
                 {onApply && (
@@ -66,7 +67,7 @@ const QuickActionsCard = (props: Props) => {
                         className="bg-primary btn-keep-primary hover:opacity-90 w-full flex items-center justify-center gap-2 text-[0.875rem] py-2.5 text-white"
                     >
                         <Send size={18} />
-                        Apply
+                        <span className="hidden sm:inline">Apply</span>
                     </Button>
                 )}
                 {onWithdrawApplication && (
@@ -75,7 +76,7 @@ const QuickActionsCard = (props: Props) => {
                         className="bg-pale w-full flex items-center justify-center gap-2 text-[0.875rem] py-2.5 text-red-600 hover:text-red-700"
                     >
                         <X size={18} />
-                        Withdraw Application
+                        <span className="hidden sm:inline">Withdraw Application</span>
                     </Button>
                 )}
                 {onDeleteProject && (
@@ -84,7 +85,7 @@ const QuickActionsCard = (props: Props) => {
                         className="bg-primary opacity-90 hover:opacity-100 w-full flex items-center justify-center gap-2 text-[0.875rem] py-2.5 text-white"
                     >
                         <Trash2 size={18} />
-                        Delete Project
+                        <span className="hidden sm:inline">Delete Project</span>
                     </Button>
                 )}
             </div>

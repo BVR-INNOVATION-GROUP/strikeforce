@@ -20,7 +20,12 @@ const SidebarDrawer = () => {
   const { isDrawerOpen, closeDrawer } = useUIStore();
   const pathname = usePathname();
   const userRole: Role = user?.role || "partner";
-  const links = useSidebarLinks(userRole);
+  const allLinks = useSidebarLinks(userRole);
+  // On mobile, students see only Supervisor and Analytics in the drawer; rest are in tab nav
+  const links =
+    userRole === "student"
+      ? allLinks.filter((l) => l.mobileSidebarOnly === true)
+      : allLinks;
 
   return (
     <AnimatePresence>

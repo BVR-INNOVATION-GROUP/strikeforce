@@ -77,13 +77,13 @@ const MOUDocumentCard = (props: Props) => {
   return (
     <Card title="Memorandum of Understanding (MOU)">
       <div className="flex flex-col gap-4">
-        <div className="flex items-start gap-3 p-4 rounded-lg bg-green-50 border border-green-200">
-          <CheckCircle size={20} className="text-green-600 flex-shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 p-4 rounded-lg bg-green-50 dark:bg-emerald-900/40 border border-green-200 dark:border-emerald-500/40">
+          <CheckCircle size={20} className="text-green-600 dark:text-emerald-300 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <p className="text-sm font-medium text-green-900 mb-1">
+            <p className="text-sm font-medium text-green-900 dark:text-emerald-100 mb-1">
               MOU Generated
             </p>
-            <p className="text-xs text-green-700">
+            <p className="text-xs text-green-700 dark:text-emerald-100/80">
               This project has been approved and a Memorandum of Understanding has been generated 
               with both partner and university admin signatures.
             </p>
@@ -111,8 +111,8 @@ const MOUDocumentCard = (props: Props) => {
         </div>
 
         {downloadError && (
-          <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
-            <p className="text-xs text-amber-800">{downloadError}</p>
+          <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/40 border border-amber-200 dark:border-amber-500/40">
+            <p className="text-xs text-amber-800 dark:text-amber-100">{downloadError}</p>
           </div>
         )}
 

@@ -40,7 +40,7 @@ type Role =
 
 export interface SideLinkCategory {
   role: Role;
-  links: Omit<SidebarLinkI, "icon"> & { iconComponent: LucideIcon }[];
+  links: (Omit<SidebarLinkI, "icon"> & { iconComponent: LucideIcon; mobileTab?: boolean; mobileSidebarOnly?: boolean })[];
 }
 
 /**
@@ -63,27 +63,31 @@ export const sidebarLinks: SideLinkCategory[] = [
   {
     role: "student",
     links: [
-      { title: "Find", iconComponent: Search, path: "/student/find" },
+      { title: "Find", iconComponent: Search, path: "/student/find", mobileTab: true },
       {
         title: "Projects",
         iconComponent: Briefcase,
         path: "/student/my-projects",
+        mobileTab: true,
       },
-      { title: "Groups", iconComponent: Users, path: "/student/groups" },
+      { title: "Groups", iconComponent: Users, path: "/student/groups", mobileTab: true },
       {
         title: "Portfolio",
         iconComponent: FileText,
         path: "/student/portfolio",
+        mobileTab: true,
       },
       {
         title: "Analytics",
         iconComponent: BarChart3,
         path: "/student/analytics",
+        mobileSidebarOnly: true,
       },
       {
         title: "Supervisor",
         iconComponent: UserPlus,
         path: "/student/supervisor-request",
+        mobileSidebarOnly: true,
       },
     ],
   },

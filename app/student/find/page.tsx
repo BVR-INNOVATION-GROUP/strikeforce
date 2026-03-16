@@ -559,7 +559,7 @@ export default function StudentProjects() {
                         return (
                           <div
                             key={project.id}
-                            className="relative overflow-hidden rounded-2xl bg-paper shadow-custom min-w-[80%] sm:min-w-[50%] lg:min-w-[45%] snap-center"
+                            className="relative overflow-hidden rounded-2xl bg-paper shadow-custom min-w-full sm:min-w-[70%] lg:min-w-[45%] snap-center"
                           >
                             <Link href={`/student/projects/${project.id}`} className="block h-full">
                               {/* Background image */}
@@ -768,17 +768,17 @@ export default function StudentProjects() {
                     </Link>
 
                     {/* Action Buttons Row */}
-                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-custom">
+                    <div className="flex flex-row items-center gap-2 mt-4 pt-4 border-t border-custom">
                       {!hasApplied && project.id && (
                         <Button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleOpenApplicationForm(project.id!);
                           }}
-                          className="flex-1 bg-primary dark:bg-custom hover:opacity-90 text-white text-sm py-2"
+                          className="flex-1 bg-primary dark:bg-custom hover:opacity-90 text-white text-sm py-2 flex items-center justify-center gap-2"
                         >
-                          <Send size={14} className="mr-2" />
-                          Apply
+                          <Send size={14} />
+                          <span className="hidden sm:inline">Apply</span>
                         </Button>
                       )}
                       <Button
@@ -786,25 +786,27 @@ export default function StudentProjects() {
                           e.stopPropagation();
                           handleSaveProject(project.id);
                         }}
-                        className={`${hasApplied ? "flex-1" : ""} ${savedProjects.has(project.id.toString()) ? "bg-primary text-white" : "bg-pale text-primary"} text-sm py-2`}
+                        className={`flex-1 ${savedProjects.has(project.id.toString()) ? "bg-primary text-white" : "bg-pale text-primary"} text-sm py-2 flex items-center justify-center gap-2`}
                       >
-                        <Bookmark size={14} className="mr-2" fill={savedProjects.has(project.id.toString()) ? "currentColor" : "none"} />
-                        {savedProjects.has(project.id.toString()) ? "Saved" : "Save"}
+                        <Bookmark size={14} fill={savedProjects.has(project.id.toString()) ? "currentColor" : "none"} />
+                        <span className="hidden sm:inline">
+                          {savedProjects.has(project.id.toString()) ? "Saved" : "Save"}
+                        </span>
                       </Button>
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleShareProject(project);
                         }}
-                        className={`${hasApplied ? "flex-1" : ""} bg-pale text-primary text-sm py-2`}
+                        className="flex-1 bg-pale text-primary text-sm py-2 flex items-center justify-center gap-2"
                       >
-                        <Share2 size={14} className="mr-2" />
-                        Share
+                        <Share2 size={14} />
+                        <span className="hidden sm:inline">Share</span>
                       </Button>
-                      <Link href={`/student/projects/${project.id}`} className={hasApplied ? "flex-1" : ""}>
-                        <Button className={`${hasApplied ? "w-full" : ""} bg-pale text-primary text-sm py-2`}>
-                          <Eye size={14} className="mr-2" />
-                          View
+                      <Link href={`/student/projects/${project.id}`} className="flex-1">
+                        <Button className="w-full bg-pale text-primary text-sm py-2 flex items-center justify-center gap-2">
+                          <Eye size={14} />
+                          <span className="hidden sm:inline">View</span>
                         </Button>
                       </Link>
                     </div>

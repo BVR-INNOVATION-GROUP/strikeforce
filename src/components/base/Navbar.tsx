@@ -195,7 +195,7 @@ const Navbar = () => {
     }
 
     return (
-        <div className="fixed top-0 left-0 right-0 h-[8vh] bg-paper flex items-center z-[1] border-b border-custom">
+        <div className="fixed top-0 left-0 right-0 h-[8vh] min-h-[48px] bg-paper flex items-center z-[1] border-b border-custom">
             <div className="w-full px-4 flex items-center justify-between">
                 {/* Show organization logo if available, otherwise show default logo */}
                 <div className="flex items-center gap-2">
