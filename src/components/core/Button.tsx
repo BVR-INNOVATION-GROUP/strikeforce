@@ -17,7 +17,7 @@ const Button = ({ children, className = "", onClick, type = "button", disabled, 
             onClick={onClick}
             disabled={isDisabled}
             whileHover={isDisabled ? {} : { x: -1 }}
-            className={`px-6 py-3 rounded flex gap-2 items-center justify-center min-w-max ${
+            className={`px-6 py-3 rounded flex gap-2 items-center justify-center min-w-max text-sm ${
                 isDisabled 
                     ? "opacity-50 cursor-not-allowed" 
                     : "cursor-pointer"

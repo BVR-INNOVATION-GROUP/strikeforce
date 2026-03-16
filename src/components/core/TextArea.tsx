@@ -16,7 +16,7 @@ const TextArea = ({ title, value, onChange, className = "", placeholder, rows = 
             <textarea
                 rows={rows}
                 placeholder={placeholder}
-                className={`border p-3 border-custom rounded-lg outline-none ${
+                className={`border p-3 text-sm border-custom rounded-lg outline-none ${
                     error ? 'border-red-500 focus:border-red-500' : 'focus:border-primary'
                 }`}
                 value={value}

@@ -38,7 +38,7 @@ const ProjectHeader = ({
         </div>
       </div>
       {!hasApplied && project.status === "published" && (
-        <Button onClick={onApply} className="bg-primary">
+        <Button onClick={onApply} className="bg-primary btn-keep-primary hover:opacity-90 text-white">
           <Briefcase size={16} className="mr-2" />
           Apply Now
         </Button>

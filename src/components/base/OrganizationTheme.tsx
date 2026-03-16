@@ -56,7 +56,14 @@ const OrganizationTheme = () => {
 
   useEffect(() => {
     const root = document.documentElement;
-    
+
+    // In dark mode we keep the global Netflix-like primary,
+    // so skip overriding primary/accent/pale-primary here.
+    const currentTheme = root.getAttribute("data-theme");
+    if (currentTheme === "dark") {
+      return;
+    }
+
     if (organization?.brandColor) {
       // Validate and normalize hex color format
       let brandColor = organization.brandColor.trim();

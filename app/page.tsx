@@ -129,7 +129,7 @@ export default function HomePage() {
             <motion.div
               whileHover={{ scale: 1.1, rotate: 5 }}
               whileTap={{ scale: 0.95 }}
-              className={`rounded-lg px-3 py-1.5 shadow-md transition-colors ${isOnHero ? "bg-primary" : "bg-primary"
+              className={`rounded-lg px-3 py-1.5 shadow-md transition-colors ${isOnHero ? "bg-primary btn-keep-primary" : "bg-primary btn-keep-primary"
                 }`}
             >
               <span className="text-white font-bold text-lg">S</span>
@@ -162,7 +162,7 @@ export default function HomePage() {
                 onClick={() => router.push("/auth/signup")}
                 className={`px-4 py-2 text-sm shadow-md transition-all rounded-full ${isOnHero
                   ? "bg-white hover:bg-very-pale text-[var(--text)]"
-                  : "bg-primary hover:opacity-90 text-white"
+                  : "bg-primary btn-keep-primary hover:opacity-90 text-white"
                   }`}
               >
                 Get Started
@@ -237,7 +237,7 @@ export default function HomePage() {
             >
               <Button
                 onClick={() => router.push("/auth/signup/university")}
-                className="bg-primary hover:opacity-90 text-white px-8 py-3 text-base font-semibold shadow-lg rounded-full"
+                className="bg-primary btn-keep-primary hover:opacity-90 text-white px-8 py-3 text-base font-semibold shadow-lg rounded-full"
               >
                 Get Started as University
               </Button>
@@ -406,7 +406,7 @@ export default function HomePage() {
               >
                 <Button
                   onClick={() => router.push("/auth/signup/university")}
-                  className="bg-primary hover:opacity-90 text-white w-full py-3 text-base font-semibold rounded-full"
+                  className="bg-primary btn-keep-primary hover:opacity-90 text-white w-full py-3 text-base font-semibold rounded-full"
                 >
                   Get Started as University
                 </Button>

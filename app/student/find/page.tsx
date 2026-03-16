@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
+import { motion } from "framer-motion";
 import Card from "@/src/components/core/Card";
 import Button from "@/src/components/core/Button";
 import { projectService } from "@/src/services/projectService";
@@ -11,15 +12,27 @@ import Input from "@/src/components/core/Input";
 import Select from "@/src/components/core/Select";
 import Checkbox from "@/src/components/core/Checkbox";
 import ApplicationForm from "@/src/components/screen/student/ApplicationForm";
-import { Search, Filter, X, Clock, CheckCircle2, Bookmark, Share2, Eye, Send, Users, Building2 } from "lucide-react";
+import SideModal from "@/src/components/base/SideModal";
+import { Search, Filter, X, Clock, CheckCircle2, Bookmark, Share2, Eye, Send, Users, Building2, SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useAuthStore } from "@/src/store";
+import { useThemeStore } from "@/src/store/useThemeStore";
 import { useToast } from "@/src/hooks/useToast";
 import { currenciesArray } from "@/src/constants/currencies";
 import { GroupI } from "@/src/models/group";
 import { stripHtmlTags } from "@/src/utils/htmlUtils";
+import { formatCompactCurrency } from "@/src/utils/numberFormat";
 import { BASE_URL } from "@/src/api/client";
 import DashboardLoading from "@/src/components/core/DashboardLoading";
+
+const TOP_BANNER_IMAGES = [
+  "https://images.pexels.com/photos/11674625/pexels-photo-11674625.jpeg",
+  "https://images.pexels.com/photos/7828353/pexels-photo-7828353.jpeg",
+  "https://images.pexels.com/photos/1954/black-and-white-lights-abstract-curves.jpg",
+  "https://images.pexels.com/photos/28947852/pexels-photo-28947852.jpeg",
+  "https://images.pexels.com/photos/13551577/pexels-photo-13551577.jpeg",
+  "https://images.pexels.com/photos/29506610/pexels-photo-29506610.jpeg",
+];
 
 /**
  * Student Find Projects - Upwork-style layout with Google-like search
@@ -28,12 +41,14 @@ import DashboardLoading from "@/src/components/core/DashboardLoading";
  */
 export default function StudentProjects() {
   const { user } = useAuthStore();
+  const { theme } = useThemeStore();
   const { showSuccess, showError } = useToast();
   const [projects, setProjects] = useState<ProjectI[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<ProjectI[]>([]);
   const [userApplications, setUserApplications] = useState<ApplicationI[]>([]);
   const [organizations, setOrganizations] = useState<Record<string, string>>({});
   const [organizationLogos, setOrganizationLogos] = useState<Record<string, string>>({});
+  const [organizationColors, setOrganizationColors] = useState<Record<string, string>>({});
   const [groups, setGroups] = useState<GroupI[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -97,6 +112,8 @@ export default function StudentProjects() {
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [submittingApplication, setSubmittingApplication] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [showTopBanner, setShowTopBanner] = useState(true);
 
   // Get all unique skills from projects
   const allSkills = useMemo(() => {
@@ -177,6 +194,11 @@ export default function StudentProjects() {
     return organizationLogos[partnerId] || null;
   };
 
+  // Get organization brand color from project
+  const getOrganizationColor = (partnerId: string): string | null => {
+    return organizationColors[partnerId] || null;
+  };
+
   // Get team structure label
   const getTeamStructureLabel = (structure?: string): string => {
     switch (structure) {
@@ -226,14 +248,19 @@ export default function StudentProjects() {
 
         const orgMap: Record<string, string> = {};
         const logoMap: Record<string, string> = {};
+        const colorMap: Record<string, string> = {};
         projectsResult.projects.forEach((project) => {
           const user = users.find((u) => u.id.toString() === project.partnerId.toString());
           if (user?.orgId) {
             const org = orgs.find((o) => o.id.toString() === user.orgId?.toString());
             if (org) {
-              orgMap[project.partnerId.toString()] = org.name;
+              const key = project.partnerId.toString();
+              orgMap[key] = org.name;
               if (org.logo) {
-                logoMap[project.partnerId.toString()] = org.logo;
+                logoMap[key] = org.logo;
+              }
+              if ((org as any).brandColor) {
+                colorMap[key] = (org as any).brandColor as string;
               }
             }
           }
@@ -241,15 +268,20 @@ export default function StudentProjects() {
           if ((project as any).user?.orgId) {
             const org = orgs.find((o) => o.id.toString() === (project as any).user.orgId?.toString());
             if (org) {
-              orgMap[project.partnerId.toString()] = org.name;
+              const key = project.partnerId.toString();
+              orgMap[key] = org.name;
               if (org.logo) {
-                logoMap[project.partnerId.toString()] = org.logo;
+                logoMap[key] = org.logo;
+              }
+              if ((org as any).brandColor) {
+                colorMap[key] = (org as any).brandColor as string;
               }
             }
           }
         });
         setOrganizations(orgMap);
         setOrganizationLogos(logoMap);
+        setOrganizationColors(colorMap);
       } catch (error) {
         console.error("Failed to fetch data:", error);
       } finally {
@@ -305,6 +337,25 @@ export default function StudentProjects() {
 
     setFilteredProjects(filtered);
   }, [search, projects, selectedSkills, minBudget, maxBudget]);
+
+  // Top projects by price (highest budget first)
+  const topPricedProjects = useMemo(() => {
+    if (!projects.length) return [];
+    const withNumericBudget = projects.map((p) => {
+      const raw =
+        typeof p.budget === "number"
+          ? p.budget
+          : (p.budget?.value || p.budget?.Value || 0);
+      return { project: p, budgetValue: Number(raw) || 0 };
+    });
+    return withNumericBudget
+      .sort((a, b) => b.budgetValue - a.budgetValue)
+      .slice(0, 3)
+      .map((item) => item.project);
+  }, [projects]);
+
+  const isDark = theme === "dark";
+  const topScrollRef = useRef<HTMLDivElement | null>(null);
 
   const toggleSkill = (skill: string) => {
     setSelectedSkills((prev) => {
@@ -403,15 +454,25 @@ export default function StudentProjects() {
     }
   };
 
+  const handleNextTopProject = () => {
+    setActiveTopIndex((prev) => (topPricedProjects.length ? (prev + 1) % topPricedProjects.length : 0));
+  };
+
+  const handlePrevTopProject = () => {
+    setActiveTopIndex((prev) =>
+      topPricedProjects.length ? (prev - 1 + topPricedProjects.length) % topPricedProjects.length : 0
+    );
+  };
+
   if (loading) {
     return <DashboardLoading />;
   }
 
   return (
-    <div className="w-full flex flex-col h-full">
+    <div className="w-full flex flex-col h-full text-sm">
       {/* Google-like Search Bar */}
       <div className="flex-shrink-0 mb-6 flex justify-center">
-        <div className="w-full max-w-4xl gap-2 relative flex items-center justify-center">
+        <div className="w-full max-w-4xl gap-2 flex items-center justify-center">
           <input
             type="text"
             value={search}
@@ -419,19 +480,163 @@ export default function StudentProjects() {
             placeholder="Search projects..."
             className="w-full h-15 pl-8 text-base bg-paper rounded-full outline-none"
           />
-
-          <div className="bg-primary rounded-full min-w-14 h-14 w-14 flex items-center justify-center">
-            <Search size={20} className="  text-white" />
+          <div className="flex items-center gap-2 h-14">
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(true)}
+              className="bg-primary rounded-full min-w-14 h-14 w-14 flex items-center justify-center text-white hover:bg-primary/90 transition-colors"
+            >
+              <SlidersHorizontal size={20} />
+            </button>
           </div>
-
         </div>
       </div>
 
-      {/* Two Column Layout */}
-      <div className="flex-1 flex gap-6 overflow-hidden">
-        {/* Left: Projects List (Scrollable) */}
+      {/* Projects Layout (single column, scrollable) */}
+      <div className="flex-1 flex overflow-hidden">
         <div className="flex-1 overflow-y-auto pr-2">
           <div className="space-y-4">
+            {/* Today's top pick banner - inside scroll */}
+            {showTopBanner && topPricedProjects.length > 0 && (
+              <div className="w-full flex justify-center">
+                <div className="w-full px-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs text-muted font-medium uppercase tracking-wide">
+                      Today&apos;s hottest pick
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <div className="hidden md:flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (topScrollRef.current) {
+                              topScrollRef.current.scrollBy({ left: -topScrollRef.current.clientWidth, behavior: "smooth" });
+                            }
+                          }}
+                          className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-paper/80 text-secondary hover:text-primary hover:bg-paper transition-colors border border-custom"
+                        >
+                          <ChevronLeft size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (topScrollRef.current) {
+                              topScrollRef.current.scrollBy({ left: topScrollRef.current.clientWidth, behavior: "smooth" });
+                            }
+                          }}
+                          className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-paper/80 text-secondary hover:text-primary hover:bg-paper transition-colors border border-custom"
+                        >
+                          <ChevronRight size={14} />
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowTopBanner(false)}
+                        className="flex items-center gap-1 text-[0.7rem] text-muted hover:text-secondary transition-colors"
+                      >
+                        <X size={12} />
+                        Hide
+                      </button>
+                    </div>
+                  </div>
+                  {topPricedProjects.length > 0 && (
+                    <div
+                      ref={topScrollRef}
+                      className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:px-0 snap-x snap-mandatory"
+                    >
+                      {topPricedProjects.map((project, idx) => {
+                        const currencySymbol = getCurrencySymbol(project.currency);
+                        const partnerKey = project.partnerId.toString();
+                        const companyName = getOrganizationName(partnerKey);
+                        const companyColor = getOrganizationColor(partnerKey) || "var(--primary)";
+                        const budgetValue =
+                          typeof project.budget === "number"
+                            ? project.budget
+                            : project.budget?.value || project.budget?.Value || 0;
+                        const bannerImage =
+                          TOP_BANNER_IMAGES[idx % TOP_BANNER_IMAGES.length];
+
+                        return (
+                          <div
+                            key={project.id}
+                            className="relative overflow-hidden rounded-2xl bg-paper shadow-custom min-w-[80%] sm:min-w-[50%] lg:min-w-[45%] snap-center"
+                          >
+                            <Link href={`/student/projects/${project.id}`} className="block h-full">
+                              {/* Background image */}
+                              <div
+                                className="relative h-40 sm:h-48 w-full"
+                                style={{
+                                  backgroundImage: `url(${bannerImage})`,
+                                  backgroundSize: "cover",
+                                  backgroundPosition: "center",
+                                }}
+                              >
+                                <div
+                                  className={`absolute inset-0 backdrop-blur-sm ${isDark ? "bg-black/70" : "bg-black/40"
+                                    }`}
+                                />
+                                <div
+                                  className={`absolute inset-0 mix-blend-soft-light bg-[radial-gradient(circle_at_10%_20%,white_0,transparent_45%),radial-gradient(circle_at_80%_80%,white_0,transparent_40%)] ${isDark ? "opacity-40" : "opacity-60"
+                                    }`}
+                                />
+                                {/* Headline copy */}
+                                <div className="relative h-full w-full flex flex-col justify-center px-6 sm:px-8 py-6 text-white">
+                                  <p className="text-[0.65rem] uppercase tracking-[0.16em] font-semibold mb-1 opacity-80">
+                                    Today&apos;s hottest pick
+                                  </p>
+                                  <h2 className="text-lg sm:text-xl font-semibold mb-2 line-clamp-1">
+                                    {project.title}
+                                  </h2>
+                                  <p className="text-[0.75rem] sm:text-sm max-w-xl opacity-90 line-clamp-2">
+                                    From <span className="font-semibold">{companyName}</span> with a budget of{" "}
+                                    <span className="font-semibold">
+                                      {currencySymbol}
+                                      {formatCompactCurrency(budgetValue)}
+                                    </span>
+                                    . You look like a great match — don&apos;t miss your slot.
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Call-to-action bar */}
+                              <div className="px-6 sm:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gradient-to-r from-pale to-very-pale">
+                                <div className="flex items-center gap-3">
+                                  <div className="h-10 w-10 rounded-lg bg-pale flex items-center justify-center overflow-hidden border border-custom">
+                                    <Building2 size={18} className="text-secondary" />
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-semibold line-clamp-1">{companyName}</p>
+                                    <p className="text-[0.7rem] text-muted line-clamp-1">
+                                      {project.skills?.slice(0, 3).join(" • ")}
+                                      {project.skills && project.skills.length > 3
+                                        ? `  +${project.skills.length - 3} more`
+                                        : ""}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <div className="hidden sm:flex flex-col text-right text-[0.7rem] text-muted">
+                                    <span>Starting from</span>
+                                    <span className="text-sm font-semibold text-primary">
+                                      {currencySymbol}
+                                      {formatCompactCurrency(budgetValue)}
+                                    </span>
+                                  </div>
+                                  <Button className="bg-primary btn-keep-primary hover:opacity-90 text-white text-sm px-6 py-2 rounded-full whitespace-nowrap">
+                                    Apply now
+                                  </Button>
+                                </div>
+                              </div>
+                            </Link>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Results Count */}
             <div className="mb-4">
               <p className="text-sm text-secondary">
@@ -440,144 +645,174 @@ export default function StudentProjects() {
             </div>
 
             {/* Projects List */}
-            {filteredProjects.map((project) => {
+            {filteredProjects.map((project, index) => {
               const application = getApplicationStatus(project.id);
               const hasApplied = !!application;
               const currencySymbol = getCurrencySymbol(project.currency);
-              const companyName = getOrganizationName(project.partnerId.toString());
-              const companyLogo = getOrganizationLogo(project.partnerId.toString());
+              const partnerKey = project.partnerId.toString();
+              const companyName = getOrganizationName(partnerKey);
+              const companyLogo = getOrganizationLogo(partnerKey);
               const logoUrl = companyLogo
                 ? (companyLogo.startsWith("http") ? companyLogo : `${BASE_URL}/${companyLogo}`)
                 : null;
               const projectKey = project.id?.toString() || "";
               const hasLogoError = logoErrors.has(projectKey);
+              const companyColor = getOrganizationColor(partnerKey) || undefined;
 
               return (
-                <Card key={project.id} className="hover:shadow-md transition-all cursor-pointer border-0 bg-paper">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-start gap-3">
-                        {/* Company Logo */}
-                        <div className="flex-shrink-0 w-12 h-12 rounded-lg border border-custom bg-pale flex items-center justify-center overflow-hidden">
-                          {logoUrl && !hasLogoError ? (
-                            <img
-                              src={logoUrl}
-                              alt={companyName}
-                              className="w-full h-full object-contain"
-                              onError={() => {
-                                setLogoErrors(prev => new Set(prev).add(projectKey));
-                              }}
-                            />
-                          ) : (
-                            <Building2 size={20} className="text-secondary" />
+                <motion.div
+                  key={project.id}
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.03, ease: "easeOut" }}
+                >
+                  <Card
+                    className="hover:shadow-md transition-all cursor-pointer border-0 bg-paper"
+                    style={companyColor ? { borderTop: `3px solid ${companyColor}` } : undefined}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-start gap-3">
+                          {/* Company Logo */}
+                          <div className="flex-shrink-0 w-12 h-12 rounded-lg border border-custom bg-very-pale-primary flex items-center justify-center overflow-hidden">
+                            {logoUrl && !hasLogoError ? (
+                              <img
+                                src={logoUrl}
+                                alt={companyName}
+                                className="w-full h-full object-contain"
+                                onError={() => {
+                                  setLogoErrors(prev => new Set(prev).add(projectKey));
+                                }}
+                              />
+                            ) : (
+                              <Building2 size={20} className="text-primary" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <Link href={`/student/projects/${project.id}`}>
+                              <h3 className="font-semibold text-lg mb-1 hover:text-primary transition-colors">
+                                {project.title}
+                              </h3>
+                            </Link>
+                            <p className="text-xs text-secondary mb-2">{companyName}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {hasApplied && (
+                            <div
+                              className="flex items-center gap-1 px-2 py-1 rounded text-[0.7rem] w-fit"
+                              style={
+                                companyColor
+                                  ? { backgroundColor: companyColor, color: "#ffffff" }
+                                  : undefined
+                              }
+                            >
+                              <CheckCircle2 size={12} />
+                              <span>Applied</span>
+                            </div>
                           )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <Link href={`/student/projects/${project.id}`}>
-                            <h3 className="font-semibold text-lg mb-1 hover:text-primary transition-colors">
-                              {project.title}
-                            </h3>
-                          </Link>
-                          <p className="text-sm text-secondary mb-2">{companyName}</p>
-                        </div>
                       </div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {hasApplied && (
-                          <div className="flex items-center gap-1 px-2 py-1 bg-pale-primary rounded text-xs text-primary w-fit">
-                            <CheckCircle2 size={12} />
-                            <span>Applied</span>
-                          </div>
+                    </div>
+
+                    <Link href={`/student/projects/${project.id}`}>
+                      <p className="text-sm text-secondary mb-4 line-clamp-2">
+                        {stripHtmlTags(project.description)}
+                      </p>
+
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {project.skills.slice(0, 5).map((skill) => (
+                          <span
+                            key={skill}
+                            className="px-2 py-1 bg-pale-primary rounded text-[0.7rem]"
+                            style={companyColor ? { color: companyColor } : undefined}
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                        {project.skills.length > 5 && (
+                          <span className="px-2 py-1 bg-pale text-secondary rounded text-xs">
+                            +{project.skills.length - 5}
+                          </span>
                         )}
                       </div>
-                    </div>
-                  </div>
 
-                  <Link href={`/student/projects/${project.id}`}>
-                    <p className="text-sm text-secondary mb-4 line-clamp-2">
-                      {stripHtmlTags(project.description)}
-                    </p>
-
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {project.skills.slice(0, 5).map((skill) => (
-                        <span
-                          key={skill}
-                          className="px-2 py-1 bg-pale-primary text-primary rounded text-xs"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                      {project.skills.length > 5 && (
-                        <span className="px-2 py-1 bg-pale text-secondary rounded text-xs">
-                          +{project.skills.length - 5}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-4 border-t border-custom">
-                      <div className="flex items-center gap-4 text-sm flex-wrap">
-                        <div className="flex items-center gap-1">
-                          <span className="font-semibold">{currencySymbol}{typeof project.budget === 'number' ? project.budget.toLocaleString() : (project.budget?.value || project.budget?.Value || 0).toLocaleString()}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock size={16} className="text-secondary" />
-                          <span className="text-secondary">
-                            {new Date(project.deadline).toLocaleDateString()}
-                          </span>
-                        </div>
-                        {project.teamStructure && (
+                      <div className="flex items-center justify-between pt-4 border-t border-custom">
+                        <div className="flex items-center gap-4 text-xs flex-wrap">
                           <div className="flex items-center gap-1">
-                            <Users size={16} className="text-secondary" />
-                            <span className="text-secondary">
-                              {getTeamStructureLabel(project.teamStructure)}
+                            <span
+                              className="font-semibold"
+                              style={companyColor ? { color: companyColor } : undefined}
+                            >
+                              {currencySymbol}
+                              {formatCompactCurrency(
+                                typeof project.budget === "number"
+                                  ? project.budget
+                                  : project.budget?.value || project.budget?.Value || 0
+                              )}
                             </span>
                           </div>
-                        )}
+                          <div className="flex items-center gap-1">
+                            <Clock size={16} className="text-secondary" />
+                            <span className="text-secondary">
+                              {new Date(project.deadline).toLocaleDateString()}
+                            </span>
+                          </div>
+                          {project.teamStructure && (
+                            <div className="flex items-center gap-1">
+                              <Users size={16} className="text-secondary" />
+                              <span className="text-secondary">
+                                {getTeamStructureLabel(project.teamStructure)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </Link>
+                    </Link>
 
-                  {/* Action Buttons Row */}
-                  <div className="flex items-center gap-2 mt-4 pt-4 border-t border-custom">
-                    {!hasApplied && project.id && (
+                    {/* Action Buttons Row */}
+                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-custom">
+                      {!hasApplied && project.id && (
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenApplicationForm(project.id!);
+                          }}
+                          className="flex-1 bg-primary dark:bg-custom hover:opacity-90 text-white text-sm py-2"
+                        >
+                          <Send size={14} className="mr-2" />
+                          Apply
+                        </Button>
+                      )}
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleOpenApplicationForm(project.id!);
+                          handleSaveProject(project.id);
                         }}
-                        className="flex-1 bg-primary text-sm py-2"
+                        className={`${hasApplied ? "flex-1" : ""} ${savedProjects.has(project.id.toString()) ? "bg-primary text-white" : "bg-pale text-primary"} text-sm py-2`}
                       >
-                        <Send size={14} className="mr-2" />
-                        Apply
+                        <Bookmark size={14} className="mr-2" fill={savedProjects.has(project.id.toString()) ? "currentColor" : "none"} />
+                        {savedProjects.has(project.id.toString()) ? "Saved" : "Save"}
                       </Button>
-                    )}
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSaveProject(project.id);
-                      }}
-                      className={`${hasApplied ? "flex-1" : ""} ${savedProjects.has(project.id.toString()) ? "bg-primary text-white" : "bg-pale text-primary"} text-sm py-2`}
-                    >
-                      <Bookmark size={14} className="mr-2" fill={savedProjects.has(project.id.toString()) ? "currentColor" : "none"} />
-                      {savedProjects.has(project.id.toString()) ? "Saved" : "Save"}
-                    </Button>
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleShareProject(project);
-                      }}
-                      className={`${hasApplied ? "flex-1" : ""} bg-pale text-primary text-sm py-2`}
-                    >
-                      <Share2 size={14} className="mr-2" />
-                      Share
-                    </Button>
-                    <Link href={`/student/projects/${project.id}`} className={hasApplied ? "flex-1" : ""}>
-                      <Button className={`${hasApplied ? "w-full" : ""} bg-pale text-primary text-sm py-2`}>
-                        <Eye size={14} className="mr-2" />
-                        View
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleShareProject(project);
+                        }}
+                        className={`${hasApplied ? "flex-1" : ""} bg-pale text-primary text-sm py-2`}
+                      >
+                        <Share2 size={14} className="mr-2" />
+                        Share
                       </Button>
-                    </Link>
-                  </div>
-                </Card>
+                      <Link href={`/student/projects/${project.id}`} className={hasApplied ? "flex-1" : ""}>
+                        <Button className={`${hasApplied ? "w-full" : ""} bg-pale text-primary text-sm py-2`}>
+                          <Eye size={14} className="mr-2" />
+                          View
+                        </Button>
+                      </Link>
+                    </div>
+                  </Card>
+                </motion.div>
               );
             })}
 
@@ -702,81 +937,92 @@ export default function StudentProjects() {
             )}
           </div>
         </div>
+      </div>
 
-        {/* Right: Filters Sidebar (Sticky, Scrollable) */}
-        <div className="w-80 flex-shrink-0">
-          <div className="sticky top-0">
-            <Card className="border-0 bg-paper">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold">Filters</h3>
-                {hasActiveFilters && (
-                  <Button onClick={clearFilters} className="bg-pale text-primary text-xs px-3 py-1">
-                    <X size={14} className="mr-1" />
-                    Clear
-                  </Button>
-                )}
-              </div>
+      {/* Filters Side Modal - using shared SideModal benchmark */}
+      <SideModal
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        title={hasActiveFilters ? "Filters (active)" : "Filters"}
+        width="480px"
+      >
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium mb-2 text-secondary">Budget Range</label>
+            <div className="space-y-2">
+              <Input
+                type="text"
+                value={minBudgetDisplay}
+                onChange={(e) => {
+                  const inputValue = e.target.value;
+                  const parsed = parseFormattedValue(inputValue);
+                  if (parsed === "" || /^\d+$/.test(parsed)) {
+                    setMinBudget(parsed);
+                    setMinBudgetDisplay(formatWithCommas(parsed));
+                  }
+                }}
+                placeholder={`Min: ${budgetBounds.min.toLocaleString()}`}
+                className="w-full"
+              />
+              <Input
+                type="text"
+                value={maxBudgetDisplay}
+                onChange={(e) => {
+                  const inputValue = e.target.value;
+                  const parsed = parseFormattedValue(inputValue);
+                  if (parsed === "" || /^\d+$/.test(parsed)) {
+                    setMaxBudget(parsed);
+                    setMaxBudgetDisplay(formatWithCommas(parsed));
+                  }
+                }}
+                placeholder={`Max: ${budgetBounds.max.toLocaleString()}`}
+                className="w-full"
+              />
+            </div>
+          </div>
 
-              <div className="space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
-                {/* Budget Range - Min and Max on different rows */}
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-secondary">Budget Range</label>
-                  <div className="space-y-2">
-                    <Input
-                      type="text"
-                      value={minBudgetDisplay}
-                      onChange={(e) => {
-                        const inputValue = e.target.value;
-                        const parsed = parseFormattedValue(inputValue);
-                        if (parsed === "" || /^\d+$/.test(parsed)) {
-                          setMinBudget(parsed);
-                          setMinBudgetDisplay(formatWithCommas(parsed));
-                        }
-                      }}
-                      placeholder={`Min: ${budgetBounds.min.toLocaleString()}`}
-                      className="w-full"
+          <div>
+            <label className="block text-sm font-medium mb-2 text-secondary">Skills</label>
+            <div className="max-h-64 overflow-y-auto bg-pale p-3 rounded-lg space-y-2">
+              {allSkills.length > 0 ? (
+                allSkills.map((skill) => (
+                  <label
+                    key={skill}
+                    className="flex items-center gap-2 cursor-pointer hover:bg-very-pale p-1 rounded transition-colors"
+                  >
+                    <Checkbox
+                      checked={selectedSkills.has(skill)}
+                      onChange={() => toggleSkill(skill)}
                     />
-                    <Input
-                      type="text"
-                      value={maxBudgetDisplay}
-                      onChange={(e) => {
-                        const inputValue = e.target.value;
-                        const parsed = parseFormattedValue(inputValue);
-                        if (parsed === "" || /^\d+$/.test(parsed)) {
-                          setMaxBudget(parsed);
-                          setMaxBudgetDisplay(formatWithCommas(parsed));
-                        }
-                      }}
-                      placeholder={`Max: ${budgetBounds.max.toLocaleString()}`}
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-
-                {/* Skills Filter */}
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-secondary">Skills</label>
-                  <div className="max-h-64 overflow-y-auto bg-pale p-3 rounded-lg space-y-2">
-                    {allSkills.length > 0 ? (
-                      allSkills.map((skill) => (
-                        <label key={skill} className="flex items-center gap-2 cursor-pointer hover:bg-very-pale p-1 rounded transition-colors">
-                          <Checkbox
-                            checked={selectedSkills.has(skill)}
-                            onChange={() => toggleSkill(skill)}
-                          />
-                          <span className="text-sm">{skill}</span>
-                        </label>
-                      ))
-                    ) : (
-                      <p className="text-xs text-secondary">No skills available</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </Card>
+                    <span className="text-sm">{skill}</span>
+                  </label>
+                ))
+              ) : (
+                <p className="text-xs text-secondary">No skills available</p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+
+        <div className="mt-6 pt-4 border-t border-custom flex items-center justify-between gap-3">
+          <Button
+            onClick={() => {
+              clearFilters();
+            }}
+            className="bg-pale text-primary text-sm px-4 py-2"
+            disabled={!hasActiveFilters}
+          >
+            <X size={14} className="mr-1" />
+            Clear
+          </Button>
+          <Button
+            onClick={() => setFiltersOpen(false)}
+            className="bg-primary text-sm px-4 py-2"
+          >
+            Apply Filters
+          </Button>
+        </div>
+      </SideModal>
 
       {/* Application Form Modal */}
       <ApplicationForm
@@ -795,3 +1041,22 @@ export default function StudentProjects() {
     </div>
   );
 }
+
+// Local keyframes for banner card "hop" animation
+// (kept at bottom of file to avoid affecting other components)
+// eslint-disable-next-line @next/next/no-css-tags
+<style jsx global>{`
+  @keyframes cardHop {
+    0%,
+    60%,
+    100% {
+      transform: translateY(0);
+    }
+    25% {
+      transform: translateY(-10px);
+    }
+    40% {
+      transform: translateY(-4px);
+    }
+  }
+`}</style>

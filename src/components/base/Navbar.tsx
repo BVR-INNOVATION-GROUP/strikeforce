@@ -1,17 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from 'react'
-import Logo from './Logo'
-import IconButton from '../core/IconButton'
-import Popover from './Popover'
-import { Bell, Settings, User, LogOut, CheckCircle, AlertCircle, Info, Menu } from 'lucide-react'
-import { useAuthStore } from '@/src/store'
-import { useUIStore } from '@/src/store/useUIStore'
-import { useRouter } from 'next/navigation'
-import { UserI } from '@/src/models/user'
-import { notificationService } from '@/src/services/notificationService'
-import { NotificationI } from '@/src/models/notification'
-import { BASE_URL } from '@/src/api/client'
+import React, { useState, useEffect } from "react";
+import Logo from "./Logo";
+import IconButton from "../core/IconButton";
+import Popover from "./Popover";
+import Avatar from "@/src/components/core/Avatar";
+import { Bell, Settings, User, LogOut, CheckCircle, AlertCircle, Info, Menu, Sun, Moon } from "lucide-react";
+import { useAuthStore } from "@/src/store";
+import { useUIStore } from "@/src/store/useUIStore";
+import { useThemeStore } from "@/src/store/useThemeStore";
+import { useRouter } from "next/navigation";
+import { UserI } from "@/src/models/user";
+import { notificationService } from "@/src/services/notificationService";
+import { NotificationI } from "@/src/models/notification";
+import { BASE_URL } from "@/src/api/client";
 
 /**
  * Get notification icon based on type
@@ -61,30 +63,21 @@ const formatTimeAgo = (dateString: string): string => {
 }
 
 /**
- * Get user avatar URL with fallback
+ * Get user avatar src (relative or absolute) if available
  */
-const getUserAvatar = (user: UserI | null): string => {
+const getUserAvatarSrc = (user: UserI | null): string => {
     if (user?.profile?.avatar) {
-        return user.profile.avatar
+        const avatar = user.profile.avatar;
+        return avatar.startsWith("http") ? avatar : `${BASE_URL}/${avatar}`;
     }
-    // Fallback: Generate a simple avatar based on user's initials
-    // In production, you might use a service like UI Avatars or generate a colored circle
-    const initials = user?.name
-        ? user.name
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-            .toUpperCase()
-            .slice(0, 2)
-        : 'U'
-    // Using a placeholder service for fallback avatars
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=e9226e&color=fff&size=128`
-}
+    return "";
+};
 
 const Navbar = () => {
-    const { user, setUser, logout, organization } = useAuthStore()
-    const { openDrawer } = useUIStore()
-    const router = useRouter()
+    const { user, setUser, logout, organization } = useAuthStore();
+    const { openDrawer } = useUIStore();
+    const router = useRouter();
+    const { theme, toggleTheme } = useThemeStore();
     const [notificationsOpen, setNotificationsOpen] = useState(false)
     const [userMenuOpen, setUserMenuOpen] = useState(false)
     const [notifications, setNotifications] = useState<NotificationI[]>([])
@@ -202,7 +195,7 @@ const Navbar = () => {
     }
 
     return (
-        <div className="fixed top-0 left-0 right-0 h-[8vh] bg-paper flex items-center z-[1] border-b border-slate-200">
+        <div className="fixed top-0 left-0 right-0 h-[8vh] bg-paper flex items-center z-[1] border-b border-custom">
             <div className="w-full px-4 flex items-center justify-between">
                 {/* Show organization logo if available, otherwise show default logo */}
                 <div className="flex items-center gap-2">
@@ -215,53 +208,65 @@ const Navbar = () => {
                         <Menu size={24} />
                     </button>
                     {organization?.logo ? (
-                    <div className="flex ml-[1vw] items-center justify-center">
-                        <img
-                            src={organization.logo.startsWith("http")
-                                ? organization.logo
-                                : `${BASE_URL}/${organization.logo}`}
-                            alt={organization.name || "Organization Logo"}
-                            className="h-12 w-auto rounded-lg object-contain max-w-[200px]"
-                            onError={(e) => {
-                                // Fallback to default logo if image fails to load
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                            }}
-                        />
-                    </div>
-                ) : (
-                    <Logo />
-                )}
+                        <div className="flex ml-[1vw] items-center justify-center">
+                            <img
+                                src={
+                                    organization.logo.startsWith("http")
+                                        ? organization.logo
+                                        : `${BASE_URL}/${organization.logo}`
+                                }
+                                alt={organization.name || "Organization Logo"}
+                                className="h-12 w-auto rounded-lg object-contain max-w-[200px]"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = "none";
+                                }}
+                            />
+                        </div>
+                    ) : (
+                        <Logo />
+                    )}
                 </div>
                 <div className="flex items-center gap-4 justify-end">
+                    {/* Theme toggle */}
+                    <IconButton
+                        onClick={toggleTheme}
+                        icon={
+                            theme === "dark" ? (
+                                <Sun size={18} className="text-secondary" />
+                            ) : (
+                                <Moon size={18} className="text-secondary" />
+                            )
+                        }
+                    />
+
                     {/* Notifications Popover */}
                     <Popover
                         open={notificationsOpen}
                         onOpenChange={setNotificationsOpen}
                         placement="bottom-end"
-                        className="w-[320px] max-h-[400px] overflow-y-auto"
+                        className="w-[340px] max-h-[420px] overflow-y-auto"
                         content={
-                            <div className="p-2">
-                                <div className="px-3 py-2 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-                                    <h3 className="text-sm font-semibold text-slate-800">Notifications</h3>
+                            <div className="p-3 bg-paper bg-red-400 rounded-xl shadow-custom ">
+                                <div className="px-3 py-2 border-b border-custom flex items-center justify-between">
+                                    <h3 className="text-sm font-semibold text-primary">Notifications</h3>
                                     {unreadCount > 0 && (
-                                        <span className="text-xs bg-slate-700 text-white px-2 py-0.5 rounded-full">
+                                        <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                                             {unreadCount} new
                                         </span>
                                     )}
                                 </div>
-                                <div className="py-2 max-h-[350px] overflow-y-auto">
+                                <div className="py-2 max-h-[360px] overflow-y-auto space-y-1">
                                     {loadingNotifications ? (
-                                        <div className="px-3 py-8 text-center text-sm text-slate-500">
+                                        <div className="px-3 py-8 text-center text-sm text-secondary">
                                             Loading notifications...
                                         </div>
                                     ) : notifications.length === 0 ? (
-                                        <div className="px-3 py-8 text-center text-sm text-slate-500">
+                                        <div className="px-3 py-8 text-center text-sm text-secondary">
                                             No notifications
                                         </div>
                                     ) : (
                                         notifications.map((notification) => {
-                                            // Categorize notification by title/keywords
                                             const getCategoryLabel = (title: string, message: string): string => {
                                                 const lowerTitle = title.toLowerCase();
                                                 const lowerMessage = message.toLowerCase();
@@ -281,38 +286,41 @@ const Navbar = () => {
                                             };
 
                                             const category = getCategoryLabel(notification.title, notification.message);
+                                            const isUnread = !notification.read;
 
                                             return (
-                                                <div
+                                                <button
                                                     key={notification.id}
-                                                    className={`px-3 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-b-0 transition-colors ${!notification.read ? 'bg-blue-50' : ''
+                                                    type="button"
+                                                    className={`w-full text-left px-3 py-3 rounded-lg border border-transparent transition-colors flex gap-3 ${isUnread
+                                                        ? 'bg-primary/5 border-primary/10'
+                                                        : 'hover:bg-pale'
                                                         }`}
                                                     onClick={() => handleNotificationClick(notification)}
                                                 >
-                                                    <div className="flex items-start gap-3">
-                                                        <div className="flex-shrink-0 mt-0.5">
-                                                            {getNotificationIcon(notification.type)}
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">
-                                                                {category}
-                                                            </p>
-                                                            <p className="text-sm font-medium text-slate-800 mb-1">
-                                                                {notification.title}
-                                                            </p>
-                                                            <p className="text-xs text-slate-600 overflow-hidden" style={{
-                                                                display: '-webkit-box',
-                                                                WebkitLineClamp: 2,
-                                                                WebkitBoxOrient: 'vertical',
-                                                            }}>
-                                                                {notification.message}
-                                                            </p>
-                                                            <p className="text-xs text-slate-400 mt-1">
-                                                                {formatTimeAgo(notification.createdAt)}
-                                                            </p>
-                                                        </div>
+                                                    <div className="flex-shrink-0 mt-0.5">
+                                                        {getNotificationIcon(notification.type)}
                                                     </div>
-                                                </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-[0.65rem] font-semibold text-muted mb-1 uppercase tracking-wide">
+                                                            {category}
+                                                        </p>
+                                                        <p className="text-sm font-medium text-primary mb-1 line-clamp-1">
+                                                            {notification.title}
+                                                        </p>
+                                                        <p
+                                                            className="text-xs text-secondary line-clamp-2"
+                                                        >
+                                                            {notification.message}
+                                                        </p>
+                                                        <p className="text-[0.65rem] text-muted mt-1">
+                                                            {formatTimeAgo(notification.createdAt)}
+                                                        </p>
+                                                    </div>
+                                                    {isUnread && (
+                                                        <span className="mt-1 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+                                                    )}
+                                                </button>
                                             );
                                         })
                                     )}
@@ -386,23 +394,10 @@ const Navbar = () => {
                         }
                     >
                         <div className="cursor-pointer">
-                            <img
-                                src={getUserAvatar(user)}
-                                className="h-11 w-11 rounded-full object-cover border-2 border-custom hover:border-primary transition-colors"
-                                alt={user?.name || 'User avatar'}
-                                onError={(e) => {
-                                    // Fallback to initials avatar if image fails to load
-                                    const target = e.target as HTMLImageElement
-                                    const initials = user?.name
-                                        ? user.name
-                                            .split(' ')
-                                            .map((n) => n[0])
-                                            .join('')
-                                            .toUpperCase()
-                                            .slice(0, 2)
-                                        : 'U'
-                                    target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=e9226e&color=fff&size=128`
-                                }}
+                            <Avatar
+                                src={getUserAvatarSrc(user)}
+                                name={user?.name}
+                                className="h-11 w-11"
                             />
                         </div>
                     </Popover>

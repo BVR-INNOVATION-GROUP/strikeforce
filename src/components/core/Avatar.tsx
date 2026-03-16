@@ -36,7 +36,7 @@ const Avatar = ({ src, alt, name, size = "md", className = "", ...props }: Props
 
   return (
     <div
-      className={`${sizeClasses[size]} rounded-full bg-pale-primary flex items-center justify-center overflow-hidden ${className}`}
+      className={`${sizeClasses[size]} rounded-full bg-red-400/10 flex items-center justify-center overflow-hidden ${className}`}
       {...props}
     >
       {hasValidImage ? (

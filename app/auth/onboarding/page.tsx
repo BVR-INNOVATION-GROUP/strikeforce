@@ -323,7 +323,7 @@ const OnboardingPage = () => {
           <Button
             type="button"
             onClick={handleNext}
-            className={`${step > 1 ? "flex-1" : "w-full"} bg-primary`}
+            className={`${step > 1 ? "flex-1" : "w-full"} bg-primary btn-keep-primary`}
             disabled={loading}
           >
             {loading

@@ -10,6 +10,7 @@ import LogoutSection from "./LogoutSection";
 import AccountDeletionSection from "./AccountDeletionSection";
 import OrganizationLogoUpload from "./OrganizationLogoUpload";
 import BrandColorPicker from "./BrandColorPicker";
+import ThemeSettingsSection from "./ThemeSettingsSection";
 
 export interface Props {
   user: { id: string; email: string };
@@ -31,6 +32,9 @@ const UnifiedSettings = ({ user }: Props) => {
           </p>
         </div>
       </div>
+
+      {/* Theme */}
+      <ThemeSettingsSection />
 
       {/* Organization Logo Upload (for org owners only) */}
       <OrganizationLogoUpload />

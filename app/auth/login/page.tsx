@@ -272,7 +272,7 @@ const LoginPage = () => {
           <Button
             onClick={handleSubmit}
             type="submit"
-            className="w-full bg-primary hover:opacity-90 text-white mt-6"
+            className="w-full bg-primary btn-keep-primary hover:opacity-90 text-white mt-6"
             disabled={loading}
           >
             {loading ? "Logging in..." : "Log in"}
@@ -314,7 +314,7 @@ const LoginPage = () => {
               setShowPendingModal(false);
               setPendingOrganization(null);
             }}
-            className="bg-primary"
+            className="bg-primary btn-keep-primary"
           >
             Close
           </Button>,

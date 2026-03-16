@@ -9,6 +9,7 @@ import Sidebar from "./Sidebar";
 import SidebarDrawer from "./SidebarDrawer";
 import AuthInitializer from "./AuthInitializer";
 import OrganizationTheme from "./OrganizationTheme";
+import ThemeInitializer from "./ThemeInitializer";
 import ImpersonationBanner from "./ImpersonationBanner";
 import NavigationProgress from "./NavigationProgress";
 import { ReactNode } from "react";
@@ -31,6 +32,7 @@ const ConditionalLayout = ({ children }: ConditionalLayoutProps) => {
   return (
     <>
       <AuthInitializer />
+      <ThemeInitializer />
       <OrganizationTheme />
       {isStandaloneRoute ? (
         <div className="min-h-screen">{children}</div>

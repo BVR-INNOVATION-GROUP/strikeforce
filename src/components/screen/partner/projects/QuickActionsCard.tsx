@@ -63,7 +63,7 @@ const QuickActionsCard = (props: Props) => {
                 {onApply && (
                     <Button
                         onClick={onApply}
-                        className="bg-primary w-full flex items-center justify-center gap-2 text-[0.875rem] py-2.5 text-white"
+                        className="bg-primary btn-keep-primary hover:opacity-90 w-full flex items-center justify-center gap-2 text-[0.875rem] py-2.5 text-white"
                     >
                         <Send size={18} />
                         Apply
