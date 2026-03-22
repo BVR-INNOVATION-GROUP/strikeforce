@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Button from "@/src/components/core/Button";
@@ -69,9 +69,16 @@ export default function HomePage() {
   const whatIsRef = useRef<HTMLDivElement>(null);
   const benefitsRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
-  const { user } = useAuthStore();
+  const { user, organization } = useAuthStore();
   const isLoggedIn = Boolean(user);
-  const dashboardRoute = user ? dashboardRoutes[user.role] || "/partner" : "/auth/login";
+  const dashboardRoute = useMemo(() => {
+    if (!user) return "/auth/login";
+    if (user.role === "delegated-admin") {
+      if (organization?.type === "PARTNER") return "/partner";
+      return "/university-admin";
+    }
+    return dashboardRoutes[user.role] || "/partner";
+  }, [user, organization]);
 
   const isWhatIsInView = useInView(whatIsRef, { once: true, margin: "-100px" });
   const isBenefitsInView = useInView(benefitsRef, { once: true, margin: "-100px" });

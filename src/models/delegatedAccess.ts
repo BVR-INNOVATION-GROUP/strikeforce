@@ -31,4 +31,6 @@ export interface DelegatedAccessI {
 export interface CreateDelegatedAccessRequest {
   email: string;
   name: string;
+  /** Required when super-admin creates a delegation */
+  organizationId?: number;
 }

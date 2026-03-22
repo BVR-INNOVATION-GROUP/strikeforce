@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Logo from "./Logo";
 import IconButton from "../core/IconButton";
 import Popover from "./Popover";
 import Avatar from "@/src/components/core/Avatar";
-import { Bell, Settings, User, LogOut, CheckCircle, AlertCircle, Info, Menu, Sun, Moon } from "lucide-react";
+import { Bell, Settings, User, LogOut, CheckCircle, AlertCircle, Info, Menu, Sun, Moon, MessageCircle } from "lucide-react";
 import { useAuthStore } from "@/src/store";
 import { useUIStore } from "@/src/store/useUIStore";
 import { useThemeStore } from "@/src/store/useThemeStore";
@@ -14,6 +14,11 @@ import { UserI } from "@/src/models/user";
 import { notificationService } from "@/src/services/notificationService";
 import { NotificationI } from "@/src/models/notification";
 import { BASE_URL } from "@/src/api/client";
+import DirectMessagesInboxPanel from "@/src/components/base/DirectMessagesInboxPanel";
+import { directMessageService, DirectMessageThread } from "@/src/services/directMessageService";
+import { countUnreadThreads } from "@/src/utils/directMessageReadState";
+
+const DM_INBOX_ROLES = new Set(["super-admin", "partner", "university-admin"]);
 
 /**
  * Get notification icon based on type
@@ -83,6 +88,44 @@ const Navbar = () => {
     const [notifications, setNotifications] = useState<NotificationI[]>([])
     const [unreadCount, setUnreadCount] = useState(0)
     const [loadingNotifications, setLoadingNotifications] = useState(false)
+    const [dmPanelOpen, setDmPanelOpen] = useState(false)
+    const [dmThreads, setDmThreads] = useState<DirectMessageThread[]>([])
+    const [dmThreadsLoading, setDmThreadsLoading] = useState(false)
+    const [dmReadEpoch, setDmReadEpoch] = useState(0)
+
+    const showDmInbox = !!(user && DM_INBOX_ROLES.has(user.role))
+
+    const bumpDmRead = useCallback(() => {
+        setDmReadEpoch((e) => e + 1)
+    }, [])
+
+    const reloadDmThreads = useCallback(async (opts?: { silent?: boolean }) => {
+        if (!showDmInbox || user?.id == null) return
+        const silent = opts?.silent ?? false
+        if (!silent) setDmThreadsLoading(true)
+        try {
+            const list = await directMessageService.listThreads()
+            setDmThreads(Array.isArray(list) ? list : [])
+        } catch {
+            setDmThreads([])
+        } finally {
+            if (!silent) setDmThreadsLoading(false)
+        }
+    }, [showDmInbox, user?.id])
+
+    useEffect(() => {
+        if (!showDmInbox || user?.id == null) return
+        void reloadDmThreads({ silent: false })
+        const t = window.setInterval(() => void reloadDmThreads({ silent: true }), 30000)
+        return () => window.clearInterval(t)
+    }, [showDmInbox, user?.id, reloadDmThreads])
+
+    const dmUnreadCount = useMemo(() => {
+        if (user?.id == null) return 0
+        const uid = typeof user.id === "number" ? user.id : Number(user.id)
+        if (Number.isNaN(uid)) return 0
+        return countUnreadThreads(dmThreads, uid)
+    }, [dmThreads, user?.id, dmReadEpoch])
 
     /**
      * Fetch notifications for the current user
@@ -146,12 +189,16 @@ const Navbar = () => {
      */
     const getProfileRoute = () => {
         if (!user) return '/partner/profile'
+        if (user.role === 'delegated-admin') {
+            return organization?.type === 'PARTNER'
+                ? '/partner/profile'
+                : '/university-admin/profile'
+        }
         const roleRoutes: Record<string, string> = {
             partner: '/partner/profile',
             student: '/student/profile',
             supervisor: '/supervisor/profile',
             'university-admin': '/university-admin/profile',
-            'delegated-admin': '/university-admin/profile',
             'super-admin': '/super-admin/profile',
         }
         return roleRoutes[user.role] || '/partner/profile'
@@ -162,12 +209,16 @@ const Navbar = () => {
      */
     const getSettingsRoute = () => {
         if (!user) return '/partner/settings'
+        if (user.role === 'delegated-admin') {
+            return organization?.type === 'PARTNER'
+                ? '/partner/settings'
+                : '/university-admin/settings'
+        }
         const roleRoutes: Record<string, string> = {
             partner: '/partner/settings',
             student: '/student/settings',
             supervisor: '/supervisor/settings',
             'university-admin': '/university-admin/settings',
-            'delegated-admin': '/university-admin/settings',
             'super-admin': '/super-admin/settings',
         }
         return roleRoutes[user.role] || '/partner/settings'
@@ -239,6 +290,26 @@ const Navbar = () => {
                             )
                         }
                     />
+
+                    {showDmInbox && user?.id != null && (
+                        <div className="relative z-10 shrink-0 overflow-visible">
+                            <IconButton
+                                onClick={() => {
+                                    setDmPanelOpen(true)
+                                    void reloadDmThreads({ silent: dmThreads.length > 0 })
+                                }}
+                                icon={<MessageCircle size={20} className="text-secondary" />}
+                            />
+                            {dmUnreadCount > 0 ? (
+                                <span
+                                    className="pointer-events-none absolute -right-1 -top-1 z-20 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-white shadow-sm ring-2 ring-paper"
+                                    aria-label={`${dmUnreadCount} unread conversations`}
+                                >
+                                    {dmUnreadCount > 99 ? "99+" : dmUnreadCount}
+                                </span>
+                            ) : null}
+                        </div>
+                    )}
 
                     {/* Notifications Popover */}
                     <Popover
@@ -403,6 +474,17 @@ const Navbar = () => {
                     </Popover>
                 </div>
             </div>
+            {showDmInbox && user?.id != null && (
+                <DirectMessagesInboxPanel
+                    open={dmPanelOpen}
+                    onClose={() => setDmPanelOpen(false)}
+                    threads={dmThreads}
+                    threadsLoading={dmThreadsLoading}
+                    onReloadThreads={reloadDmThreads}
+                    currentUserId={typeof user.id === "number" ? user.id : Number(user.id)}
+                    onThreadRead={bumpDmRead}
+                />
+            )}
         </div>
     )
 }

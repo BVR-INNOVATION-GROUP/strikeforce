@@ -9,14 +9,18 @@ import {
 
 export const delegatedAccessRepository = {
   /**
-   * Get all delegated users for the current university admin
+   * Get delegated users for the current admin's org (uni/partner) or for super-admin when organizationId is set.
    */
-  getAll: async (): Promise<DelegatedAccessI[]> => {
-    return api.get<DelegatedAccessI[]>("/api/v1/delegated-access");
+  getAll: async (organizationId?: number): Promise<DelegatedAccessI[]> => {
+    const q =
+      organizationId != null && organizationId > 0
+        ? `?organizationId=${organizationId}`
+        : "";
+    return api.get<DelegatedAccessI[]>(`/api/v1/delegated-access${q}`);
   },
 
   /**
-   * Create a new delegated user
+   * Create a new delegated user (super-admin must pass organizationId)
    */
   create: async (
     request: CreateDelegatedAccessRequest

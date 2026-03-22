@@ -375,9 +375,9 @@
     0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* Responsive base font: 0.85vw sweet spot for desktop, clamp so mobile stays readable */
+/* Root font: base 0.95vw, capped at 1.5vw; 12px floor when vw would be tiny */
 @layer base {
   html {
-    font-size: clamp(14px, 0.85vw + 11.4px, 15.2px);
+    font-size: clamp(12px, 0.95vw, max(12px, 1.5vw));
   }
 }

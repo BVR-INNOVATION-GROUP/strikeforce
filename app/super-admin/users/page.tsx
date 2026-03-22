@@ -17,13 +17,15 @@ import { adminRepository } from "@/src/repositories/adminRepository";
 import { useAuthStore } from "@/src/store";
 import { UserI } from "@/src/models/user";
 import { useToast } from "@/src/hooks/useToast";
-import { Users, Shield, UserCog, Filter, Eye, Ban, UserPlus, Trash2 } from "lucide-react";
+import { Users, Shield, Filter, Ban, UserPlus, Trash2, MessageSquare, Info } from "lucide-react";
 import Skeleton from "@/src/components/core/Skeleton";
+import SuperAdminDirectMessageModal from "@/src/components/base/SuperAdminDirectMessageModal";
 
 /**
- * Super Admin Users - User management, block, role change, impersonate
+ * Super Admin Users - User management, block
  */
 export default function SuperAdminUsersPage() {
+  const { user: currentUser } = useAuthStore();
   const { showError, showSuccess } = useToast();
   const [users, setUsers] = useState<UserI[]>([]);
   const [activeUsers, setActiveUsers] = useState<{ id: number; email: string; name: string; role: string; lastLoginAt?: string }[]>([]);
@@ -31,8 +33,24 @@ export default function SuperAdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState<string>("");
   const [userToBlock, setUserToBlock] = useState<UserI | null>(null);
   const [userToDelete, setUserToDelete] = useState<UserI | null>(null);
-  const [userToRole, setUserToRole] = useState<{ user: UserI; newRole: string } | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [dmTargetUser, setDmTargetUser] = useState<UserI | null>(null);
+  const [userToView, setUserToView] = useState<UserI | null>(null);
+
+  const pickUserField = (u: UserI, ...keys: string[]): string | undefined => {
+    const rec = u as unknown as Record<string, unknown>;
+    for (const k of keys) {
+      const v = rec[k];
+      if (v !== undefined && v !== null && String(v) !== "") return String(v);
+    }
+    return undefined;
+  };
+
+  const formatDateTime = (raw?: string) => {
+    if (!raw) return "—";
+    const d = new Date(raw);
+    return Number.isNaN(d.getTime()) ? raw : d.toLocaleString();
+  };
 
   const fetchUsers = async () => {
     try {
@@ -147,21 +165,40 @@ export default function SuperAdminUsersPage() {
       sortable: false,
       render: (item) => {
         const user = users.find((u) => String(u.id) === item.id);
-        if (!user || user.role === "super-admin") return null;
-        const isBlocked = (user as any).isBlocked;
+        if (!user) return null;
+        const isSuperAdmin = user.role === "super-admin";
+        const isBlocked = (user as { isBlocked?: boolean }).isBlocked;
         return (
           <div className="flex flex-wrap gap-1">
             <button
-              onClick={(e) => { e.stopPropagation(); handleImpersonate(user); }}
-              disabled={processing}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setUserToView(user);
+              }}
               className="p-1.5 rounded hover:bg-pale text-secondary text-xs flex items-center gap-1"
-              title="View as user"
+              title="View user details"
             >
-              <Eye size={14} />
-              View as
+              <Info size={14} />
+              View
             </button>
-            {isBlocked ? (
+            {!isSuperAdmin && (user.role === "partner" || user.role === "university-admin") && (
               <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDmTargetUser(user);
+                }}
+                className="p-1.5 rounded hover:bg-pale text-secondary text-xs flex items-center gap-1"
+                title="Direct message"
+              >
+                <MessageSquare size={14} />
+                Message
+              </button>
+            )}
+            {!isSuperAdmin && (isBlocked ? (
+              <button
+                type="button"
                 onClick={(e) => { e.stopPropagation(); handleActivate(user); }}
                 disabled={processing}
                 className="p-1.5 rounded hover:bg-muted-green text-green-600 text-xs"
@@ -171,28 +208,25 @@ export default function SuperAdminUsersPage() {
               </button>
             ) : (
               <button
+                type="button"
                 onClick={(e) => { e.stopPropagation(); setUserToBlock(user); }}
                 className="p-1.5 rounded hover:bg-muted-red text-red-600 text-xs"
                 title="Deactivate"
               >
                 Deactivate
               </button>
-            )}
+            ))}
+            {!isSuperAdmin && (
             <button
-              onClick={(e) => { e.stopPropagation(); setUserToRole({ user, newRole: user.role }); }}
-              className="p-1.5 rounded hover:bg-pale text-secondary"
-              title="Change role"
-            >
-              <UserCog size={14} />
-            </button>
-            <button
+              type="button"
               onClick={(e) => { e.stopPropagation(); setUserToDelete(user); }}
               className="p-1.5 rounded hover:bg-muted-red text-red-600 text-xs flex items-center gap-1"
-              title="Delete"
+              title="Soft delete user (account hidden, history kept)"
             >
               <Trash2 size={14} />
               Delete
             </button>
+            )}
           </div>
         );
       },
@@ -232,53 +266,13 @@ export default function SuperAdminUsersPage() {
     setProcessing(true);
     try {
       await adminRepository.deleteUser(Number(userToDelete.id));
-      showSuccess("User deleted");
+      showSuccess("User soft-deleted");
       setUserToDelete(null);
       fetchUsers();
     } catch (error) {
-      showError(error instanceof Error ? error.message : "Failed to delete user");
+      showError(error instanceof Error ? error.message : "Failed to soft-delete user");
     } finally {
       setProcessing(false);
-    }
-  };
-
-  const handleRoleChange = async () => {
-    if (!userToRole) return;
-    setProcessing(true);
-    try {
-      await adminRepository.updateUserRole(Number(userToRole.user.id), userToRole.newRole);
-      showSuccess("Role updated");
-      setUserToRole(null);
-      fetchUsers();
-    } catch (error) {
-      showError(error instanceof Error ? error.message : "Failed to update role");
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  const handleImpersonate = async (user: UserI) => {
-    try {
-      const currentToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      if (currentToken) {
-        sessionStorage.setItem("admin_token", currentToken);
-      }
-      const res = await adminRepository.impersonateUser(Number(user.id));
-      if (typeof window !== "undefined") {
-        localStorage.setItem("token", res.token);
-      }
-      useAuthStore.getState().setUser({
-        id: res.user.id,
-        name: res.user.name,
-        email: res.user.email,
-        role: res.user.role,
-      } as UserI);
-      useAuthStore.getState().setAccessToken(res.token);
-      sessionStorage.setItem("impersonating", "true");
-      showSuccess(`Viewing as ${res.user.name}`);
-      window.location.href = `/${res.user.role}`;
-    } catch (error) {
-      showError(error instanceof Error ? error.message : "Failed to impersonate");
     }
   };
 
@@ -351,6 +345,10 @@ export default function SuperAdminUsersPage() {
           showActions={false}
           pageSize={10}
           emptyMessage="No users found"
+          onRowClick={(row) => {
+            const u = users.find((x) => String(x.id) === row.id);
+            if (u) setUserToView(u);
+          }}
         />
       </Card>
 
@@ -375,52 +373,93 @@ export default function SuperAdminUsersPage() {
         open={!!userToDelete}
         onClose={() => setUserToDelete(null)}
         onConfirm={handleDelete}
-        title="Delete User"
+        title="Soft delete user"
         message={
           userToDelete ? (
             <p>
-              Permanently delete <strong>{userToDelete.name}</strong> ({userToDelete.email})? This will remove all associated data (students, projects, organizations, etc.). This cannot be undone.
+              Soft delete <strong>{userToDelete.name}</strong> ({userToDelete.email})? Their login will be blocked, email archived for uniqueness, and the row marked deleted in the database. Related history and references are kept. This is not a hard purge.
             </p>
           ) : null
         }
         type="danger"
-        confirmText="Delete"
+        confirmText="Soft delete"
         loading={processing}
       />
 
       <Modal
-        open={!!userToRole}
-        handleClose={() => setUserToRole(null)}
-        title="Change Role"
+        open={!!userToView}
+        handleClose={() => setUserToView(null)}
+        title={userToView ? `User #${userToView.id}` : "User details"}
         actions={[
-          <Button key="cancel" onClick={() => setUserToRole(null)} className="bg-pale">
-            Cancel
-          </Button>,
-          <Button
-            key="submit"
-            onClick={handleRoleChange}
-            disabled={!userToRole?.newRole}
-            className="bg-primary"
-            loading={processing}
-          >
-            Update
+          <Button key="close" onClick={() => setUserToView(null)} className="bg-primary">
+            Close
           </Button>,
         ]}
       >
-        {userToRole && (
-          <div className="space-y-4">
-            <p>
-              Change role for <strong>{userToRole.user.name}</strong> ({userToRole.user.email})
-            </p>
-            <Select
-              title="New Role"
-              value={userToRole.newRole}
-              onChange={(val) => setUserToRole({ ...userToRole, newRole: String(val) })}
-              options={roleOptions.filter((o) => o.value)}
-            />
-          </div>
+        {userToView && (
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+            <div>
+              <dt className="opacity-60">Name</dt>
+              <dd className="font-medium">{userToView.name}</dd>
+            </div>
+            <div>
+              <dt className="opacity-60">Email</dt>
+              <dd className="font-medium break-all">{userToView.email}</dd>
+            </div>
+            <div>
+              <dt className="opacity-60">Role</dt>
+              <dd className="font-medium">{userToView.role}</dd>
+            </div>
+            <div>
+              <dt className="opacity-60">Status</dt>
+              <dd className="font-medium">
+                {(userToView as { isBlocked?: boolean }).isBlocked ? "Blocked" : "Active"}
+              </dd>
+            </div>
+            <div>
+              <dt className="opacity-60">Last login</dt>
+              <dd className="font-medium">
+                {formatDateTime(
+                  pickUserField(userToView, "lastLoginAt", "LastLoginAt", "last_login_at")
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="opacity-60">Created</dt>
+              <dd className="font-medium">
+                {formatDateTime(
+                  pickUserField(userToView, "createdAt", "CreatedAt", "created_at") ?? userToView.createdAt
+                )}
+              </dd>
+            </div>
+            {(pickUserField(userToView, "universityId", "UniversityId", "university_id") ||
+              userToView.universityId != null) && (
+              <div>
+                <dt className="opacity-60">University ID</dt>
+                <dd className="font-medium">
+                  {String(userToView.universityId ?? pickUserField(userToView, "universityId", "UniversityId", "university_id"))}
+                </dd>
+              </div>
+            )}
+            {(pickUserField(userToView, "orgId", "OrgId", "org_id") || userToView.orgId != null) && (
+              <div>
+                <dt className="opacity-60">Organization ID</dt>
+                <dd className="font-medium">
+                  {String(userToView.orgId ?? pickUserField(userToView, "orgId", "OrgId", "org_id"))}
+                </dd>
+              </div>
+            )}
+          </dl>
         )}
       </Modal>
+
+      <SuperAdminDirectMessageModal
+        open={!!dmTargetUser}
+        onClose={() => setDmTargetUser(null)}
+        targetUserId={dmTargetUser ? Number(dmTargetUser.id) : null}
+        title={dmTargetUser ? `Message ${dmTargetUser.name}` : "Direct message"}
+        currentUserId={currentUser?.id}
+      />
 
     </div>
   );

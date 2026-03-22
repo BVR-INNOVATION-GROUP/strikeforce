@@ -30,19 +30,32 @@ export interface Props {
   height?: number;
 }
 
+const MAX_TICK_LEN = 16;
+
+function truncateAxisLabel(raw: string): string {
+  const s = String(raw);
+  if (s.length <= MAX_TICK_LEN) return s;
+  return `${s.slice(0, MAX_TICK_LEN - 1)}…`;
+}
+
 /**
  * Area Chart - filled trend/volume over time. Uses complementary palette per chart.
  */
-const AreaChart = ({ title, data, areas, height = 300 }: Props) => {
+const AreaChart = ({ title, data, areas, height = 320 }: Props) => {
   return (
     <Card title={title}>
       <ResponsiveContainer width="100%" height={height}>
-        <RechartsAreaChart data={data}>
+        <RechartsAreaChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 40 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis
             dataKey="name"
             stroke="var(--text-secondary)"
-            style={{ fontSize: "12px" }}
+            tick={{ fontSize: 10 }}
+            height={48}
+            interval={0}
+            angle={-35}
+            textAnchor="end"
+            tickFormatter={truncateAxisLabel}
           />
           <YAxis
             stroke="var(--text-secondary)"
@@ -55,6 +68,7 @@ const AreaChart = ({ title, data, areas, height = 300 }: Props) => {
               borderRadius: "4px",
               fontSize: "12px",
             }}
+            labelFormatter={(label) => String(label)}
           />
           <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }} />
           {areas.map((area, index) => (

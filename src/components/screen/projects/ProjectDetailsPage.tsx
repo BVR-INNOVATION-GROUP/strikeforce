@@ -34,6 +34,11 @@ import { notificationService } from "@/src/services/notificationService";
 import { useSupervisorRequestForm } from "@/src/hooks/useSupervisorRequestForm";
 import { useSupervisorRequestData } from "@/src/hooks/useSupervisorRequestData";
 import { projectService } from "@/src/services/projectService";
+import { organizationRepository } from "@/src/repositories/organizationRepository";
+import Button from "@/src/components/core/Button";
+import Card from "@/src/components/core/Card";
+import SuperAdminDirectMessageModal from "@/src/components/base/SuperAdminDirectMessageModal";
+import { directMessageService } from "@/src/services/directMessageService";
 
 export interface Props {
   projectId: string;
@@ -54,6 +59,10 @@ export default function ProjectDetailsPage({ projectId }: Props) {
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [submittingApplication, setSubmittingApplication] = useState(false);
   const [userGroups, setUserGroups] = useState<GroupI[]>([]);
+  const [partnerOrgIdForAdmin, setPartnerOrgIdForAdmin] = useState<number | null>(null);
+  const [dmOpen, setDmOpen] = useState(false);
+  const [dmTargetUserId, setDmTargetUserId] = useState<number | null>(null);
+  const [dmModalTitle, setDmModalTitle] = useState("Direct message");
 
   // Wait for hydration before checking user
   useEffect(() => {
@@ -167,6 +176,27 @@ export default function ProjectDetailsPage({ projectId }: Props) {
     loadProjectSupervisors();
   }, [projectData?.departmentId, user?.role]);
 
+  useEffect(() => {
+    if (user?.role !== "super-admin" || projectData?.partnerId == null) {
+      setPartnerOrgIdForAdmin(null);
+      return;
+    }
+    const pid = projectData.partnerId;
+    (async () => {
+      try {
+        const orgs = await organizationRepository.getAll();
+        const partner = orgs.find(
+          (o) =>
+            o.type === "PARTNER" &&
+            (o.userId === pid || Number(o.userId) === Number(pid) || o.id === pid)
+        );
+        setPartnerOrgIdForAdmin(partner?.id ?? null);
+      } catch {
+        setPartnerOrgIdForAdmin(null);
+      }
+    })();
+  }, [user?.role, projectData?.partnerId]);
+
   // Load users and groups for screening (university admin only)
   useEffect(() => {
     const loadScreeningData = async () => {
@@ -261,14 +291,13 @@ export default function ProjectDetailsPage({ projectId }: Props) {
     projectUniversityId &&
     userUniversityId === projectUniversityId;
 
-  // Project owners (partners) and super-admins can edit projects
-  const canEditProject = (user?.role === "partner" && isProjectOwner) || user?.role === "super-admin";
-  // Project owners (partners) and super-admins can delete projects
-  const canDeleteProject = (user?.role === "partner" && isProjectOwner) || user?.role === "super-admin";
-  // Project owners (partners) and super-admins can see quick actions
+  const isSuperAdminOversight = user?.role === "super-admin";
+
+  // Super-admin: read-only oversight; partners: full owner controls
+  const canEditProject = !isSuperAdminOversight && user?.role === "partner" && isProjectOwner;
+  const canDeleteProject = !isSuperAdminOversight && user?.role === "partner" && isProjectOwner;
   const canSeeQuickActions =
-    (user?.role === "partner" && isProjectOwner) ||
-    user?.role === "super-admin";
+    (user?.role === "partner" && isProjectOwner) || isSuperAdminOversight;
 
   // Cast applications to proper type for TypeScript
   const typedApplications = applications as ApplicationI[];
@@ -534,15 +563,11 @@ export default function ProjectDetailsPage({ projectId }: Props) {
 
   // Only project owner (partner) can manage applications
   const canManageApplications = user?.role === "partner" && isProjectOwner;
-  // Only partners who own the project and super-admins can add milestones
   const canAddMilestone =
-    (user?.role === "partner" && isProjectOwner) ||
-    user?.role === "super-admin";
+    (user?.role === "partner" && isProjectOwner) || user?.role === "super-admin";
 
-  // Only partners who own the project and super-admins can edit/delete milestones
   const canEditDeleteMilestone =
-    (user?.role === "partner" && isProjectOwner) ||
-    user?.role === "super-admin";
+    (user?.role === "partner" && isProjectOwner) || user?.role === "super-admin";
 
   // University admins can only approve/disapprove/suspend projects (for their university's projects)
   const canManageProjectStatus = user?.role === "university-admin" && isProjectInUniversity;
@@ -1130,11 +1155,84 @@ export default function ProjectDetailsPage({ projectId }: Props) {
           createdAt={project.createdAt}
           onBack={() => router.back()}
           onOpenChat={
+            !isSuperAdminOversight &&
             filteredApplications.some((a) => a.status === "ASSIGNED")
               ? actions.handleOpenChat
               : undefined
           }
           formatDate={formatDateLong}
+        />
+        {isSuperAdminOversight && projectData && (
+          <Card className="p-4 mt-4">
+            <p className="text-sm font-medium mb-3">Platform oversight</p>
+            <div className="flex flex-wrap gap-2">
+              {partnerOrgIdForAdmin != null && (
+                <Button
+                  type="button"
+                  className="bg-pale text-[0.875rem] py-2.5 px-4"
+                  onClick={() => router.push(`/super-admin/partners/${partnerOrgIdForAdmin}`)}
+                >
+                  Open partner organization
+                </Button>
+              )}
+              {projectData.universityId ? (
+                <Button
+                  type="button"
+                  className="bg-pale text-[0.875rem] py-2.5 px-4"
+                  onClick={() =>
+                    router.push(`/super-admin/universities/${projectData.universityId}`)
+                  }
+                >
+                  Open university
+                </Button>
+              ) : null}
+              {projectData.partnerId ? (
+                <Button
+                  type="button"
+                  className="bg-pale text-[0.875rem] py-2.5 px-4"
+                  onClick={() => {
+                    setDmTargetUserId(Number(projectData.partnerId));
+                    setDmModalTitle("Message partner");
+                    setDmOpen(true);
+                  }}
+                >
+                  Message partner
+                </Button>
+              ) : null}
+              {projectData.universityId ? (
+                <Button
+                  type="button"
+                  className="bg-pale text-[0.875rem] py-2.5 px-4"
+                  onClick={async () => {
+                    try {
+                      const u = await directMessageService.getUniversityAdminForOrg(
+                        Number(projectData.universityId)
+                      );
+                      setDmTargetUserId(u.userId);
+                      setDmModalTitle("Message university admin");
+                      setDmOpen(true);
+                    } catch (err) {
+                      toast.showError(
+                        err instanceof Error ? err.message : "Could not resolve university admin"
+                      );
+                    }
+                  }}
+                >
+                  Message university admin
+                </Button>
+              ) : null}
+            </div>
+          </Card>
+        )}
+        <SuperAdminDirectMessageModal
+          open={dmOpen}
+          onClose={() => {
+            setDmOpen(false);
+            setDmTargetUserId(null);
+          }}
+          targetUserId={dmTargetUserId}
+          title={dmModalTitle}
+          currentUserId={user?.id}
         />
       </div>
 
@@ -1168,7 +1266,7 @@ export default function ProjectDetailsPage({ projectId }: Props) {
               : undefined}
             onWithdraw={user?.role === "student" ? handleWithdrawApplication : undefined}
             onTerminate={user?.role === "student" ? handleTerminateContract : undefined}
-            onOpenChat={actions.handleOpenChat}
+            onOpenChat={isSuperAdminOversight ? undefined : actions.handleOpenChat}
             onAddMilestone={canAddMilestone ? modals.openMilestoneModal : undefined}
             onEditMilestone={canEditDeleteMilestone ? handleEditMilestone : undefined}
             onDeleteMilestone={canEditDeleteMilestone ? openDeleteMilestoneConfirm : undefined}

@@ -267,32 +267,7 @@ export default function SuperAdminDashboard() {
       </div>
 
       {/* Storage Widget */}
-      {storageUsage && (
-        <Card className="p-4 mb-8">
-          <div className="flex items-center gap-2 mb-3">
-            <HardDrive size={20} />
-            <span className="text-sm font-semibold">Cloudinary Storage</span>
-          </div>
-          {storageUsage.configured ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <p className="text-xs text-secondary">Storage</p>
-                <p className="text-lg font-semibold">{(storageUsage.storage / 1024 / 1024).toFixed(2)} MB</p>
-              </div>
-              <div>
-                <p className="text-xs text-secondary">Bandwidth</p>
-                <p className="text-lg font-semibold">{(storageUsage.bandwidth / 1024 / 1024).toFixed(2)} MB</p>
-              </div>
-              <div>
-                <p className="text-xs text-secondary">Resources</p>
-                <p className="text-lg font-semibold">{storageUsage.resources.toLocaleString()}</p>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-secondary">Cloudinary not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET.</p>
-          )}
-        </Card>
-      )}
+      
 
       {/* Charts Row - mix Bar, Pie, Area for variation */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

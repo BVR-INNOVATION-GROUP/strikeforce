@@ -13,13 +13,22 @@ type Role = "partner" | "student" | "supervisor" | "university-admin" | "delegat
 
 const Sidebar = () => {
     // Get user role from auth store (in production, from NextAuth session)
-    const { user } = useAuthStore();
+    const { user, organization } = useAuthStore();
     const pathname = usePathname();
     const userRole: Role = user?.role || "partner";
     const [selectedTitle, setSelectedTitle] = useState("")
 
-    // Get filtered links based on user role
-    const links = useSidebarLinks(userRole);
+    const links = useSidebarLinks(
+      userRole,
+      userRole === "delegated-admin" ? organization?.type : undefined
+    );
+
+    const pathMatchRole =
+      userRole === "delegated-admin" && organization?.type === "PARTNER"
+        ? "partner"
+        : userRole === "delegated-admin"
+          ? "university-admin"
+          : userRole;
 
     return (
         <div className="hidden md:flex fixed top-[8vh] left-0 bottom-0 bg-paper z-[1] w-[6vw] flex-col items-center gap-3 p-[2vw] border-r border-custom">
@@ -31,7 +40,8 @@ const Sidebar = () => {
                     // For prefix matching: check if current pathname starts with this link's path
                     // This handles nested routes like /university-admin/departments/[id]/courses
                     // Exclude dashboard routes from prefix matching (only exact match for dashboard)
-                    const isDashboardRoute = l.path === `/${userRole}` || l.path === `/${userRole}/`;
+                    const isDashboardRoute =
+                      l.path === `/${pathMatchRole}` || l.path === `/${pathMatchRole}/`;
                     const prefixMatch = !isDashboardRoute && pathname && pathname.startsWith(l.path + "/");
 
                     const isActive = exactMatch || prefixMatch;

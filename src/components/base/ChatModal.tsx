@@ -126,10 +126,10 @@ const ChatModal = ({
     }
   }, [propUsers]);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Scroll to bottom when messages change (auto: avoids smooth-scroll jitter when list re-fetches)
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current.scrollIntoView({ behavior: "auto", block: "end" });
     }
   }, [messages]);
 

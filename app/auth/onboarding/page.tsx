@@ -17,7 +17,7 @@ import { userRepository } from "@/src/repositories/userRepository";
 
 const OnboardingPage = () => {
   const router = useRouter();
-  const { user, setUser } = useAuthStore();
+  const { user, setUser, organization } = useAuthStore();
   const { showSuccess, showError } = useToast();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -160,15 +160,17 @@ const OnboardingPage = () => {
 
       showSuccess("Profile completed successfully!");
 
-      // Redirect based on role
-      const roleRoutes: Record<string, string> = {
-        "delegated-admin": "/university-admin",
-        partner: "/partner",
-        "university-admin": "/university-admin",
-      };
+      const postOnboardingPath =
+        user.role === "delegated-admin"
+          ? organization?.type === "PARTNER"
+            ? "/partner"
+            : "/university-admin"
+          : user.role === "partner"
+            ? "/partner"
+            : "/university-admin";
 
       setTimeout(() => {
-        router.push(roleRoutes[user.role] || "/partner");
+        router.push(postOnboardingPath);
       }, 1000);
     } catch (error) {
       console.error("Onboarding failed:", error);

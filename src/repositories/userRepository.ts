@@ -6,6 +6,18 @@
 import { api } from "@/src/api/client";
 import { UserI } from "@/src/models/user";
 
+/** Go/gorm often returns `ID`; frontend expects `id`. */
+function normalizeUserList(raw: unknown): UserI[] {
+  const list = Array.isArray(raw) ? raw : [];
+  return (list as (UserI & { ID?: number })[])
+    .map((u) => {
+      const uid = u.id ?? u.ID;
+      const id = typeof uid === "number" && !Number.isNaN(uid) ? uid : Number(uid);
+      return { ...u, id } as UserI;
+    })
+    .filter((u) => typeof u.id === "number" && !Number.isNaN(u.id));
+}
+
 export const userRepository = {
   /**
    * Get current user
@@ -28,7 +40,8 @@ export const userRepository = {
    * Backend endpoint: GET /user/all
    */
   getAll: async (): Promise<UserI[]> => {
-    return api.get<UserI[]>("/user/all");
+    const raw = await api.get<UserI[]>("/user/all");
+    return normalizeUserList(raw);
   },
 
   /**
@@ -38,7 +51,8 @@ export const userRepository = {
    */
   getByRole: async (role: string): Promise<UserI[]> => {
     const queryRole = encodeURIComponent(role);
-    return api.get<UserI[]>(`/user/all?role=${queryRole}`);
+    const raw = await api.get<UserI[]>(`/user/all?role=${queryRole}`);
+    return normalizeUserList(raw);
   },
 
   /**
@@ -66,12 +80,15 @@ export const userRepository = {
     if (params.universityId) {
       queryParams.append("universityId", params.universityId.toString());
     }
-    const raw = await api.get<UserI[]>(`/user/search?${queryParams.toString()}`);
+    const raw = await api.get<UserI[]>(
+      `/user/search?${queryParams.toString()}`
+    );
     // Normalize: backend (Go/gorm) returns "ID"; ensure UserI has lowercase "id"
     return (Array.isArray(raw) ? raw : [])
       .map((u: UserI & { ID?: number }) => {
         const uid = u.id ?? u.ID;
-        const id = typeof uid === "number" && !Number.isNaN(uid) ? uid : Number(uid);
+        const id =
+          typeof uid === "number" && !Number.isNaN(uid) ? uid : Number(uid);
         return { ...u, id } as UserI;
       })
       .filter((u) => typeof u.id === "number" && !Number.isNaN(u.id));

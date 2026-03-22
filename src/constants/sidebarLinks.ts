@@ -24,9 +24,7 @@ import {
   UserCog,
   DollarSign,
   Network,
-  FileStack,
   Palette,
-  HardDrive,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { SidebarLinkI } from "@/src/components/base/SidebarLink";
@@ -57,6 +55,11 @@ export const sidebarLinks: SideLinkCategory[] = [
         path: "/partner/projects",
       },
       { title: "Profile", iconComponent: User, path: "/partner/profile" },
+      {
+        title: "Delegated Access",
+        iconComponent: UserCog,
+        path: "/partner/delegated-access",
+      },
       { title: "Settings", iconComponent: Settings, path: "/partner/settings" },
     ],
   },
@@ -206,16 +209,6 @@ export const sidebarLinks: SideLinkCategory[] = [
         path: "/super-admin/collaborations",
       },
       {
-        title: "Files",
-        iconComponent: FileStack,
-        path: "/super-admin/files",
-      },
-      {
-        title: "Storage",
-        iconComponent: HardDrive,
-        path: "/super-admin/storage",
-      },
-      {
         title: "Surveys",
         iconComponent: ClipboardList,
         path: "/super-admin/surveys",
@@ -224,6 +217,11 @@ export const sidebarLinks: SideLinkCategory[] = [
         title: "Users",
         iconComponent: Users,
         path: "/super-admin/users",
+      },
+      {
+        title: "Super admin delegates",
+        iconComponent: UserCog,
+        path: "/super-admin/delegated-access",
       },
       {
         title: "Branding",

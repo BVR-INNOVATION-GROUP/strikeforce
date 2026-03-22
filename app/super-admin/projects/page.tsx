@@ -15,7 +15,7 @@ import { organizationRepository } from "@/src/repositories/organizationRepositor
 import { ProjectI } from "@/src/models/project";
 import { OrganizationI } from "@/src/models/organization";
 import { useToast } from "@/src/hooks/useToast";
-import { Briefcase, Building2, GraduationCap, Filter, FileText } from "lucide-react";
+import { Briefcase, Filter, FileText, TrendingUp, DollarSign, Award, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import StatusIndicator from "@/src/components/core/StatusIndicator";
 import Skeleton from "@/src/components/core/Skeleton";
@@ -132,6 +132,12 @@ export default function SuperAdminProjectsPage() {
     return { total: filteredProjects.length, draft, published, inProgress, completed, totalBudget };
   }, [filteredProjects]);
 
+  /** Single label for combined budget display (mixed currencies are summed nominally). */
+  const budgetDisplayCurrency = useMemo(() => {
+    const cur = filteredProjects.find((p) => p.currency)?.currency;
+    return cur || "USD";
+  }, [filteredProjects]);
+
   const statusChartData = useMemo(
     () => [
       { name: "Draft", value: stats.draft },
@@ -211,7 +217,7 @@ export default function SuperAdminProjectsPage() {
           <Skeleton width={300} height={16} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {[1, 2, 3, 4].map((i) => (
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <Skeleton key={i} className="h-24" />
           ))}
         </div>
@@ -230,13 +236,18 @@ export default function SuperAdminProjectsPage() {
         <p className="text-[0.875rem] opacity-60">All projects on the platform</p>
       </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-        <StatCard icon={<Briefcase size={20} />} title="Total" value={stats.total} />
+      {/* Stat cards — same rhythm as partner dashboard (lg:grid-cols-4), plus pipeline row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard icon={<Briefcase size={20} />} title="Total projects" value={stats.total} />
+        <StatCard icon={<TrendingUp size={20} />} title="In progress" value={stats.inProgress} />
+        <StatCard icon={<Award size={20} />} title="Completed" value={stats.completed} />
+        <StatCard
+          icon={<DollarSign size={20} />}
+          title="Combined budget"
+          value={`${budgetDisplayCurrency} ${stats.totalBudget.toLocaleString()}`}
+        />
         <StatCard icon={<FileText size={20} />} title="Draft" value={stats.draft} />
-        <StatCard icon={<FileText size={20} />} title="Published" value={stats.published} />
-        <StatCard icon={<FileText size={20} />} title="In Progress" value={stats.inProgress} />
-        <StatCard icon={<FileText size={20} />} title="Completed" value={stats.completed} />
+        <StatCard icon={<Send size={20} />} title="Published" value={stats.published} />
       </div>
 
       {/* Charts */}
@@ -310,8 +321,7 @@ export default function SuperAdminProjectsPage() {
           pageSize={10}
           emptyMessage="No projects found"
           onRowClick={(row) => {
-            const orgId = getPartnerOrgId(filteredProjects.find((p) => String(p.id) === row.id)?.partnerId ?? 0);
-            if (orgId) router.push(`/super-admin/partners/${orgId}`);
+            router.push(`/super-admin/projects/${row.id}`);
           }}
         />
       </Card>

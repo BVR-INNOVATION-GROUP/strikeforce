@@ -39,32 +39,50 @@ function isPublicRoute(pathname: string): boolean {
   return publicRoutes.some((route) => pathname.startsWith(route));
 }
 
+type UserCookiePayload = {
+  role?: string;
+  orgType?: string;
+};
+
 /**
- * Get user role from request (in production, from session/token)
- * For now, we'll check cookies or headers for user info
+ * Get user payload from cookie (role + orgType for delegated-admin routing)
  */
-function getUserRole(request: NextRequest): string | null {
-  // In production, this would read from session or JWT token
-  // For development, check if we have a user cookie
+function getUserCookiePayload(request: NextRequest): UserCookiePayload | null {
   const userCookie = request.cookies.get("user");
-  if (userCookie) {
+  if (!userCookie?.value) return null;
+  try {
+    const raw = userCookie.value.trim().startsWith("%7B")
+      ? decodeURIComponent(userCookie.value)
+      : userCookie.value;
+    const user = JSON.parse(raw) as UserCookiePayload;
+    return user?.role ? user : null;
+  } catch {
     try {
-      const user = JSON.parse(userCookie.value);
-      return user.role || null;
+      const user = JSON.parse(decodeURIComponent(userCookie.value)) as UserCookiePayload;
+      return user?.role ? user : null;
     } catch {
       return null;
     }
   }
-  return null;
 }
 
 /**
  * Check if user has access to a route
  */
-function hasAccess(role: string | null, pathname: string): boolean {
-  if (!role) return false;
+function hasAccess(payload: UserCookiePayload | null, pathname: string): boolean {
+  if (!payload?.role) return false;
+  const role = payload.role;
 
-  // Check if pathname matches unknown of the role's allowed routes
+  // Delegated admins use the app surface of whoever invited them (partner vs university org)
+  if (role === "delegated-admin") {
+    const ot = payload.orgType;
+    if (ot === "PARTNER") return pathname.startsWith("/partner");
+    if (ot === "UNIVERSITY") return pathname.startsWith("/university-admin");
+    return (
+      pathname.startsWith("/partner") || pathname.startsWith("/university-admin")
+    );
+  }
+
   const allowedRoutes = roleRoutes[role] || [];
   return allowedRoutes.some((route) => pathname.startsWith(route));
 }
@@ -77,20 +95,25 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Get user role
-  const userRole = getUserRole(request);
+  const userPayload = getUserCookiePayload(request);
 
   // If accessing a protected route without authentication, redirect to login
-  if (!userRole && !isPublicRoute(pathname)) {
+  if (!userPayload?.role && !isPublicRoute(pathname)) {
     const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
   // Check if user has access to the requested route
-  if (userRole && !hasAccess(userRole, pathname)) {
-    // User doesn't have access - redirect to their dashboard
-    const dashboardRoute = roleRoutes[userRole]?.[0] || "/auth/login";
+  if (userPayload?.role && !hasAccess(userPayload, pathname)) {
+    let dashboardRoute = "/auth/login";
+    if (userPayload.role === "delegated-admin") {
+      if (userPayload.orgType === "PARTNER") dashboardRoute = "/partner";
+      else if (userPayload.orgType === "UNIVERSITY") dashboardRoute = "/university-admin";
+      else dashboardRoute = "/university-admin";
+    } else {
+      dashboardRoute = roleRoutes[userPayload.role]?.[0] || "/auth/login";
+    }
     return NextResponse.redirect(new URL(dashboardRoute, request.url));
   }
 

@@ -352,27 +352,45 @@ const ProjectContent = (props: Props) => {
                                 const totalApplications = applications.length;
 
                                 return (
-                                    <div className="grid grid-cols-3 gap-4 p-4 bg-pale rounded-lg border border-custom">
-                                        <div className="text-center">
-                                            <div className="flex items-center justify-center gap-1.5 mb-1">
-                                                <UserCheck size={16} className={assignedApplication ? "text-green-600" : "text-secondary opacity-40"} />
-                                                <p className="text-[0.8125rem] opacity-60">Groups Assigned</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 lg:gap-10">
+                                        <div className="flex flex-col min-w-0">
+                                            <div className="flex items-start gap-3 mb-3">
+                                                <div
+                                                    className={`p-3 rounded-lg bg-pale shrink-0 ${assignedApplication ? "text-green-600" : "text-secondary opacity-50"}`}
+                                                >
+                                                    <UserCheck size={20} strokeWidth={2} />
+                                                </div>
+                                                <span className="text-sm text-secondary font-medium leading-snug pt-0.5">
+                                                    Groups assigned
+                                                </span>
                                             </div>
-                                            <p className="text-xl font-bold">{assignedApplication ? "1" : "0"}</p>
+                                            <p className="text-3xl tabular-nums tracking-tight">
+                                                {assignedApplication ? 1 : 0}
+                                            </p>
                                         </div>
-                                        <div className="text-center">
-                                            <div className="flex items-center justify-center gap-1.5 mb-1">
-                                                <Clock size={16} className={pendingApplications > 0 ? "text-amber-600" : "text-secondary opacity-40"} />
-                                                <p className="text-[0.8125rem] opacity-60">Pending Review</p>
+                                        <div className="flex flex-col min-w-0">
+                                            <div className="flex items-start gap-3 mb-3">
+                                                <div
+                                                    className={`p-3 rounded-lg bg-pale shrink-0 ${pendingApplications > 0 ? "text-amber-600" : "text-secondary opacity-50"}`}
+                                                >
+                                                    <Clock size={20} strokeWidth={2} />
+                                                </div>
+                                                <span className="text-sm text-secondary font-medium leading-snug pt-0.5">
+                                                    Pending review
+                                                </span>
                                             </div>
-                                            <p className="text-xl font-bold">{pendingApplications}</p>
+                                            <p className="text-3xl tabular-nums tracking-tight">{pendingApplications}</p>
                                         </div>
-                                        <div className="text-center">
-                                            <div className="flex items-center justify-center gap-1.5 mb-1">
-                                                <Users size={16} className="text-primary" />
-                                                <p className="text-[0.8125rem] opacity-60">Total Applications</p>
+                                        <div className="flex flex-col min-w-0">
+                                            <div className="flex items-start gap-3 mb-3">
+                                                <div className="p-3 rounded-lg bg-pale shrink-0 text-primary">
+                                                    <Users size={20} strokeWidth={2} />
+                                                </div>
+                                                <span className="text-sm text-secondary font-medium leading-snug pt-0.5">
+                                                    Total applications
+                                                </span>
                                             </div>
-                                            <p className="text-xl font-bold">{totalApplications}</p>
+                                            <p className="text-3xl tabular-nums tracking-tight">{totalApplications}</p>
                                         </div>
                                     </div>
                                 );

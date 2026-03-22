@@ -16,14 +16,20 @@ export interface Props {
  * PRD Reference: Section 4 - Organizations must be approved before accessing dashboard
  */
 export default function KYCRouteProtector({ children }: Props) {
-  const { user } = useAuthStore();
+  const { user, organization: authOrg } = useAuthStore();
   const [organization, setOrganization] = useState<OrganizationI | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkKYCStatus = async () => {
-      // Only check for partner and university-admin roles
-      if (!user || (user.role !== "partner" && user.role !== "university-admin")) {
+      const isPartnerSurface =
+        user?.role === "partner" ||
+        (user?.role === "delegated-admin" && authOrg?.type === "PARTNER");
+      const isUniversitySurface =
+        user?.role === "university-admin" ||
+        (user?.role === "delegated-admin" && authOrg?.type === "UNIVERSITY");
+
+      if (!user || (!isPartnerSurface && !isUniversitySurface)) {
         setLoading(false);
         return;
       }
@@ -48,7 +54,7 @@ export default function KYCRouteProtector({ children }: Props) {
     };
 
     checkKYCStatus();
-  }, [user]);
+  }, [user, authOrg?.type]);
 
   // Show loading state
   if (loading) {
@@ -59,17 +65,40 @@ export default function KYCRouteProtector({ children }: Props) {
     );
   }
 
-  // If user is partner or university-admin and KYC is not approved, show pending screen
-  if (
+  const isPartnerKyc =
     user &&
-    (user.role === "partner" || user.role === "university-admin") &&
+    (user.role === "partner" ||
+      (user.role === "delegated-admin" && authOrg?.type === "PARTNER"));
+
+  if (
+    isPartnerKyc &&
     organization &&
     organization.kycStatus !== "APPROVED"
   ) {
     return (
       <PendingApprovalScreen
         organization={organization}
-        userRole={user.role}
+        userRole={user.role === "delegated-admin" ? "partner" : user.role}
+      />
+    );
+  }
+
+  const isUniversityKyc =
+    user &&
+    (user.role === "university-admin" ||
+      (user.role === "delegated-admin" && authOrg?.type === "UNIVERSITY"));
+
+  if (
+    isUniversityKyc &&
+    organization &&
+    organization.kycStatus !== "APPROVED"
+  ) {
+    return (
+      <PendingApprovalScreen
+        organization={organization}
+        userRole={
+          user.role === "delegated-admin" ? "university-admin" : user.role
+        }
       />
     );
   }

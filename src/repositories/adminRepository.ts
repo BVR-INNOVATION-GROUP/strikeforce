@@ -2,6 +2,10 @@
  * Repository for super-admin API operations
  */
 import { api } from "@/src/api/client";
+import type {
+  CreateSuperAdminDelegationRequest,
+  SuperAdminDelegationI,
+} from "@/src/models/superAdminDelegation";
 
 export interface DNASurveyItem {
   studentId: number;
@@ -163,5 +167,20 @@ export const adminRepository = {
       {}
     );
     return res;
+  },
+
+  getSuperAdminDelegations: async (): Promise<SuperAdminDelegationI[]> => {
+    const data = await api.get<SuperAdminDelegationI[]>("/api/v1/admin/super-admin-delegations");
+    return Array.isArray(data) ? data : [];
+  },
+
+  createSuperAdminDelegation: async (
+    body: CreateSuperAdminDelegationRequest
+  ): Promise<SuperAdminDelegationI> => {
+    return api.post<SuperAdminDelegationI>("/api/v1/admin/super-admin-delegations", body);
+  },
+
+  deleteSuperAdminDelegation: async (id: number): Promise<void> => {
+    await api.delete(`/api/v1/admin/super-admin-delegations/${id}`);
   },
 };

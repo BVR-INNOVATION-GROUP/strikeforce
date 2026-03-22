@@ -14,6 +14,33 @@ const defaultLogos = [
   { name: "Bharti Airtel", logo: "https://cdn.worldvectorlogo.com/logos/bharti-airtel-limited.svg", alt: "Bharti Airtel" },
 ];
 
+function resolveLogoUrl(logo: string): string {
+  if (!logo) return "";
+  if (logo.startsWith("http://") || logo.startsWith("https://")) return logo;
+  return `${BASE_URL}${logo.startsWith("/") ? "" : "/"}${logo}`;
+}
+
+function mergeLogoLists(
+  orgRows: { name: string; logoUrl: string }[],
+  manualRows: { name: string; logoUrl: string; altText?: string }[]
+): { name: string; logo: string; alt: string }[] {
+  const seen = new Set<string>();
+  const out: { name: string; logo: string; alt: string }[] = [];
+  const add = (name: string, rawLogo: string, alt: string) => {
+    const trimmed = rawLogo?.trim() ?? "";
+    const logo = trimmed ? resolveLogoUrl(trimmed) : "";
+    const key = logo
+      ? `${name.trim().toLowerCase()}|${logo}`
+      : `${name.trim().toLowerCase()}|_name_only_`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({ name, logo, alt: alt || name });
+  };
+  orgRows.forEach((r) => add(r.name, r.logoUrl, r.name));
+  manualRows.forEach((r) => add(r.name, r.logoUrl, r.altText || r.name));
+  return out;
+}
+
 const CompanyLogosScroll: React.FC = () => {
   const [logos, setLogos] = useState<{ name: string; logo: string; alt: string }[]>(defaultLogos);
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
@@ -21,20 +48,26 @@ const CompanyLogosScroll: React.FC = () => {
   useEffect(() => {
     const fetchLogos = async () => {
       try {
-        const url = `${BASE_URL}/api/v1/login-logos`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const json = await res.json();
-          const data = json?.data ?? json;
-          if (Array.isArray(data) && data.length > 0) {
-            setLogos(
-              data.map((l: { name: string; logoUrl: string; altText?: string }) => ({
-                name: l.name,
-                logo: l.logoUrl,
-                alt: l.altText || l.name,
-              }))
-            );
-          }
+        const [orgRes, loginRes] = await Promise.all([
+          fetch(`${BASE_URL}/api/v1/organizations/public-logos`),
+          fetch(`${BASE_URL}/api/v1/login-logos`),
+        ]);
+        const orgJson = orgRes.ok ? await orgRes.json().catch(() => ({})) : {};
+        const loginJson = loginRes.ok ? await loginRes.json().catch(() => ({})) : {};
+        const orgData = Array.isArray(orgJson?.data) ? orgJson.data : [];
+        const loginData = Array.isArray(loginJson?.data) ? loginJson.data : [];
+        const orgRows = orgData.map((l: { name: string; logoUrl: string }) => ({
+          name: l.name,
+          logoUrl: l.logoUrl,
+        }));
+        const manualRows = loginData.map((l: { name: string; logoUrl: string; altText?: string }) => ({
+          name: l.name,
+          logoUrl: l.logoUrl,
+          altText: l.altText,
+        }));
+        const merged = mergeLogoLists(orgRows, manualRows);
+        if (merged.length > 0) {
+          setLogos(merged);
         }
       } catch {
         // Keep default logos on error
@@ -72,7 +105,7 @@ const CompanyLogosScroll: React.FC = () => {
                 className="flex-shrink-0 w-32 h-20 bg-paper rounded-2xl border border-custom p-4 flex items-center justify-center"
                 title={company.name}
               >
-                {imageErrors[index] ? (
+                {!company.logo || imageErrors[index] ? (
                   <div className="text-xs text-muted font-medium text-center px-2">
                     {company.name}
                   </div>

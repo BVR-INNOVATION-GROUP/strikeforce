@@ -26,7 +26,7 @@ export interface Props {
 /**
  * Pie Chart - parts of a whole. Each slice uses complementary palette (one per chart).
  */
-const PieChart = ({ title, data, height = 300 }: Props) => {
+const PieChart = ({ title, data, height = 320 }: Props) => {
   return (
     <Card title={title}>
       <ResponsiveContainer width="100%" height={height}>
@@ -37,12 +37,10 @@ const PieChart = ({ title, data, height = 300 }: Props) => {
             nameKey="name"
             cx="50%"
             cy="50%"
-            outerRadius="80%"
+            outerRadius="78%"
             paddingAngle={2}
             stroke="var(--paper)"
             strokeWidth={1}
-            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-            labelLine={{ stroke: "var(--text-secondary)" }}
           >
             {data.map((_, index) => (
               <Cell key={index} fill={getChartColor(index, undefined, title)} />
@@ -55,7 +53,12 @@ const PieChart = ({ title, data, height = 300 }: Props) => {
               borderRadius: "4px",
               fontSize: "12px",
             }}
-            formatter={(value: number) => [value, "Value"]}
+            formatter={(value: number, name: string, item: { payload?: { value?: number } }) => {
+              const total = data.reduce((s, d) => s + d.value, 0) || 1;
+              const v = item?.payload?.value ?? value;
+              const pct = ((Number(v) / total) * 100).toFixed(0);
+              return [`${v} (${pct}%)`, name];
+            }}
           />
           <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }} />
         </RechartsPieChart>

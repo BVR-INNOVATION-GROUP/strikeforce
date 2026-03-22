@@ -145,16 +145,25 @@ export function useProjectDetailPage(
     ReturnType<typeof transformProjectForDisplay>
   > | null>(null);
 
+  /** Avoid wiping chat on every [userId] hydration — only reset when switching projects. */
+  const chatLoadedProjectIdRef = useRef<string | undefined>(undefined);
+
   // Load chat data - wrapped in try-catch to prevent blocking UI
   useEffect(() => {
     const loadChatData = async () => {
       if (!projectId) return;
 
-      // Initialize empty state first to prevent UI blocking
-      setChatThreadId(null);
-      setChatMessages([]);
-      setMessages([]);
-      setChatUsers({});
+      const previousProjectId = chatLoadedProjectIdRef.current;
+      const projectSwitched =
+        previousProjectId !== undefined && previousProjectId !== projectId;
+
+      if (projectSwitched) {
+        setChatThreadId(null);
+        setChatMessages([]);
+        setMessages([]);
+        setChatUsers({});
+      }
+      chatLoadedProjectIdRef.current = projectId;
 
       // Load chat data in background - errors should not block UI
       try {

@@ -202,8 +202,8 @@ export default function PartnerDashboard() {
     <div className="w-full flex flex-col min-h-full">
       {/* Header */}
       <div className="flex-shrink-0 mb-6">
-        <h1 className="text-xl font-semibold text-slate-800 mb-2">Dashboard</h1>
-        <p className="text-sm text-slate-600">Overview of projects, wallet, and activity</p>
+        <h1 className="text-xl font-semibold  mb-2">Dashboard</h1>
+        <p className="text-sm ">Overview of projects, wallet, and activity</p>
       </div>
 
       {/* Secondary Statistics Cards */}

@@ -16,11 +16,20 @@ type Role = "partner" | "student" | "supervisor" | "university-admin" | "delegat
  * Slides in from the left on small screens, replaces the icon-only sidebar
  */
 const SidebarDrawer = () => {
-  const { user } = useAuthStore();
+  const { user, organization } = useAuthStore();
   const { isDrawerOpen, closeDrawer } = useUIStore();
   const pathname = usePathname();
   const userRole: Role = user?.role || "partner";
-  const allLinks = useSidebarLinks(userRole);
+  const allLinks = useSidebarLinks(
+    userRole,
+    userRole === "delegated-admin" ? organization?.type : undefined
+  );
+  const pathMatchRole =
+    userRole === "delegated-admin" && organization?.type === "PARTNER"
+      ? "partner"
+      : userRole === "delegated-admin"
+        ? "university-admin"
+        : userRole;
   // On mobile, students see only Supervisor and Analytics in the drawer; rest are in tab nav
   const links =
     userRole === "student"
@@ -66,7 +75,8 @@ const SidebarDrawer = () => {
             <nav className="flex flex-col gap-1 p-4 overflow-y-auto">
               {links?.map((l, i) => {
                 const exactMatch = pathname === l.path;
-                const isDashboardRoute = l.path === `/${userRole}` || l.path === `/${userRole}/`;
+                const isDashboardRoute =
+                  l.path === `/${pathMatchRole}` || l.path === `/${pathMatchRole}/`;
                 const prefixMatch = !isDashboardRoute && pathname && pathname.startsWith(l.path + "/");
                 const isActive = exactMatch || prefixMatch;
                 const IconComponent = l.iconComponent;

@@ -88,6 +88,26 @@ const UseTestAuth = () => {
   );
 };
 
+/** Middleware cookie: include org type for delegated-admin so /partner vs /university-admin can be enforced */
+function syncUserAccessCookie(
+  user: UserI | null,
+  organization: OrganizationI | null
+) {
+  if (typeof document === "undefined") return;
+  if (!user) {
+    document.cookie = "user=; path=/; max-age=0";
+    return;
+  }
+  const payload: Record<string, string | number> = {
+    role: user.role,
+    id: typeof user.id === "number" ? user.id : Number(user.id),
+  };
+  if (user.role === "delegated-admin" && organization?.type) {
+    payload.orgType = organization.type;
+  }
+  document.cookie = `user=${encodeURIComponent(JSON.stringify(payload))}; path=/; max-age=86400`;
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -115,6 +135,7 @@ export const useAuthStore = create<AuthState>()(
       },
       setOrganization: (organization) => {
         set({ organization });
+        syncUserAccessCookie(get().user, organization);
       },
       setUser: async (user) => {
         const currentState = get();
@@ -136,10 +157,10 @@ export const useAuthStore = create<AuthState>()(
         if (user && effectiveOrgId) {
           // Only fetch if orgId changed, otherwise preserve existing organization
           if (currentOrgId === effectiveOrgId && currentState.organization) {
-            // Same orgId, keep existing organization
+            syncUserAccessCookie(user, currentState.organization);
             return;
           }
-          
+
           try {
             const { organizationService } = await import(
               "@/src/services/organizationService"
@@ -148,17 +169,19 @@ export const useAuthStore = create<AuthState>()(
               .getOrganization(effectiveOrgId.toString())
               .catch(() => null);
             set({ organization });
+            syncUserAccessCookie(get().user, organization);
           } catch (error) {
             console.error("Failed to fetch organization:", error);
             // Preserve existing organization if orgId hasn't changed
             if (currentOrgId === effectiveOrgId && currentState.organization) {
-              // Keep existing organization on fetch error if orgId is the same
+              syncUserAccessCookie(user, currentState.organization);
               return;
             }
             // Only set to null if orgId actually changed
             if (currentOrgId !== effectiveOrgId) {
               set({ organization: null });
             }
+            syncUserAccessCookie(get().user, get().organization);
           }
         } else {
           // Only clear organization if user explicitly has no orgId AND had one before
@@ -167,19 +190,7 @@ export const useAuthStore = create<AuthState>()(
             // User explicitly lost orgId
             set({ organization: null });
           }
-          // Otherwise, preserve existing organization if it exists
-        }
-
-        // Set cookie for middleware (in production, handled by NextAuth)
-        if (typeof document !== "undefined") {
-          if (user) {
-            document.cookie = `user=${JSON.stringify({
-              role: user.role,
-              id: user.id,
-            })}; path=/; max-age=86400`;
-          } else {
-            document.cookie = "user=; path=/; max-age=0";
-          }
+          syncUserAccessCookie(get().user, get().organization);
         }
       },
       logout: () => {
@@ -342,12 +353,7 @@ export const useAuthStore = create<AuthState>()(
             }
           }
 
-          if (typeof document !== "undefined") {
-            document.cookie = `user=${JSON.stringify({
-              role: universityAdmin.role,
-              id: universityAdmin.id,
-            })}; path=/; max-age=86400`;
-          }
+          syncUserAccessCookie(get().user, get().organization);
         }
       },
       initializeFromStorage: async () => {
@@ -360,12 +366,8 @@ export const useAuthStore = create<AuthState>()(
         // Zustand persist middleware automatically restores state from localStorage
         // We just need to ensure the cookie is set for middleware compatibility
         const state = get();
-        if (state.user && typeof document !== "undefined") {
-          // Ensure cookie is set for middleware
-          document.cookie = `user=${JSON.stringify({
-            role: state.user.role,
-            id: state.user.id,
-          })}; path=/; max-age=86400`;
+        if (state.user) {
+          syncUserAccessCookie(state.user, state.organization);
         }
       },
     }),
@@ -437,10 +439,10 @@ export const useAuthStore = create<AuthState>()(
                 if (UseTestAuth() && rehydratedState.user) {
                   const logoutFlag = sessionStorage.getItem("__logout_flag__");
                   if (logoutFlag !== "true") {
-                    document.cookie = `user=${JSON.stringify({
-                      role: rehydratedState.user.role,
-                      id: rehydratedState.user.id,
-                    })}; path=/; max-age=86400`;
+                    syncUserAccessCookie(
+                      rehydratedState.user,
+                      rehydratedState.organization ?? null
+                    );
                   }
                 }
               } catch (err) {

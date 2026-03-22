@@ -24,23 +24,25 @@ export interface SidebarLinkData {
 /**
  * Get filtered sidebar links based on user role
  * Returns links with iconComponent (not JSX) - render in component
+ * @param delegatedOrgType — for role delegated-admin: organization type (PARTNER vs UNIVERSITY) sets which app surface they use
  */
-export function useSidebarLinks(userRole?: Role): SidebarLinkData[] {
+export function useSidebarLinks(
+  userRole?: Role,
+  delegatedOrgType?: string | null
+): SidebarLinkData[] {
   if (!userRole) {
     const defaultCategory = sidebarLinks.find((cat) => cat.role === "partner");
     return defaultCategory?.links || [];
   }
 
-  // Delegated-admin should see the same links as university-admin, but without "Delegated Access"
-  const roleToLookup =
-    userRole === "delegated-admin" ? "university-admin" : userRole;
-  const category = sidebarLinks.find((cat) => cat.role === roleToLookup);
-  const links = category?.links || [];
-
-  // Filter out "Delegated Access" link for delegated-admin users
   if (userRole === "delegated-admin") {
+    const surface: Role =
+      delegatedOrgType === "PARTNER" ? "partner" : "university-admin";
+    const category = sidebarLinks.find((cat) => cat.role === surface);
+    const links = category?.links || [];
     return links.filter((link) => link.title !== "Delegated Access");
   }
 
-  return links;
+  const category = sidebarLinks.find((cat) => cat.role === userRole);
+  return category?.links || [];
 }
